@@ -34,12 +34,33 @@ type Invoice = {
   status: "paid" | "pending" | "overdue";
 };
 
+type BillItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  tax: number;
+};
+
 type Bill = {
   id: string;
   number: string;
+  vendorInvoiceNo?: string;
   vendor: string;
+  vendorEmail?: string;
   amount: number;
-  date: string;
+  issueDate: string;
+  dueDate: string;
+  currency: string;
+  paymentTerms: string;
+  category: string;
+  items: BillItem[];
+  subtotal: number;
+  taxTotal: number;
+  discount: number;
+  shipping: number;
+  notes?: string;
+  attachments?: string[];
   status: "paid" | "pending";
 };
 
@@ -57,8 +78,19 @@ type Customer = {
 type Vendor = {
   id: string;
   name: string;
+  contactPerson?: string;
   email: string;
+  phone?: string;
   category: string;
+  taxId?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  bankName?: string;
+  bankAccountNo?: string;
+  bankIfsc?: string;
+  paymentTerms?: string;
   balance: number;
 };
 
@@ -130,13 +162,47 @@ function AkauntingContent() {
     baseCurrency: "USD ($)",
   });
 
-  // CRM Leads & Invoices State
+  // State Collections
   const [crmLeads, setCrmLeads] = useState<CrmLead[]>([]);
   const [loadingLeads, setLoadingLeads] = useState<boolean>(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([
+    {
+      id: "v1",
+      name: "AWS Cloud Services",
+      contactPerson: "Enterprise Accounts",
+      email: "billing@aws.com",
+      phone: "+1 (800) 289-4357",
+      category: "Infrastructure",
+      taxId: "TAX-AWS-9912",
+      website: "https://aws.amazon.com",
+      address: "410 Terry Ave N",
+      city: "Seattle",
+      country: "USA",
+      bankName: "JPMorgan Chase",
+      bankAccountNo: "****9921",
+      bankIfsc: "CHASUS33",
+      paymentTerms: "Net 30",
+      balance: 0.00,
+    },
+    {
+      id: "v2",
+      name: "Office Space Holdings",
+      contactPerson: "Leasing Office",
+      email: "lease@officespace.com",
+      phone: "+1 (555) 300-1200",
+      category: "Rent & Real Estate",
+      taxId: "TAX-OSH-4411",
+      website: "https://officespace.com",
+      address: "100 Commercial Blvd",
+      city: "San Francisco",
+      country: "USA",
+      paymentTerms: "Due on Receipt",
+      balance: 0.00,
+    },
+  ]);
 
   // Fetch Live Auth & Organization Data from Backend API (/api/auth/me)
   useEffect(() => {
@@ -206,7 +272,6 @@ function AkauntingContent() {
           const leadsArray: CrmLead[] = Array.isArray(data) ? data : (data.leads || data.data || []);
           setCrmLeads(leadsArray);
 
-          // Convert CRM Leads into selectable customer contacts
           const convertedLeadsAsCustomers: Customer[] = leadsArray.map(lead => ({
             id: `crm-${lead.id}`,
             name: lead.companyName || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.name || "CRM Lead",
@@ -249,11 +314,47 @@ function AkauntingContent() {
   const [newCustEmail, setNewCustEmail] = useState("");
   const [newCustPhone, setNewCustPhone] = useState("");
 
-  // Modal State for New Vendor
+  // Comprehensive Modal State for New Vendor Profile
   const [showVendorModal, setShowVendorModal] = useState(false);
-  const [newVendName, setNewVendName] = useState("");
-  const [newVendEmail, setNewVendEmail] = useState("");
-  const [newVendCategory, setNewVendCategory] = useState("Services");
+  const [vendName, setVendName] = useState("");
+  const [vendContactPerson, setVendContactPerson] = useState("");
+  const [vendEmail, setVendEmail] = useState("");
+  const [vendPhone, setVendPhone] = useState("");
+  const [vendCategory, setVendCategory] = useState("Services");
+  const [vendTaxId, setVendTaxId] = useState("");
+  const [vendWebsite, setVendWebsite] = useState("");
+  const [vendAddress, setVendAddress] = useState("");
+  const [vendCity, setVendCity] = useState("");
+  const [vendCountry, setVendCountry] = useState("USA");
+  const [vendBankName, setVendBankName] = useState("");
+  const [vendBankAccountNo, setVendBankAccountNo] = useState("");
+  const [vendBankIfsc, setVendBankIfsc] = useState("");
+  const [vendPaymentTerms, setVendPaymentTerms] = useState("Net 30");
+
+  // Comprehensive Modal State for New Purchase Bill
+  const [showBillModal, setShowBillModal] = useState(false);
+  const [selectedBillDetail, setSelectedBillDetail] = useState<Bill | null>(null);
+
+  const [billNumber, setBillNumber] = useState(`BILL-2026-00${bills.length + 1}`);
+  const [billVendorInvoiceNo, setBillVendorInvoiceNo] = useState("");
+  const [billVendor, setBillVendor] = useState(vendors[0]?.name || "AWS Cloud Services");
+  const [billVendorEmail, setBillVendorEmail] = useState(vendors[0]?.email || "billing@aws.com");
+  const [billCategory, setBillCategory] = useState("Infrastructure");
+  const [billIssueDate, setBillIssueDate] = useState(new Date().toISOString().split("T")[0]);
+  const [billDueDate, setBillDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split("T")[0];
+  });
+  const [billCurrency, setBillCurrency] = useState("USD ($)");
+  const [billPaymentTerms, setBillPaymentTerms] = useState("Net 30");
+  const [billItems, setBillItems] = useState<BillItem[]>([
+    { id: "1", name: "Cloud Server Hosting & Resources", quantity: 1, price: 1200.00, tax: 0 },
+  ]);
+  const [billDiscount, setBillDiscount] = useState<number>(0);
+  const [billShipping, setBillShipping] = useState<number>(0);
+  const [billNotes, setBillNotes] = useState("Purchase bill for monthly vendor services.");
+  const [billAttachments, setBillAttachments] = useState<File[]>([]);
 
   // Advanced Invoice Form State
   const [invNumber, setInvNumber] = useState(`INV-2026-00${invoices.length + 1}`);
@@ -306,6 +407,17 @@ function AkauntingContent() {
     }
   };
 
+  // Sync vendor details when vendor selection changes
+  const handleVendorSelect = (vendorName: string) => {
+    setBillVendor(vendorName);
+    const found = vendors.find(v => v.name === vendorName);
+    if (found) {
+      setBillVendorEmail(found.email);
+      setBillCategory(found.category);
+      if (found.paymentTerms) setBillPaymentTerms(found.paymentTerms);
+    }
+  };
+
   // Save Organization Profile
   const handleSaveOrganizationProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,7 +460,7 @@ function AkauntingContent() {
     }
   };
 
-  // Line Items Controls
+  // Invoice Line Items Controls
   const addLineItem = () => {
     setInvItems([
       ...invItems,
@@ -370,12 +482,38 @@ function AkauntingContent() {
     setInvItems(invItems.filter(item => item.id !== id));
   };
 
-  // Invoice Calculations
+  // Bill Line Items Controls
+  const addBillLineItem = () => {
+    setBillItems([
+      ...billItems,
+      { id: Date.now().toString(), name: "", quantity: 1, price: 0, tax: 0 },
+    ]);
+  };
+
+  const updateBillLineItem = (id: string, field: keyof BillItem, value: string | number) => {
+    setBillItems(billItems.map(item => {
+      if (item.id === id) {
+        return { ...item, [field]: value };
+      }
+      return item;
+    }));
+  };
+
+  const removeBillLineItem = (id: string) => {
+    if (billItems.length === 1) return;
+    setBillItems(billItems.filter(item => item.id !== id));
+  };
+
+  // Calculations
   const calculatedSubtotal = invItems.reduce((acc, item) => acc + (item.quantity * item.price), 0);
   const calculatedTaxTotal = invItems.reduce((acc, item) => acc + ((item.quantity * item.price) * (item.tax / 100)), 0);
   const calculatedGrandTotal = Math.max(0, calculatedSubtotal + calculatedTaxTotal - invDiscount + invShipping);
 
-  // Handle Create Invoice
+  const calculatedBillSubtotal = billItems.reduce((acc, item) => acc + (item.quantity * item.price), 0);
+  const calculatedBillTaxTotal = billItems.reduce((acc, item) => acc + ((item.quantity * item.price) * (item.tax / 100)), 0);
+  const calculatedBillGrandTotal = Math.max(0, calculatedBillSubtotal + calculatedBillTaxTotal - billDiscount + billShipping);
+
+  // Create Invoice
   const handleCreateInvoice = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -404,13 +542,90 @@ function AkauntingContent() {
     setInvoices([newInvoice, ...invoices]);
     setShowInvoiceModal(false);
 
-    // Reset Form
     setInvNumber(`INV-2026-00${invoices.length + 2}`);
     setInvPoNumber("");
     setInvItems([{ id: "1", name: "", quantity: 1, price: 0, tax: 0 }]);
     setInvDiscount(0);
     setInvShipping(0);
     setInvAttachments([]);
+  };
+
+  // Create Purchase Bill
+  const handleCreateBill = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const newBill: Bill = {
+      id: Date.now().toString(),
+      number: billNumber,
+      vendorInvoiceNo: billVendorInvoiceNo,
+      vendor: billVendor,
+      vendorEmail: billVendorEmail,
+      amount: calculatedBillGrandTotal,
+      issueDate: billIssueDate,
+      dueDate: billDueDate,
+      currency: billCurrency,
+      paymentTerms: billPaymentTerms,
+      category: billCategory,
+      items: billItems,
+      subtotal: calculatedBillSubtotal,
+      taxTotal: calculatedBillTaxTotal,
+      discount: billDiscount,
+      shipping: billShipping,
+      notes: billNotes,
+      attachments: billAttachments.map(f => f.name),
+      status: "pending",
+    };
+
+    setBills([newBill, ...bills]);
+    setShowBillModal(false);
+
+    setBillNumber(`BILL-2026-00${bills.length + 2}`);
+    setBillVendorInvoiceNo("");
+    setBillItems([{ id: "1", name: "", quantity: 1, price: 0, tax: 0 }]);
+    setBillDiscount(0);
+    setBillShipping(0);
+    setBillAttachments([]);
+  };
+
+  // Add Comprehensive New Vendor Profile
+  const handleAddVendor = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!vendName) return;
+
+    const newV: Vendor = {
+      id: Date.now().toString(),
+      name: vendName,
+      contactPerson: vendContactPerson,
+      email: vendEmail,
+      phone: vendPhone,
+      category: vendCategory,
+      taxId: vendTaxId,
+      website: vendWebsite,
+      address: vendAddress,
+      city: vendCity,
+      country: vendCountry,
+      bankName: vendBankName,
+      bankAccountNo: vendBankAccountNo,
+      bankIfsc: vendBankIfsc,
+      paymentTerms: vendPaymentTerms,
+      balance: 0.00,
+    };
+
+    setVendors([...vendors, newV]);
+    setShowVendorModal(false);
+
+    // Reset Form
+    setVendName("");
+    setVendContactPerson("");
+    setVendEmail("");
+    setVendPhone("");
+    setVendTaxId("");
+    setVendWebsite("");
+    setVendAddress("");
+    setVendCity("");
+    setVendBankName("");
+    setVendBankAccountNo("");
+    setVendBankIfsc("");
   };
 
   // Add New Customer
@@ -433,27 +648,12 @@ function AkauntingContent() {
     setNewCustPhone("");
   };
 
-  // Add New Vendor
-  const handleAddVendor = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newVendName) return;
-
-    const newV: Vendor = {
-      id: Date.now().toString(),
-      name: newVendName,
-      email: newVendEmail,
-      category: newVendCategory,
-      balance: 0.00,
-    };
-
-    setVendors([...vendors, newV]);
-    setShowVendorModal(false);
-    setNewVendName("");
-    setNewVendEmail("");
-  };
-
   const markInvoicePaid = (id: string) => {
     setInvoices(invoices.map(inv => inv.id === id ? { ...inv, status: "paid" } : inv));
+  };
+
+  const markBillPaid = (id: string) => {
+    setBills(bills.map(b => b.id === id ? { ...b, status: "paid" } : b));
   };
 
   // Financial Calculations
@@ -476,11 +676,6 @@ function AkauntingContent() {
               <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
                 ACTIVE ORGANISATION
               </span>
-              {crmLeads.length > 0 && (
-                <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-800">
-                  ⚡ {crmLeads.length} CRM LEADS LOADED
-                </span>
-              )}
             </div>
             <p className="text-xs text-[#5b6472]">
               Logged in as <strong className="text-[#1f2430]">{userProfile.firstName || userProfile.lastName ? `${userProfile.firstName} ${userProfile.lastName}`.trim() : "Admin"}</strong> ({userProfile.email || "Primary Account"})
@@ -496,7 +691,7 @@ function AkauntingContent() {
             { id: "crm-leads", label: `CRM Leads (${crmLeads.length})` },
             { id: "customers", label: "Customers" },
             { id: "bills", label: "Bills & Expenses" },
-            { id: "vendors", label: "Vendors" },
+            { id: "vendors", label: "Vendors & Suppliers" },
             { id: "reports", label: "Reports" },
             { id: "settings", label: "Company Profile" },
           ].map((tab) => (
@@ -532,13 +727,13 @@ function AkauntingContent() {
             </div>
 
             <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Active CRM Leads</div>
-              <div className="mt-2 text-2xl font-bold text-blue-600">{crmLeads.length}</div>
-              <div className="mt-1 text-xs font-medium text-blue-600">Ready for invoice conversion</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Total Bills & Expenses</div>
+              <div className="mt-2 text-2xl font-bold text-rose-500">${totalExpenses.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+              <div className="mt-1 text-xs font-medium text-rose-500">{bills.length} Purchase bills logged</div>
             </div>
 
             <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Net Operating Profit</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Net Profit</div>
               <div className="mt-2 text-2xl font-bold text-[#6678c1]">${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
               <div className="mt-1 text-xs font-medium text-emerald-600">Net margin</div>
             </div>
@@ -593,13 +788,13 @@ function AkauntingContent() {
             </div>
 
             <div className="space-y-4 rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
-              <h2 className="text-base font-bold text-[#1f2430]">CRM & ERP Synchronization</h2>
+              <h2 className="text-base font-bold text-[#1f2430]">ERP Quick Actions</h2>
               <div className="space-y-2">
                 {[
-                  { label: "📥 Convert CRM Lead to Invoice", action: () => setActiveTab("crm-leads") },
-                  { label: "📄 Create Blank Invoice", action: () => setShowInvoiceModal(true) },
-                  { label: "👥 Add Customer Profile", action: () => setShowCustomerModal(true) },
-                  { label: "⚙️ Company Settings", action: () => setActiveTab("settings") },
+                  { label: "📄 Create Invoice", action: () => setShowInvoiceModal(true) },
+                  { label: "💸 Record Vendor Bill", action: () => setShowBillModal(true) },
+                  { label: "🏢 Add New Vendor / Supplier", action: () => setShowVendorModal(true) },
+                  { label: "📥 Convert CRM Lead", action: () => setActiveTab("crm-leads") },
                 ].map((act) => (
                   <button
                     key={act.label}
@@ -616,7 +811,7 @@ function AkauntingContent() {
         </div>
       )}
 
-      {/* CRM LEADS TAB (Convert CRM Lead to Invoice) */}
+      {/* CRM LEADS TAB */}
       {activeTab === "crm-leads" && (
         <div className="space-y-6">
           <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
@@ -748,56 +943,20 @@ function AkauntingContent() {
         </div>
       )}
 
-      {/* CUSTOMERS TAB */}
-      {activeTab === "customers" && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
-            <div>
-              <h2 className="text-lg font-bold text-[#1f2430]">Customers & CRM Leads Directory</h2>
-              <p className="text-xs text-[#5b6472]">Client profiles and CRM leads synced for {orgProfile.name}</p>
-            </div>
-            <button
-              onClick={() => setShowCustomerModal(true)}
-              className="rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#404d85]"
-            >
-              + Add Customer
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {customers.map((c) => (
-              <div key={c.id} className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef2fa] font-bold text-[#6678c1]">
-                    {c.name.charAt(0)}
-                  </div>
-                  {c.isCrmLead && (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">
-                      CRM LEAD
-                    </span>
-                  )}
-                </div>
-                <h3 className="mt-3 font-bold text-[#1f2430]">{c.name}</h3>
-                <p className="text-xs text-[#5b6472]">{c.email || "No email provided"}</p>
-                <p className="text-xs text-[#5b6472]">{c.phone || "No phone provided"}</p>
-                <div className="mt-4 border-t border-[#d9e2ef] pt-3 flex justify-between items-center text-xs">
-                  <span className="text-[#5b6472]">Balance / Est. Value:</span>
-                  <span className="font-bold text-[#1f2430]">${(c.balance || c.estimatedValue || 0).toFixed(2)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* BILLS TAB */}
       {activeTab === "bills" && (
         <div className="space-y-6">
           <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
             <div>
               <h2 className="text-lg font-bold text-[#1f2430]">Purchase Bills & Expenses</h2>
-              <p className="text-xs text-[#5b6472]">Vendor payables for {orgProfile.name}</p>
+              <p className="text-xs text-[#5b6472]">Full multi-item purchase bill creation & expense tracking for {orgProfile.name}</p>
             </div>
+            <button
+              onClick={() => setShowBillModal(true)}
+              className="rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#404d85]"
+            >
+              + Record Vendor Bill
+            </button>
           </div>
 
           <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
@@ -806,23 +965,41 @@ function AkauntingContent() {
                 <thead>
                   <tr className="border-b border-[#d9e2ef] text-[#5b6472]">
                     <th className="pb-3 font-semibold">Bill #</th>
+                    <th className="pb-3 font-semibold">Vendor Invoice #</th>
                     <th className="pb-3 font-semibold">Vendor</th>
-                    <th className="pb-3 font-semibold">Date</th>
+                    <th className="pb-3 font-semibold">Category</th>
+                    <th className="pb-3 font-semibold">Issue Date</th>
                     <th className="pb-3 font-semibold">Amount</th>
                     <th className="pb-3 font-semibold">Status</th>
+                    <th className="pb-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#d9e2ef]">
                   {bills.map((b) => (
                     <tr key={b.id} className="hover:bg-[#f8faff]">
                       <td className="py-3.5 font-semibold text-[#1f2430]">{b.number}</td>
-                      <td className="py-3.5 text-[#5b6472]">{b.vendor}</td>
-                      <td className="py-3.5 text-[#5b6472]">{b.date}</td>
+                      <td className="py-3.5 text-xs text-[#5b6472]">{b.vendorInvoiceNo || "-"}</td>
+                      <td className="py-3.5 text-[#5b6472]">
+                        <div className="font-medium text-[#1f2430]">{b.vendor}</div>
+                        <div className="text-xs text-[#5b6472]">{b.vendorEmail}</div>
+                      </td>
+                      <td className="py-3.5 text-xs font-medium text-[#6678c1]">{b.category}</td>
+                      <td className="py-3.5 text-[#5b6472]">{b.issueDate}</td>
                       <td className="py-3.5 font-bold text-[#1f2430]">${b.amount.toFixed(2)}</td>
                       <td className="py-3.5">
                         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${b.status === "paid" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
                           {b.status.toUpperCase()}
                         </span>
+                      </td>
+                      <td className="py-3.5 text-right space-x-2">
+                        {b.status !== "paid" && (
+                          <button
+                            onClick={() => markBillPaid(b.id)}
+                            className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                          >
+                            Mark Paid
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -833,30 +1010,55 @@ function AkauntingContent() {
         </div>
       )}
 
-      {/* VENDORS TAB */}
+      {/* VENDORS & SUPPLIERS TAB */}
       {activeTab === "vendors" && (
         <div className="space-y-6">
           <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
             <div>
-              <h2 className="text-lg font-bold text-[#1f2430]">Vendor Directory</h2>
-              <p className="text-xs text-[#5b6472]">Suppliers for {orgProfile.name}</p>
+              <h2 className="text-lg font-bold text-[#1f2430]">Vendor & Supplier Directory</h2>
+              <p className="text-xs text-[#5b6472]">Complete vendor profiles with tax IDs, banking details, and addresses for {orgProfile.name}</p>
             </div>
             <button
               onClick={() => setShowVendorModal(true)}
               className="rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#404d85]"
             >
-              + Add Vendor
+              + Add New Vendor
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {vendors.map((v) => (
-              <div key={v.id} className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-                <span className="rounded-full bg-[#f8faff] px-2.5 py-1 text-xs font-semibold text-[#6678c1]">{v.category}</span>
-                <h3 className="mt-3 font-bold text-[#1f2430]">{v.name}</h3>
-                <p className="text-xs text-[#5b6472]">{v.email}</p>
-                <div className="mt-4 border-t border-[#d9e2ef] pt-3 flex justify-between items-center text-xs">
-                  <span className="text-[#5b6472]">Current Payable:</span>
+              <div key={v.id} className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-[#d9e2ef] pb-3">
+                  <span className="rounded-full bg-[#f8faff] px-3 py-1 text-xs font-semibold text-[#6678c1] border border-[#d9e2ef]">
+                    {v.category}
+                  </span>
+                  <span className="text-xs text-[#5b6472]">Terms: <strong>{v.paymentTerms || "Net 30"}</strong></span>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-bold text-[#1f2430]">{v.name}</h3>
+                  {v.contactPerson && <p className="text-xs font-medium text-[#6678c1]">Attn: {v.contactPerson}</p>}
+                </div>
+
+                <div className="space-y-1.5 text-xs text-[#5b6472]">
+                  <div className="flex items-center gap-2">
+                    <span>📧 {v.email}</span>
+                  </div>
+                  {v.phone && <div className="flex items-center gap-2"><span>📞 {v.phone}</span></div>}
+                  {v.taxId && <div>GSTIN / Tax ID: <strong className="text-[#1f2430]">{v.taxId}</strong></div>}
+                  {v.address && <div>Address: {v.address}, {v.city || ""} ({v.country || ""})</div>}
+                  {v.bankName && (
+                    <div className="mt-2 rounded-xl bg-[#f8faff] p-2.5 border border-[#d9e2ef] text-[11px]">
+                      <div className="font-bold text-[#1f2430]">🏦 Bank Account Details:</div>
+                      <div>Bank: {v.bankName}</div>
+                      <div>A/C: {v.bankAccountNo} {v.bankIfsc ? `| IFSC: ${v.bankIfsc}` : ""}</div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-[#d9e2ef] pt-3 flex justify-between items-center text-xs">
+                  <span className="text-[#5b6472]">Current Payable Balance:</span>
                   <span className="font-bold text-[#1f2430]">${v.balance.toFixed(2)}</span>
                 </div>
               </div>
@@ -865,156 +1067,427 @@ function AkauntingContent() {
         </div>
       )}
 
-      {/* REPORTS TAB */}
-      {activeTab === "reports" && (
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-[#1f2430]">Financial Statement — {orgProfile.name}</h2>
-            <p className="text-xs text-[#5b6472]">Profit & Loss ledger report for {orgProfile.legalName || orgProfile.name}</p>
-
-            <div className="mt-6 space-y-4 rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-6 text-sm">
-              <div className="flex justify-between border-b border-[#d9e2ef] pb-3 font-bold text-[#1f2430]">
-                <span>Category</span>
-                <span>YTD Amount</span>
-              </div>
-              <div className="flex justify-between text-emerald-700 font-semibold">
-                <span>Gross Invoiced Sales</span>
-                <span>+${invoices.reduce((a, b) => a + b.amount, 0).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-rose-600 font-semibold">
-                <span>Total Operating Expenses</span>
-                <span>-${totalExpenses.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between border-t-2 border-[#1f2430] pt-3 text-base font-bold text-[#6678c1]">
-                <span>Net Operating Income</span>
-                <span>${netProfit.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SETTINGS / COMPANY PROFILE TAB */}
-      {activeTab === "settings" && (
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm space-y-6">
+      {/* COMPREHENSIVE NEW VENDOR CREATION MODAL */}
+      {showVendorModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="my-8 w-full max-w-3xl rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#d9e2ef] pb-4">
               <div>
-                <h2 className="text-lg font-bold text-[#1f2430]">Company Profile & Organization Details</h2>
-                <p className="text-xs text-[#5b6472]">Shared across all SaaS modules (Akaunting, CRM, Invoicing, Store)</p>
+                <h3 className="text-xl font-bold text-[#1f2430]">Add New Vendor / Supplier Profile</h3>
+                <p className="text-xs text-[#5b6472]">Enter full vendor details including tax IDs, banking information, and billing address</p>
               </div>
-              {saveStatus && (
-                <div className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 border border-emerald-200">
-                  {saveStatus}
-                </div>
-              )}
+              <button onClick={() => setShowVendorModal(false)} className="rounded-lg p-2 text-[#5b6472] hover:bg-[#f8faff]">✕</button>
             </div>
 
-            <form onSubmit={handleSaveOrganizationProfile} className="space-y-6">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold text-[#5b6472]">Organization Display Name *</label>
-                  <input
-                    type="text"
-                    value={orgProfile.name}
-                    onChange={(e) => setOrgProfile({ ...orgProfile, name: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#5b6472]">Legal Registered Business Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Cambliss Technologies Pvt Ltd"
-                    value={orgProfile.legalName}
-                    onChange={(e) => setOrgProfile({ ...orgProfile, legalName: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#5b6472]">Business Support Email</label>
-                  <input
-                    type="email"
-                    placeholder="e.g. billing@camblissstudio.com"
-                    value={orgProfile.supportEmail}
-                    onChange={(e) => setOrgProfile({ ...orgProfile, supportEmail: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#5b6472]">Support Phone Number</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. +1 (555) 019-2831"
-                    value={orgProfile.supportPhone}
-                    onChange={(e) => setOrgProfile({ ...orgProfile, supportPhone: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#5b6472]">Tax ID / PAN Number</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. ABCDE1234F or Tax ID"
-                    value={orgProfile.panNumber}
-                    onChange={(e) => setOrgProfile({ ...orgProfile, panNumber: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#5b6472]">Business Type / Category</label>
-                  <input
-                    type="text"
-                    value={orgProfile.businessType}
-                    onChange={(e) => setOrgProfile({ ...orgProfile, businessType: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#5b6472]">Address Line 1</label>
-                  <input
-                    type="text"
-                    placeholder="Street address or suite #"
-                    value={orgProfile.addressLine1}
-                    onChange={(e) => setOrgProfile({ ...orgProfile, addressLine1: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#5b6472]">City & State</label>
-                  <div className="flex gap-2">
+            <form onSubmit={handleAddVendor} className="mt-6 space-y-6">
+              {/* Basic Info */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#6678c1]">1. General Company & Contact Information</h4>
+                <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Vendor / Company Name *</label>
                     <input
                       type="text"
-                      placeholder="City"
-                      value={orgProfile.city}
-                      onChange={(e) => setOrgProfile({ ...orgProfile, city: e.target.value })}
-                      className="mt-1 w-1/2 rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
+                      placeholder="e.g. Amazon Web Services Inc"
+                      value={vendName}
+                      onChange={(e) => setVendName(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                      required
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Contact Person / Manager</label>
                     <input
                       type="text"
-                      placeholder="State"
-                      value={orgProfile.state}
-                      onChange={(e) => setOrgProfile({ ...orgProfile, state: e.target.value })}
-                      className="mt-1 w-1/2 rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
+                      placeholder="e.g. John Smith"
+                      value={vendContactPerson}
+                      onChange={(e) => setVendContactPerson(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Email Address *</label>
+                    <input
+                      type="email"
+                      placeholder="e.g. billing@vendor.com"
+                      value={vendEmail}
+                      onChange={(e) => setVendEmail(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Phone Number</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. +1 (555) 019-2831"
+                      value={vendPhone}
+                      onChange={(e) => setVendPhone(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Expense Category</label>
+                    <select
+                      value={vendCategory}
+                      onChange={(e) => setVendCategory(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430] bg-white"
+                    >
+                      <option value="Infrastructure">Infrastructure & Cloud</option>
+                      <option value="Services">Professional Services</option>
+                      <option value="Hardware">Hardware & Equipment</option>
+                      <option value="Rent & Real Estate">Rent & Real Estate</option>
+                      <option value="Utilities">Utilities & Telecom</option>
+                      <option value="Marketing">Marketing & Ads</option>
+                      <option value="Logistics">Logistics & Freight</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Payment Terms</label>
+                    <select
+                      value={vendPaymentTerms}
+                      onChange={(e) => setVendPaymentTerms(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430] bg-white"
+                    >
+                      <option value="Due on Receipt">Due on Receipt</option>
+                      <option value="Net 15">Net 15 Days</option>
+                      <option value="Net 30">Net 30 Days</option>
+                      <option value="Net 60">Net 60 Days</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tax & Address */}
+              <div className="border-t border-[#d9e2ef] pt-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#6678c1]">2. Tax Details & Address</h4>
+                <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Tax ID / GSTIN / PAN</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. TAX-99120"
+                      value={vendTaxId}
+                      onChange={(e) => setVendTaxId(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Website URL</label>
+                    <input
+                      type="url"
+                      placeholder="https://vendor.com"
+                      value={vendWebsite}
+                      onChange={(e) => setVendWebsite(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">City & Country</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="City"
+                        value={vendCity}
+                        onChange={(e) => setVendCity(e.target.value)}
+                        className="mt-1 w-1/2 rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Country"
+                        value={vendCountry}
+                        onChange={(e) => setVendCountry(e.target.value)}
+                        className="mt-1 w-1/2 rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Banking & Settlement */}
+              <div className="border-t border-[#d9e2ef] pt-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#6678c1]">3. Bank Account & Settlement Info</h4>
+                <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Bank Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. JPMorgan Chase"
+                      value={vendBankName}
+                      onChange={(e) => setVendBankName(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Account Number</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 987654321"
+                      value={vendBankAccountNo}
+                      onChange={(e) => setVendBankAccountNo(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">IFSC / SWIFT Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. CHASUS33"
+                      value={vendBankIfsc}
+                      onChange={(e) => setVendBankIfsc(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-end gap-3 border-t border-[#d9e2ef] pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowVendorModal(false)}
+                  className="rounded-xl border border-[#d9e2ef] px-5 py-2.5 text-xs font-semibold text-[#5b6472] hover:bg-[#f8faff]"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
                   className="rounded-xl bg-[#6678c1] px-6 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-[#404d85]"
                 >
-                  Save Company Details to Database
+                  Save Vendor Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* COMPREHENSIVE NEW PURCHASE BILL CREATION MODAL */}
+      {showBillModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="my-8 w-full max-w-4xl rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#d9e2ef] pb-4">
+              <div>
+                <h3 className="text-xl font-bold text-[#1f2430]">Record New Purchase Bill / Expense</h3>
+                <p className="text-xs text-[#5b6472]">Log vendor invoice, line items, and expense category for {orgProfile.name}</p>
+              </div>
+              <button onClick={() => setShowBillModal(false)} className="rounded-lg p-2 text-[#5b6472] hover:bg-[#f8faff]">✕</button>
+            </div>
+
+            <form onSubmit={handleCreateBill} className="mt-6 space-y-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#5b6472]">Select Vendor *</label>
+                  <select
+                    value={billVendor}
+                    onChange={(e) => handleVendorSelect(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430] bg-white"
+                  >
+                    {vendors.map((v) => (
+                      <option key={v.id} value={v.name}>{v.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#5b6472]">Vendor Invoice Number</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. INV-VEND-992"
+                    value={billVendorInvoiceNo}
+                    onChange={(e) => setBillVendorInvoiceNo(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#5b6472]">Expense Category</label>
+                  <select
+                    value={billCategory}
+                    onChange={(e) => setBillCategory(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430] bg-white"
+                  >
+                    <option value="Infrastructure">Infrastructure</option>
+                    <option value="Services">Services</option>
+                    <option value="Hardware">Hardware</option>
+                    <option value="Rent & Real Estate">Rent & Real Estate</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Marketing">Marketing</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#5b6472]">Bill Number</label>
+                  <input
+                    type="text"
+                    value={billNumber}
+                    onChange={(e) => setBillNumber(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#5b6472]">Bill Date</label>
+                  <input
+                    type="date"
+                    value={billIssueDate}
+                    onChange={(e) => setBillIssueDate(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#5b6472]">Due Date</label>
+                  <input
+                    type="date"
+                    value={billDueDate}
+                    onChange={(e) => setBillDueDate(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Bill Items */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-[#1f2430]">Expense Items & Deliverables</h4>
+                  <button
+                    type="button"
+                    onClick={addBillLineItem}
+                    className="rounded-lg bg-[#eef2fa] px-3 py-1.5 text-xs font-semibold text-[#6678c1] hover:bg-[#6678c1] hover:text-white transition"
+                  >
+                    + Add Expense Item
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto rounded-xl border border-[#d9e2ef]">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#f8faff] text-[#5b6472]">
+                      <tr className="border-b border-[#d9e2ef]">
+                        <th className="p-3 font-semibold">Item Description</th>
+                        <th className="p-3 font-semibold w-24">Qty</th>
+                        <th className="p-3 font-semibold w-32">Unit Cost ($)</th>
+                        <th className="p-3 font-semibold w-28">Tax Rate (%)</th>
+                        <th className="p-3 font-semibold w-32 text-right">Amount ($)</th>
+                        <th className="p-3 font-semibold w-12 text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#d9e2ef]">
+                      {billItems.map((item) => {
+                        const lineTotal = item.quantity * item.price;
+                        return (
+                          <tr key={item.id} className="hover:bg-white">
+                            <td className="p-2">
+                              <input
+                                type="text"
+                                placeholder="Expense description"
+                                value={item.name}
+                                onChange={(e) => updateBillLineItem(item.id, "name", e.target.value)}
+                                className="w-full rounded-lg border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+                                required
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                min="1"
+                                value={item.quantity}
+                                onChange={(e) => updateBillLineItem(item.id, "quantity", parseFloat(e.target.value) || 1)}
+                                className="w-full rounded-lg border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+                                required
+                              />
+                            </td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={item.price}
+                                onChange={(e) => updateBillLineItem(item.id, "price", parseFloat(e.target.value) || 0)}
+                                className="w-full rounded-lg border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+                                required
+                              />
+                            </td>
+                            <td className="p-2">
+                              <select
+                                value={item.tax}
+                                onChange={(e) => updateBillLineItem(item.id, "tax", parseFloat(e.target.value) || 0)}
+                                className="w-full rounded-lg border border-[#d9e2ef] p-2 text-xs text-[#1f2430] bg-white"
+                              >
+                                <option value={0}>0% (None)</option>
+                                <option value={5}>5% (VAT)</option>
+                                <option value={8.5}>8.5% (State Tax)</option>
+                                <option value={18}>18% (GST)</option>
+                              </select>
+                            </td>
+                            <td className="p-2 text-right font-bold text-[#1f2430]">${lineTotal.toFixed(2)}</td>
+                            <td className="p-2 text-center">
+                              <button type="button" onClick={() => removeBillLineItem(item.id)} className="text-rose-500 hover:text-rose-700 font-bold">✕</button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Bill Totals */}
+              <div className="flex flex-col sm:flex-row justify-between gap-6 border-t border-[#d9e2ef] pt-4">
+                <div className="w-full sm:w-1/2 space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5b6472]">Vendor Notes & Descriptions</label>
+                    <textarea
+                      rows={2}
+                      value={billNotes}
+                      onChange={(e) => setBillNotes(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs text-[#1f2430]"
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full sm:w-5/12 rounded-2xl border border-[#d9e2ef] bg-[#f8faff] p-4 space-y-3 text-xs">
+                  <div className="flex justify-between text-[#5b6472]">
+                    <span>Subtotal:</span>
+                    <span className="font-bold text-[#1f2430]">${calculatedBillSubtotal.toFixed(2)}</span>
+                  </div>
+
+                  <div className="flex justify-between text-[#5b6472]">
+                    <span>Tax Total:</span>
+                    <span className="font-bold text-[#1f2430]">${calculatedBillTaxTotal.toFixed(2)}</span>
+                  </div>
+
+                  <div className="border-t border-[#d9e2ef] pt-3 flex justify-between items-center text-sm font-bold text-rose-600">
+                    <span>Total Bill Payable:</span>
+                    <span className="text-lg">${calculatedBillGrandTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-[#d9e2ef] pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowBillModal(false)}
+                  className="rounded-xl border border-[#d9e2ef] px-5 py-2.5 text-xs font-semibold text-[#5b6472] hover:bg-[#f8faff]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#6678c1] px-6 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-[#404d85]"
+                >
+                  Record Bill
                 </button>
               </div>
             </form>
@@ -1290,130 +1763,6 @@ function AkauntingContent() {
                   className="rounded-xl bg-[#6678c1] px-6 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-[#404d85]"
                 >
                   Create Invoice
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* CREATE CUSTOMER MODAL */}
-      {showCustomerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-[#1f2430]">Add New Customer</h3>
-            <form onSubmit={handleAddCustomer} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#5b6472]">Customer / Company Name *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Apex Global Ltd"
-                  value={newCustName}
-                  onChange={(e) => setNewCustName(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#5b6472]">Billing Email</label>
-                <input
-                  type="email"
-                  placeholder="e.g. billing@apex.com"
-                  value={newCustEmail}
-                  onChange={(e) => setNewCustEmail(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#5b6472]">Phone Number</label>
-                <input
-                  type="text"
-                  placeholder="e.g. +1 (555) 019-2831"
-                  value={newCustPhone}
-                  onChange={(e) => setNewCustPhone(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCustomerModal(false)}
-                  className="rounded-xl border border-[#d9e2ef] px-4 py-2 text-xs font-semibold text-[#5b6472] hover:bg-[#f8faff]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-semibold text-white hover:bg-[#404d85]"
-                >
-                  Add Customer
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* CREATE VENDOR MODAL */}
-      {showVendorModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-[#1f2430]">Add New Vendor / Supplier</h3>
-            <form onSubmit={handleAddVendor} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#5b6472]">Vendor Name *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Cloudflare Inc"
-                  value={newVendName}
-                  onChange={(e) => setNewVendName(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#5b6472]">Email Address</label>
-                <input
-                  type="email"
-                  placeholder="e.g. accounts@cloudflare.com"
-                  value={newVendEmail}
-                  onChange={(e) => setNewVendEmail(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#5b6472]">Expense Category</label>
-                <select
-                  value={newVendCategory}
-                  onChange={(e) => setNewVendCategory(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430] bg-white"
-                >
-                  <option value="Infrastructure">Infrastructure</option>
-                  <option value="Services">Services</option>
-                  <option value="Rent & Real Estate">Rent & Real Estate</option>
-                  <option value="Utilities">Utilities</option>
-                  <option value="Marketing">Marketing</option>
-                </select>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowVendorModal(false)}
-                  className="rounded-xl border border-[#d9e2ef] px-4 py-2 text-xs font-semibold text-[#5b6472] hover:bg-[#f8faff]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-semibold text-white hover:bg-[#404d85]"
-                >
-                  Add Vendor
                 </button>
               </div>
             </form>
