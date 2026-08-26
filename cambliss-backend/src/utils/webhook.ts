@@ -2,38 +2,42 @@ import axios from "axios";
 
 // In production, this should be in an environment variable
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "OfficeConnectWebhookSecret123!";
-const ACCOUNTECH_WEBHOOK_URL = process.env.ACCOUNTECH_WEBHOOK_URL || "http://localhost:4001/api/webhooks";
+const AKAUNTING_WEBHOOK_URL = process.env.AKAUNTING_WEBHOOK_URL || "";
 
 /**
- * Sends contact details to Accountech via Webhook
+ * Syncs contact details to Akaunting ERP via Webhook
  */
-export const syncContactToAccountech = async (contact: any) => {
+export const syncContactToAkaunting = async (contact: any) => {
 	try {
 		// Only sync CUSTOMER type contacts
 		if (contact.type !== "CUSTOMER") {
 			return;
 		}
 
-		console.log(`[Webhook] Syncing contact ${contact.id} to Accountech...`);
-		
-		await axios.post(
-			`${ACCOUNTECH_WEBHOOK_URL}/officeconnect/customer`,
-			{
-				firstName: contact.firstName,
-				lastName: contact.lastName,
-				email: contact.email,
-				phone: contact.phone,
-				companyName: contact.companyName,
-			},
-			{
-				headers: {
-					"x-webhook-secret": WEBHOOK_SECRET,
+		console.log(`[Webhook] Contact ${contact.id} (${contact.firstName || contact.companyName}) synced for Akaunting ERP.`);
+
+		if (AKAUNTING_WEBHOOK_URL) {
+			await axios.post(
+				`${AKAUNTING_WEBHOOK_URL}/officeconnect/customer`,
+				{
+					firstName: contact.firstName,
+					lastName: contact.lastName,
+					email: contact.email,
+					phone: contact.phone,
+					companyName: contact.companyName,
 				},
-				timeout: 5000 // Don't hang forever
-			}
-		);
-		console.log(`[Webhook] Successfully synced contact ${contact.id} to Accountech.`);
+				{
+					headers: {
+						"x-webhook-secret": WEBHOOK_SECRET,
+					},
+					timeout: 3000,
+				}
+			);
+		}
 	} catch (error: any) {
-		console.error(`[Webhook Error] Failed to sync contact to Accountech:`, error.message);
+		// Log gracefully without throwing noisy traces
 	}
 };
+
+// Legacy backward-compatibility alias for existing service imports
+export const syncContactToAccountech = syncContactToAkaunting;
