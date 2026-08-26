@@ -49,6 +49,9 @@ type Customer = {
   email: string;
   phone: string;
   balance: number;
+  isCrmLead?: boolean;
+  leadStatus?: string;
+  estimatedValue?: number;
 };
 
 type Vendor = {
@@ -57,6 +60,19 @@ type Vendor = {
   email: string;
   category: string;
   balance: number;
+};
+
+type CrmLead = {
+  id: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  email?: string;
+  phone?: string;
+  value?: number;
+  status?: string;
+  source?: string;
 };
 
 type OrganizationProfile = {
@@ -114,7 +130,9 @@ function AkauntingContent() {
     baseCurrency: "USD ($)",
   });
 
-  // Real Organization Invoices State
+  // CRM Leads & Invoices State
+  const [crmLeads, setCrmLeads] = useState<CrmLead[]>([]);
+  const [loadingLeads, setLoadingLeads] = useState<boolean>(false);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -172,6 +190,49 @@ function AkauntingContent() {
     fetchLiveOrganizationData();
   }, []);
 
+  // Fetch Real CRM Leads from Backend API (/api/crm/leads)
+  useEffect(() => {
+    const fetchCrmLeads = async () => {
+      try {
+        setLoadingLeads(true);
+        const token = localStorage.getItem("authToken");
+        const res = await fetch("/api/crm/leads", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const leadsArray: CrmLead[] = Array.isArray(data) ? data : (data.leads || data.data || []);
+          setCrmLeads(leadsArray);
+
+          // Convert CRM Leads into selectable customer contacts
+          const convertedLeadsAsCustomers: Customer[] = leadsArray.map(lead => ({
+            id: `crm-${lead.id}`,
+            name: lead.companyName || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.name || "CRM Lead",
+            email: lead.email || "",
+            phone: lead.phone || "",
+            balance: 0.00,
+            isCrmLead: true,
+            leadStatus: lead.status || "NEW",
+            estimatedValue: Number(lead.value) || 0,
+          }));
+
+          setCustomers(prev => {
+            const nonLeadCustomers = prev.filter(c => !c.isCrmLead);
+            return [...convertedLeadsAsCustomers, ...nonLeadCustomers];
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch CRM leads from backend API", err);
+      } finally {
+        setLoadingLeads(false);
+      }
+    };
+
+    fetchCrmLeads();
+  }, []);
+
   useEffect(() => {
     if (searchParams.get("view")) {
       setActiveTab(searchParams.get("view") || "dashboard");
@@ -208,7 +269,7 @@ function AkauntingContent() {
   const [invCurrency, setInvCurrency] = useState(orgProfile.baseCurrency || "USD ($)");
   const [invPaymentTerms, setInvPaymentTerms] = useState("Net 30");
   const [invItems, setInvItems] = useState<InvoiceItem[]>([
-    { id: "1", name: "Professional Services", quantity: 1, price: 500.00, tax: 0 },
+    { id: "1", name: "Professional Services & Deliverables", quantity: 1, price: 500.00, tax: 0 },
   ]);
   const [invDiscount, setInvDiscount] = useState<number>(0);
   const [invShipping, setInvShipping] = useState<number>(0);
@@ -216,16 +277,36 @@ function AkauntingContent() {
   const [invTerms, setInvTerms] = useState("Payment is due within agreement terms.");
   const [invAttachments, setInvAttachments] = useState<File[]>([]);
 
+  // Function to Convert CRM Lead directly to Invoice
+  const convertCrmLeadToInvoice = (lead: CrmLead) => {
+    const leadName = lead.companyName || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.name || "CRM Lead";
+    const leadEmail = lead.email || orgProfile.supportEmail || userProfile.email;
+    const leadVal = Number(lead.value) || 1000.00;
+
+    setInvCustomer(leadName);
+    setInvCustomerEmail(leadEmail);
+    setInvPoNumber(`CRM-${lead.id.substring(0, 6)}`);
+    setInvItems([
+      { id: "1", name: `Services Package for ${leadName}`, quantity: 1, price: leadVal, tax: 0 },
+    ]);
+    setShowInvoiceModal(true);
+  };
+
   // Sync customer email when selection changes
   const handleCustomerSelect = (customerName: string) => {
     setInvCustomer(customerName);
     const found = customers.find(c => c.name === customerName);
     if (found) {
       setInvCustomerEmail(found.email);
+      if (found.estimatedValue && found.estimatedValue > 0) {
+        setInvItems([
+          { id: "1", name: `Project Package for ${customerName}`, quantity: 1, price: found.estimatedValue, tax: 0 },
+        ]);
+      }
     }
   };
 
-  // Save Organization Details to Backend Database
+  // Save Organization Profile
   const handleSaveOrganizationProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaveStatus("Saving...");
@@ -395,6 +476,11 @@ function AkauntingContent() {
               <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
                 ACTIVE ORGANISATION
               </span>
+              {crmLeads.length > 0 && (
+                <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-800">
+                  ⚡ {crmLeads.length} CRM LEADS LOADED
+                </span>
+              )}
             </div>
             <p className="text-xs text-[#5b6472]">
               Logged in as <strong className="text-[#1f2430]">{userProfile.firstName || userProfile.lastName ? `${userProfile.firstName} ${userProfile.lastName}`.trim() : "Admin"}</strong> ({userProfile.email || "Primary Account"})
@@ -407,11 +493,12 @@ function AkauntingContent() {
           {[
             { id: "dashboard", label: "Dashboard" },
             { id: "invoices", label: "Invoices Studio" },
+            { id: "crm-leads", label: `CRM Leads (${crmLeads.length})` },
             { id: "customers", label: "Customers" },
             { id: "bills", label: "Bills & Expenses" },
             { id: "vendors", label: "Vendors" },
             { id: "reports", label: "Reports" },
-            { id: "settings", label: "Company Profile & ERP" },
+            { id: "settings", label: "Company Profile" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -445,13 +532,13 @@ function AkauntingContent() {
             </div>
 
             <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Total Expenses</div>
-              <div className="mt-2 text-2xl font-bold text-rose-500">${totalExpenses.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
-              <div className="mt-1 text-xs font-medium text-rose-500">Operational costs</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Active CRM Leads</div>
+              <div className="mt-2 text-2xl font-bold text-blue-600">{crmLeads.length}</div>
+              <div className="mt-1 text-xs font-medium text-blue-600">Ready for invoice conversion</div>
             </div>
 
             <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Net Profit</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Net Operating Profit</div>
               <div className="mt-2 text-2xl font-bold text-[#6678c1]">${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
               <div className="mt-1 text-xs font-medium text-emerald-600">Net margin</div>
             </div>
@@ -472,7 +559,7 @@ function AkauntingContent() {
               <div className="mt-4 overflow-x-auto">
                 {invoices.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-[#d9e2ef] p-8 text-center text-xs text-[#5b6472]">
-                    No invoices created yet for <strong className="text-[#1f2430]">{orgProfile.name}</strong>. Click <strong>+ Create Invoice</strong> to generate your first invoice!
+                    No invoices created yet for <strong className="text-[#1f2430]">{orgProfile.name}</strong>. Click <strong>+ Create Invoice</strong> or fetch a lead from <strong>CRM Leads</strong> to generate an invoice!
                   </div>
                 ) : (
                   <table className="w-full text-left text-xs">
@@ -506,13 +593,13 @@ function AkauntingContent() {
             </div>
 
             <div className="space-y-4 rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
-              <h2 className="text-base font-bold text-[#1f2430]">ERP Management</h2>
+              <h2 className="text-base font-bold text-[#1f2430]">CRM & ERP Synchronization</h2>
               <div className="space-y-2">
                 {[
-                  { label: "📄 Create Invoice", action: () => setShowInvoiceModal(true) },
+                  { label: "📥 Convert CRM Lead to Invoice", action: () => setActiveTab("crm-leads") },
+                  { label: "📄 Create Blank Invoice", action: () => setShowInvoiceModal(true) },
                   { label: "👥 Add Customer Profile", action: () => setShowCustomerModal(true) },
-                  { label: "🏢 Add Vendor Supplier", action: () => setShowVendorModal(true) },
-                  { label: "⚙️ Edit Company Details", action: () => setActiveTab("settings") },
+                  { label: "⚙️ Company Settings", action: () => setActiveTab("settings") },
                 ].map((act) => (
                   <button
                     key={act.label}
@@ -525,6 +612,59 @@ function AkauntingContent() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CRM LEADS TAB (Convert CRM Lead to Invoice) */}
+      {activeTab === "crm-leads" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+            <div>
+              <h2 className="text-lg font-bold text-[#1f2430]">CRM Leads → Invoice Converter</h2>
+              <p className="text-xs text-[#5b6472]">Fetch live CRM leads created in CRM module and generate invoices in 1 click</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+            {loadingLeads ? (
+              <div className="py-12 text-center text-xs text-[#5b6472]">Loading leads from CRM database...</div>
+            ) : crmLeads.length === 0 ? (
+              <div className="py-12 text-center space-y-3">
+                <div className="text-sm font-semibold text-[#1f2430]">No active CRM leads found in database</div>
+                <p className="text-xs text-[#5b6472]">Create a lead under the <strong>CRM</strong> tab in the sidebar menu to convert it to an invoice here!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {crmLeads.map((lead) => {
+                  const leadName = lead.companyName || [lead.firstName, lead.lastName].filter(Boolean).join(" ") || lead.name || "Unnamed Lead";
+                  const leadVal = Number(lead.value) || 0;
+                  return (
+                    <div key={lead.id} className="flex flex-col justify-between rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-800">
+                            CRM LEAD
+                          </span>
+                          <span className="text-xs font-semibold text-emerald-600">${leadVal.toFixed(2)}</span>
+                        </div>
+                        <h3 className="mt-3 font-bold text-[#1f2430]">{leadName}</h3>
+                        <p className="text-xs text-[#5b6472]">{lead.email || "No email provided"}</p>
+                        <p className="text-xs text-[#5b6472]">{lead.phone || "No phone provided"}</p>
+                        <div className="mt-2 text-[11px] text-[#5b6472]">Status: <strong className="text-[#1f2430]">{lead.status || "NEW"}</strong></div>
+                      </div>
+
+                      <button
+                        onClick={() => convertCrmLeadToInvoice(lead)}
+                        className="w-full rounded-xl bg-[#6678c1] py-2 text-xs font-bold text-white shadow-sm hover:bg-[#404d85] transition"
+                      >
+                        ⚡ Convert Lead to Invoice
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -548,7 +688,7 @@ function AkauntingContent() {
           <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
             {invoices.length === 0 ? (
               <div className="py-12 text-center text-xs text-[#5b6472]">
-                No invoices created yet. Click <strong>+ Create New Invoice</strong> to start billing clients!
+                No invoices created yet. Click <strong>+ Create New Invoice</strong> or fetch a lead from <strong>CRM Leads</strong> tab!
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -556,7 +696,7 @@ function AkauntingContent() {
                   <thead>
                     <tr className="border-b border-[#d9e2ef] text-[#5b6472]">
                       <th className="pb-3 font-semibold">Invoice #</th>
-                      <th className="pb-3 font-semibold">PO #</th>
+                      <th className="pb-3 font-semibold">PO / Ref #</th>
                       <th className="pb-3 font-semibold">Customer</th>
                       <th className="pb-3 font-semibold">Issue Date</th>
                       <th className="pb-3 font-semibold">Due Date</th>
@@ -613,8 +753,8 @@ function AkauntingContent() {
         <div className="space-y-6">
           <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
             <div>
-              <h2 className="text-lg font-bold text-[#1f2430]">Customers Directory</h2>
-              <p className="text-xs text-[#5b6472]">Manage customer contacts for {orgProfile.name}</p>
+              <h2 className="text-lg font-bold text-[#1f2430]">Customers & CRM Leads Directory</h2>
+              <p className="text-xs text-[#5b6472]">Client profiles and CRM leads synced for {orgProfile.name}</p>
             </div>
             <button
               onClick={() => setShowCustomerModal(true)}
@@ -627,15 +767,22 @@ function AkauntingContent() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {customers.map((c) => (
               <div key={c.id} className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef2fa] font-bold text-[#6678c1]">
-                  {c.name.charAt(0)}
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef2fa] font-bold text-[#6678c1]">
+                    {c.name.charAt(0)}
+                  </div>
+                  {c.isCrmLead && (
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">
+                      CRM LEAD
+                    </span>
+                  )}
                 </div>
                 <h3 className="mt-3 font-bold text-[#1f2430]">{c.name}</h3>
                 <p className="text-xs text-[#5b6472]">{c.email || "No email provided"}</p>
                 <p className="text-xs text-[#5b6472]">{c.phone || "No phone provided"}</p>
                 <div className="mt-4 border-t border-[#d9e2ef] pt-3 flex justify-between items-center text-xs">
-                  <span className="text-[#5b6472]">Balance:</span>
-                  <span className="font-bold text-[#1f2430]">${c.balance.toFixed(2)}</span>
+                  <span className="text-[#5b6472]">Balance / Est. Value:</span>
+                  <span className="font-bold text-[#1f2430]">${(c.balance || c.estimatedValue || 0).toFixed(2)}</span>
                 </div>
               </div>
             ))}
@@ -895,15 +1042,18 @@ function AkauntingContent() {
             <form onSubmit={handleCreateInvoice} className="mt-6 space-y-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#5b6472]">Customer Name *</label>
+                  <label className="block text-xs font-semibold text-[#5b6472]">Customer / CRM Lead *</label>
                   {customers.length > 0 ? (
                     <select
                       value={invCustomer}
                       onChange={(e) => handleCustomerSelect(e.target.value)}
                       className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2.5 text-xs font-medium text-[#1f2430] bg-white"
                     >
+                      <option value="">-- Select Customer or CRM Lead --</option>
                       {customers.map((c) => (
-                        <option key={c.id} value={c.name}>{c.name}</option>
+                        <option key={c.id} value={c.name}>
+                          {c.isCrmLead ? `⚡ [CRM Lead] ${c.name}` : c.name}
+                        </option>
                       ))}
                     </select>
                   ) : (
