@@ -52,7 +52,7 @@ export default function SSO() {
     <div className="flex h-screen items-center justify-center bg-gray-50">
       <div className="text-center">
         <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
-        <p className="text-gray-600">Authenticating via OfficeConnect...</p>
+        <p className="text-gray-600">Authenticating via Cambliss Platform...</p>
       </div>
     </div>
   );
