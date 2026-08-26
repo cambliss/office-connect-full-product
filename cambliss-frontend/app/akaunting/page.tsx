@@ -1,43 +1,115 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import WorkspaceShell from "../../components/WorkspaceShell";
 import { useSearchParams } from "next/navigation";
 
+type Invoice = {
+  id: string;
+  number: string;
+  customer: string;
+  amount: number;
+  date: string;
+  status: "paid" | "pending" | "overdue";
+};
+
+type Bill = {
+  id: string;
+  number: string;
+  vendor: string;
+  amount: number;
+  date: string;
+  status: "paid" | "pending";
+};
+
+type Customer = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  balance: number;
+};
+
+type Vendor = {
+  id: string;
+  name: string;
+  email: string;
+  category: string;
+  balance: number;
+};
+
 function AkauntingContent() {
   const searchParams = useSearchParams();
-  const view = searchParams.get("view") || "dashboard";
+  const initialView = searchParams.get("view") || "dashboard";
 
-  const [ssoToken, setSsoToken] = useState<string | null>(null);
-  const [akauntingUrl, setAkauntingUrl] = useState<string>("http://localhost:8000");
-  const [viewMode, setViewMode] = useState<"embedded" | "cockpit">("cockpit");
-  const [iframeError, setIframeError] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(initialView);
 
+  // Sync activeTab when query parameter changes
   useEffect(() => {
-    const fetchSsoToken = async () => {
-      try {
-        const response = await fetch("/api/auth/sso-token", {
-          credentials: "include",
-        });
+    if (searchParams.get("view")) {
+      setActiveTab(searchParams.get("view") || "dashboard");
+    }
+  }, [searchParams]);
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.token) {
-            setSsoToken(data.token);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch SSO token for Akaunting", err);
-      }
+  // Demo Data State
+  const [invoices, setInvoices] = useState<Invoice[]>([
+    { id: "1", number: "INV-2026-001", customer: "Acme Corporation", amount: 4500.00, date: "2026-08-20", status: "paid" },
+    { id: "2", number: "INV-2026-002", customer: "Global Logistics LLC", amount: 2850.50, date: "2026-08-22", status: "pending" },
+    { id: "3", number: "INV-2026-003", customer: "Apex Tech Ventures", amount: 6700.00, date: "2026-08-25", status: "pending" },
+    { id: "4", number: "INV-2026-004", customer: "Starlight Digital", amount: 1250.00, date: "2026-08-10", status: "overdue" },
+  ]);
+
+  const [bills, setBills] = useState<Bill[]>([
+    { id: "1", number: "BILL-2026-101", vendor: "AWS Cloud Services", amount: 1240.00, date: "2026-08-15", status: "paid" },
+    { id: "2", number: "BILL-2026-102", vendor: "Office Space Holdings", amount: 3500.00, date: "2026-08-01", status: "paid" },
+    { id: "3", number: "BILL-2026-103", vendor: "Fiber Telecom Corp", amount: 480.00, date: "2026-08-24", status: "pending" },
+  ]);
+
+  const [customers, setCustomers] = useState<Customer[]>([
+    { id: "1", name: "Acme Corporation", email: "billing@acme.com", phone: "+1 (555) 234-5678", balance: 0.00 },
+    { id: "2", name: "Global Logistics LLC", email: "accounts@globallogistics.com", phone: "+1 (555) 876-5432", balance: 2850.50 },
+    { id: "3", name: "Apex Tech Ventures", email: "finance@apextech.com", phone: "+1 (555) 345-6789", balance: 6700.00 },
+    { id: "4", name: "Starlight Digital", email: "payables@starlight.io", phone: "+1 (555) 987-6543", balance: 1250.00 },
+  ]);
+
+  const [vendors, setVendors] = useState<Vendor[]>([
+    { id: "1", name: "AWS Cloud Services", email: "billing@aws.com", category: "Infrastructure", balance: 0.00 },
+    { id: "2", name: "Office Space Holdings", email: "lease@officespace.com", category: "Rent & Real Estate", balance: 0.00 },
+    { id: "3", name: "Fiber Telecom Corp", email: "support@fibertelecom.net", category: "Utilities", balance: 480.00 },
+  ]);
+
+  // Modal State for New Invoice
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [newInvCustomer, setNewInvCustomer] = useState("Acme Corporation");
+  const [newInvAmount, setNewInvAmount] = useState("");
+
+  const handleCreateInvoice = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newInvAmount || isNaN(Number(newInvAmount))) return;
+
+    const newInvoice: Invoice = {
+      id: Date.now().toString(),
+      number: `INV-2026-00${invoices.length + 1}`,
+      customer: newInvCustomer,
+      amount: parseFloat(newInvAmount),
+      date: new Date().toISOString().split("T")[0],
+      status: "pending",
     };
 
-    fetchSsoToken();
-  }, []);
-
-  const getTargetUrl = () => {
-    if (!ssoToken) return `${akauntingUrl}/auth/login`;
-    return `${akauntingUrl}/auth/sso?token=${ssoToken}&view=${view}`;
+    setInvoices([newInvoice, ...invoices]);
+    setShowInvoiceModal(false);
+    setNewInvAmount("");
   };
+
+  const markInvoicePaid = (id: string) => {
+    setInvoices(invoices.map(inv => inv.id === id ? { ...inv, status: "paid" } : inv));
+  };
+
+  // Calculations
+  const totalRevenue = invoices.reduce((acc, curr) => acc + (curr.status === "paid" ? curr.amount : 0), 0);
+  const totalPending = invoices.reduce((acc, curr) => acc + (curr.status !== "paid" ? curr.amount : 0), 0);
+  const totalExpenses = bills.reduce((acc, curr) => acc + curr.amount, 0);
+  const netProfit = totalRevenue - totalExpenses;
 
   return (
     <div className="space-y-6">
@@ -52,132 +124,404 @@ function AkauntingContent() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-[#1f2430]">Akaunting ERP Suite</h1>
-            <p className="text-sm text-[#5b6472]">Official open-source accounting engine & financial management</p>
+            <p className="text-sm text-[#5b6472]">Complete financial management, billing, reports & ledger control</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-1">
+        {/* Tab Navigation */}
+        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-1">
+          {[
+            { id: "dashboard", label: "Dashboard" },
+            { id: "invoices", label: "Invoices" },
+            { id: "customers", label: "Customers" },
+            { id: "bills", label: "Bills & Expenses" },
+            { id: "vendors", label: "Vendors" },
+            { id: "reports", label: "Reports" },
+            { id: "settings", label: "Settings" },
+          ].map((tab) => (
             <button
-              onClick={() => setViewMode("cockpit")}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                viewMode === "cockpit"
+                activeTab === tab.id
                   ? "bg-[#6678c1] text-white shadow-sm"
                   : "text-[#5b6472] hover:text-[#1f2430]"
               }`}
             >
-              ERP Cockpit
+              {tab.label}
             </button>
-            <button
-              onClick={() => setViewMode("embedded")}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                viewMode === "embedded"
-                  ? "bg-[#6678c1] text-white shadow-sm"
-                  : "text-[#5b6472] hover:text-[#1f2430]"
-              }`}
-            >
-              Live Server Iframe
-            </button>
-          </div>
-
-          {ssoToken && (
-            <a
-              href={getTargetUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#404d85]"
-            >
-              <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4">
-                <path d="M11 3h6v6M10 10l7-7M16 11v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Open Akaunting Standalone
-            </a>
-          )}
+          ))}
         </div>
       </div>
 
-      {viewMode === "embedded" ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 text-xs font-medium">
-            <div className="flex items-center gap-2">
-              <span className="text-base">ℹ️</span>
-              <span>
-                <strong>PHP Live Server Notice:</strong> If <code className="rounded bg-amber-100 px-1 py-0.5 font-mono">http://localhost:8000</code> is refusing to connect, ensure your PHP 8.2+ web server is running locally or deployed on VPS. Use <strong>ERP Cockpit</strong> view for integrated management.
-              </span>
+      {/* DASHBOARD TAB */}
+      {activeTab === "dashboard" && (
+        <div className="space-y-6">
+          {/* Key Metrics Cards */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Collected Revenue</div>
+              <div className="mt-2 text-2xl font-bold text-[#1f2430]">${totalRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+              <div className="mt-1 text-xs font-medium text-emerald-600">↑ Paid invoices</div>
+            </div>
+
+            <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Pending Receivables</div>
+              <div className="mt-2 text-2xl font-bold text-amber-600">${totalPending.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+              <div className="mt-1 text-xs font-medium text-amber-600">Outstanding invoices</div>
+            </div>
+
+            <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Total Expenses</div>
+              <div className="mt-2 text-2xl font-bold text-rose-500">${totalExpenses.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+              <div className="mt-1 text-xs font-medium text-rose-500">Bills & operational expenses</div>
+            </div>
+
+            <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
+              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Net Operating Profit</div>
+              <div className="mt-2 text-2xl font-bold text-[#6678c1]">${netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+              <div className="mt-1 text-xs font-medium text-emerald-600">Net margin</div>
+            </div>
+          </div>
+
+          {/* Quick Actions & Recent Activity */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm lg:col-span-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold text-[#1f2430]">Recent Invoices</h2>
+                <button
+                  onClick={() => setShowInvoiceModal(true)}
+                  className="rounded-lg bg-[#6678c1] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#404d85]"
+                >
+                  + New Invoice
+                </button>
+              </div>
+
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-[#d9e2ef] text-[#5b6472]">
+                      <th className="pb-3 font-semibold">Number</th>
+                      <th className="pb-3 font-semibold">Customer</th>
+                      <th className="pb-3 font-semibold">Date</th>
+                      <th className="pb-3 font-semibold">Amount</th>
+                      <th className="pb-3 font-semibold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#d9e2ef]">
+                    {invoices.map((inv) => (
+                      <tr key={inv.id} className="hover:bg-[#f8faff]">
+                        <td className="py-3 font-medium text-[#1f2430]">{inv.number}</td>
+                        <td className="py-3 text-[#5b6472]">{inv.customer}</td>
+                        <td className="py-3 text-[#5b6472]">{inv.date}</td>
+                        <td className="py-3 font-semibold text-[#1f2430]">${inv.amount.toFixed(2)}</td>
+                        <td className="py-3">
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                              inv.status === "paid"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : inv.status === "pending"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-rose-100 text-rose-800"
+                            }`}
+                          >
+                            {inv.status.toUpperCase()}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Quick ERP Shortcuts */}
+            <div className="space-y-4 rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+              <h2 className="text-base font-bold text-[#1f2430]">ERP Quick Shortcuts</h2>
+              <div className="space-y-2">
+                {[
+                  { label: "📄 Create Invoice", tab: "invoices" },
+                  { label: "👥 Add New Customer", tab: "customers" },
+                  { label: "💸 Record Vendor Bill", tab: "bills" },
+                  { label: "📈 View P&L Report", tab: "reports" },
+                  { label: "⚙️ General Settings", tab: "settings" },
+                ].map((action) => (
+                  <button
+                    key={action.label}
+                    onClick={() => setActiveTab(action.tab)}
+                    className="flex w-full items-center justify-between rounded-xl border border-[#d9e2ef] p-3 text-left text-xs font-semibold text-[#1f2430] transition hover:bg-[#f8faff] hover:border-[#6678c1]"
+                  >
+                    <span>{action.label}</span>
+                    <span className="text-[#6678c1]">→</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INVOICES TAB */}
+      {activeTab === "invoices" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+            <div>
+              <h2 className="text-lg font-bold text-[#1f2430]">Invoices Studio</h2>
+              <p className="text-xs text-[#5b6472]">Manage, create and dispatch accounts receivable</p>
             </div>
             <button
-              onClick={() => setViewMode("cockpit")}
-              className="rounded-lg bg-amber-800 px-3 py-1 text-white hover:bg-amber-900"
+              onClick={() => setShowInvoiceModal(true)}
+              className="rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#404d85]"
             >
-              Switch to ERP Cockpit
+              + Create New Invoice
             </button>
           </div>
 
-          <div className="relative flex h-[calc(100vh-280px)] w-full flex-col overflow-hidden rounded-2xl border border-[#d9e2ef] bg-white shadow-sm">
-            <iframe
-              src={getTargetUrl()}
-              className="h-full w-full border-none"
-              title="Akaunting ERP"
-              allow="fullscreen"
-              onError={() => setIframeError(true)}
-            />
+          <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-[#d9e2ef] text-[#5b6472]">
+                    <th className="pb-3 font-semibold">Invoice #</th>
+                    <th className="pb-3 font-semibold">Customer Name</th>
+                    <th className="pb-3 font-semibold">Issue Date</th>
+                    <th className="pb-3 font-semibold">Total Amount</th>
+                    <th className="pb-3 font-semibold">Status</th>
+                    <th className="pb-3 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#d9e2ef]">
+                  {invoices.map((inv) => (
+                    <tr key={inv.id} className="hover:bg-[#f8faff]">
+                      <td className="py-3.5 font-semibold text-[#1f2430]">{inv.number}</td>
+                      <td className="py-3.5 text-[#5b6472]">{inv.customer}</td>
+                      <td className="py-3.5 text-[#5b6472]">{inv.date}</td>
+                      <td className="py-3.5 font-bold text-[#1f2430]">${inv.amount.toFixed(2)}</td>
+                      <td className="py-3.5">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            inv.status === "paid"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : inv.status === "pending"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-rose-100 text-rose-800"
+                          }`}
+                        >
+                          {inv.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="py-3.5 text-right">
+                        {inv.status !== "paid" && (
+                          <button
+                            onClick={() => markInvoicePaid(inv.id)}
+                            className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                          >
+                            Mark as Paid
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      ) : (
-        /* Cockpit Fallback & Metrics Overview */
+      )}
+
+      {/* CUSTOMERS TAB */}
+      {activeTab === "customers" && (
         <div className="space-y-6">
-          {/* Key Financial Summary Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Total Revenue (YTD)</div>
-              <div className="mt-2 text-2xl font-bold text-[#1f2430]">$128,450.00</div>
-              <div className="mt-1 text-xs font-medium text-emerald-600">↑ 14.2% from last month</div>
-            </div>
-
-            <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Operating Expenses</div>
-              <div className="mt-2 text-2xl font-bold text-[#1f2430]">$42,120.00</div>
-              <div className="mt-1 text-xs font-medium text-rose-500">↓ 3.8% efficiency gain</div>
-            </div>
-
-            <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Net Profit</div>
-              <div className="mt-2 text-2xl font-bold text-[#6678c1]">$86,330.00</div>
-              <div className="mt-1 text-xs font-medium text-emerald-600">67.2% Net Margin</div>
-            </div>
-
-            <div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-              <div className="text-xs font-semibold uppercase tracking-wider text-[#5b6472]">Unpaid Invoices</div>
-              <div className="mt-2 text-2xl font-bold text-[#1f2430]">$14,200.00</div>
-              <div className="mt-1 text-xs font-medium text-amber-600">3 invoices pending</div>
+          <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+            <div>
+              <h2 className="text-lg font-bold text-[#1f2430]">Customers Directory</h2>
+              <p className="text-xs text-[#5b6472]">Client profiles, billing contacts, and receivables balance</p>
             </div>
           </div>
 
-          {/* Quick Module Navigation Grid */}
-          <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
-            <h2 className="text-base font-bold text-[#1f2430]">Akaunting ERP Modules</h2>
-            <p className="text-xs text-[#5b6472]">Select an accounting section to manage financial operations</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {customers.map((c) => (
+              <div key={c.id} className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef2fa] font-bold text-[#6678c1]">
+                  {c.name.charAt(0)}
+                </div>
+                <h3 className="mt-3 font-bold text-[#1f2430]">{c.name}</h3>
+                <p className="text-xs text-[#5b6472]">{c.email}</p>
+                <p className="text-xs text-[#5b6472]">{c.phone}</p>
+                <div className="mt-4 border-t border-[#d9e2ef] pt-3 flex justify-between items-center text-xs">
+                  <span className="text-[#5b6472]">Outstanding Balance:</span>
+                  <span className="font-bold text-[#1f2430]">${c.balance.toFixed(2)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-              {[
-                { title: "Invoices Studio", desc: "Create, track, and dispatch customer invoices with tax calculations", icon: "📄", viewName: "invoices" },
-                { title: "Customers & CRM", desc: "Manage client billing records, payment terms, and contact histories", icon: "👥", viewName: "customers" },
-                { title: "Purchase Bills", desc: "Log vendor bills, expense receipts, and recurring purchase obligations", icon: "💸", viewName: "bills" },
-                { title: "Vendors & Suppliers", desc: "Track supplier directory, payables, and purchase order tracking", icon: "🏢", viewName: "vendors" },
-                { title: "Financial Reports", desc: "Generate Profit & Loss statements, balance sheets, and tax reports", icon: "📊", viewName: "reports" },
-                { title: "ERP Settings", desc: "Configure currencies, chart of accounts, tax rates, and email templates", icon: "⚙️", viewName: "settings" },
-              ].map((mod) => (
-                <button
-                  key={mod.title}
-                  onClick={() => setViewMode("embedded")}
-                  className="flex flex-col text-left rounded-xl border border-[#d9e2ef] p-4 transition hover:-translate-y-0.5 hover:border-[#6678c1] hover:shadow-md"
-                >
-                  <span className="text-2xl">{mod.icon}</span>
-                  <span className="mt-2 text-sm font-bold text-[#1f2430]">{mod.title}</span>
-                  <span className="mt-1 text-xs text-[#5b6472]">{mod.desc}</span>
-                </button>
-              ))}
+      {/* BILLS TAB */}
+      {activeTab === "bills" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+            <div>
+              <h2 className="text-lg font-bold text-[#1f2430]">Purchase Bills & Expenses</h2>
+              <p className="text-xs text-[#5b6472]">Track vendor payables, operational expenses, and bill history</p>
             </div>
+          </div>
+
+          <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-[#d9e2ef] text-[#5b6472]">
+                    <th className="pb-3 font-semibold">Bill #</th>
+                    <th className="pb-3 font-semibold">Vendor</th>
+                    <th className="pb-3 font-semibold">Bill Date</th>
+                    <th className="pb-3 font-semibold">Amount</th>
+                    <th className="pb-3 font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#d9e2ef]">
+                  {bills.map((b) => (
+                    <tr key={b.id} className="hover:bg-[#f8faff]">
+                      <td className="py-3.5 font-semibold text-[#1f2430]">{b.number}</td>
+                      <td className="py-3.5 text-[#5b6472]">{b.vendor}</td>
+                      <td className="py-3.5 text-[#5b6472]">{b.date}</td>
+                      <td className="py-3.5 font-bold text-[#1f2430]">${b.amount.toFixed(2)}</td>
+                      <td className="py-3.5">
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${b.status === "paid" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                          {b.status.toUpperCase()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VENDORS TAB */}
+      {activeTab === "vendors" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+            <div>
+              <h2 className="text-lg font-bold text-[#1f2430]">Vendor Directory</h2>
+              <p className="text-xs text-[#5b6472]">Supplier profiles and payables management</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {vendors.map((v) => (
+              <div key={v.id} className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
+                <span className="rounded-full bg-[#f8faff] px-2.5 py-1 text-xs font-semibold text-[#6678c1]">{v.category}</span>
+                <h3 className="mt-3 font-bold text-[#1f2430]">{v.name}</h3>
+                <p className="text-xs text-[#5b6472]">{v.email}</p>
+                <div className="mt-4 border-t border-[#d9e2ef] pt-3 flex justify-between items-center text-xs">
+                  <span className="text-[#5b6472]">Current Payable:</span>
+                  <span className="font-bold text-[#1f2430]">${v.balance.toFixed(2)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* REPORTS TAB */}
+      {activeTab === "reports" && (
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-[#1f2430]">Financial Reports & Profit & Loss Statement</h2>
+            <p className="text-xs text-[#5b6472]">Real-time accounting ledger summary</p>
+
+            <div className="mt-6 space-y-4 rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-6 text-sm">
+              <div className="flex justify-between border-b border-[#d9e2ef] pb-3 font-bold text-[#1f2430]">
+                <span>Category</span>
+                <span>YTD Amount</span>
+              </div>
+              <div className="flex justify-between text-emerald-700 font-semibold">
+                <span>Gross Invoiced Sales</span>
+                <span>+${invoices.reduce((a, b) => a + b.amount, 0).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-rose-600 font-semibold">
+                <span>Total Operating Expenses</span>
+                <span>-${totalExpenses.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between border-t-2 border-[#1f2430] pt-3 text-base font-bold text-[#6678c1]">
+                <span>Net Operating Income</span>
+                <span>${netProfit.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SETTINGS TAB */}
+      {activeTab === "settings" && (
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm space-y-4">
+            <h2 className="text-lg font-bold text-[#1f2430]">Akaunting ERP Configuration</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-semibold text-[#5b6472]">Base Currency</label>
+                <input type="text" value="USD ($)" disabled className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-3 text-xs font-medium text-[#1f2430]" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#5b6472]">Tax Rate (%)</label>
+                <input type="text" value="8.5%" disabled className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-3 text-xs font-medium text-[#1f2430]" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NEW INVOICE MODAL */}
+      {showInvoiceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-[#1f2430]">Create New Invoice</h3>
+            <form onSubmit={handleCreateInvoice} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#5b6472]">Customer</label>
+                <select
+                  value={newInvCustomer}
+                  onChange={(e) => setNewInvCustomer(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
+                >
+                  {customers.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#5b6472]">Invoice Amount ($)</label>
+                <input
+                  type="number"
+                  placeholder="e.g. 2500"
+                  value={newInvAmount}
+                  onChange={(e) => setNewInvAmount(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-3 text-xs font-medium text-[#1f2430]"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="rounded-xl border border-[#d9e2ef] px-4 py-2 text-xs font-semibold text-[#5b6472] hover:bg-[#f8faff]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-semibold text-white hover:bg-[#404d85]"
+                >
+                  Create & Save
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
