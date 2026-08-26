@@ -10,7 +10,7 @@ function AkauntingContent() {
 
   const [ssoToken, setSsoToken] = useState<string | null>(null);
   const [akauntingUrl, setAkauntingUrl] = useState<string>("http://localhost:8000");
-  const [viewMode, setViewMode] = useState<"embedded" | "cockpit">("embedded");
+  const [viewMode, setViewMode] = useState<"embedded" | "cockpit">("cockpit");
   const [iframeError, setIframeError] = useState(false);
 
   useEffect(() => {
@@ -59,16 +59,6 @@ function AkauntingContent() {
         <div className="flex items-center gap-3">
           <div className="flex items-center rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-1">
             <button
-              onClick={() => setViewMode("embedded")}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                viewMode === "embedded"
-                  ? "bg-[#6678c1] text-white shadow-sm"
-                  : "text-[#5b6472] hover:text-[#1f2430]"
-              }`}
-            >
-              Live Embedded View
-            </button>
-            <button
               onClick={() => setViewMode("cockpit")}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                 viewMode === "cockpit"
@@ -77,6 +67,16 @@ function AkauntingContent() {
               }`}
             >
               ERP Cockpit
+            </button>
+            <button
+              onClick={() => setViewMode("embedded")}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                viewMode === "embedded"
+                  ? "bg-[#6678c1] text-white shadow-sm"
+                  : "text-[#5b6472] hover:text-[#1f2430]"
+              }`}
+            >
+              Live Server Iframe
             </button>
           </div>
 
@@ -97,14 +97,31 @@ function AkauntingContent() {
       </div>
 
       {viewMode === "embedded" ? (
-        <div className="relative flex h-[calc(100vh-220px)] w-full flex-col overflow-hidden rounded-2xl border border-[#d9e2ef] bg-white shadow-sm">
-          <iframe
-            src={getTargetUrl()}
-            className="h-full w-full border-none"
-            title="Akaunting ERP"
-            allow="fullscreen"
-            onError={() => setIframeError(true)}
-          />
+        <div className="space-y-4">
+          <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 text-xs font-medium">
+            <div className="flex items-center gap-2">
+              <span className="text-base">ℹ️</span>
+              <span>
+                <strong>PHP Live Server Notice:</strong> If <code className="rounded bg-amber-100 px-1 py-0.5 font-mono">http://localhost:8000</code> is refusing to connect, ensure your PHP 8.2+ web server is running locally or deployed on VPS. Use <strong>ERP Cockpit</strong> view for integrated management.
+              </span>
+            </div>
+            <button
+              onClick={() => setViewMode("cockpit")}
+              className="rounded-lg bg-amber-800 px-3 py-1 text-white hover:bg-amber-900"
+            >
+              Switch to ERP Cockpit
+            </button>
+          </div>
+
+          <div className="relative flex h-[calc(100vh-280px)] w-full flex-col overflow-hidden rounded-2xl border border-[#d9e2ef] bg-white shadow-sm">
+            <iframe
+              src={getTargetUrl()}
+              className="h-full w-full border-none"
+              title="Akaunting ERP"
+              allow="fullscreen"
+              onError={() => setIframeError(true)}
+            />
+          </div>
         </div>
       ) : (
         /* Cockpit Fallback & Metrics Overview */
