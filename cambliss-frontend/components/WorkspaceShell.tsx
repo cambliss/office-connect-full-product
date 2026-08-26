@@ -60,18 +60,20 @@ function ChevronRightIcon({ className = "" }: { className?: string }) {
 	);
 }
 
-const accountechSubItems: SidebarItem[] = [
-	{ label: "Dashboard", href: "/accountech" },
-	{ label: "Invoices", href: "/accountech?view=invoices" },
-	{ label: "Quotes", href: "/accountech?view=quotes" },
-	{ label: "Customers", href: "/accountech?view=customers" },
-	{ label: "Reports", href: "/accountech?view=reports" },
-	{ label: "Settings", href: "/accountech?view=settings" },
+const akauntingSubItems: SidebarItem[] = [
+	{ label: "Dashboard", href: "/akaunting" },
+	{ label: "Invoices", href: "/akaunting?view=invoices" },
+	{ label: "Customers", href: "/akaunting?view=customers" },
+	{ label: "Bills", href: "/akaunting?view=bills" },
+	{ label: "Vendors", href: "/akaunting?view=vendors" },
+	{ label: "Reports", href: "/akaunting?view=reports" },
+	{ label: "Settings", href: "/akaunting?view=settings" },
 ];
 
 const clientMenuItems: SidebarItem[] = [
 	{ label: "Dashboard", href: "/dashboard" },
 	{ label: "Profile Completion", href: "/profile-completion" },
+	{ label: "Akaunting", href: "/akaunting", subItems: akauntingSubItems },
 	{ label: "CRM", href: "/crm", accessKey: "CRM" },
 	{ label: "HRM", href: "/hrm", accessKey: "HRM" },
 	{ label: "Inventory", href: "/inventory", accessKey: "INVENTORY" },
@@ -79,11 +81,11 @@ const clientMenuItems: SidebarItem[] = [
 	{ label: "File Sharing", href: "/file-sharing", accessKey: "FILE_SHARING" },
 	{ label: "Video Connect", href: "/video-connect" },
 	{ label: "User Management", href: "/user-management", accessKey: "USER_MANAGEMENT" },
-	// { label: "Accountech", href: "/accountech", subItems: accountechSubItems },
 ];
 
 const adminMenuItems: SidebarItem[] = [
 	{ label: "Admin Dashboard", href: "/admin-dashboard" },
+	{ label: "Akaunting ERP", href: "/akaunting", subItems: akauntingSubItems },
 ];
 
 function SidebarIcon({ label }: { label: string }) {
