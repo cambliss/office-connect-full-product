@@ -287,6 +287,169 @@ toolsRouter.post("/convert/txt-to-pptx", upload.single("file"), async (req: Requ
 		res.status(200).json(result);
 	} catch (error) {
 		handleToolsError(res, error);
+	}
+});
+
+toolsRouter.post("/pdf/split", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const pages = String(req.body?.pages ?? "");
+		const result = await splitPdfFile(req.file, pages);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/pdf/compress", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await compressPdfFile(req.file);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/image/upscale", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await upscaleImageFile(req.file, String(req.body?.scale ?? "2"));
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/image/remove-background", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await removeImageBackgroundAdvanced(
+			req.file,
+			String(req.body?.tolerance ?? "42"),
+			String(req.body?.mode ?? "auto"),
+		);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/convert/pdf-to-docx", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await convertPdfToDocx(req.file);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/convert/docx-to-pdf", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await convertDocxToPdf(req.file);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/convert/xlsx-to-csv", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await convertXlsxToCsv(req.file);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/convert/csv-to-xlsx", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await convertCsvToXlsx(req.file);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/convert/pdf-to-txt", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await convertPdfToTxt(req.file);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/convert/txt-to-docx", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await convertTxtToDocx(req.file);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
 	} finally {
 		await cleanupUploadedFiles([req.file]);
 	}

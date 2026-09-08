@@ -60,38 +60,102 @@ function ChevronRightIcon({ className = "" }: { className?: string }) {
 	);
 }
 
-const akauntingSubItems: SidebarItem[] = [
-	{ label: "Dashboard", href: "/akaunting" },
-	{ label: "Invoices", href: "/akaunting?view=invoices" },
-	{ label: "Customers", href: "/akaunting?view=customers" },
-	{ label: "Bills", href: "/akaunting?view=bills" },
-	{ label: "Vendors", href: "/akaunting?view=vendors" },
-	{ label: "Reports", href: "/akaunting?view=reports" },
-	{ label: "Settings", href: "/akaunting?view=settings" },
-];
+
 
 const clientMenuItems: SidebarItem[] = [
 	{ label: "Dashboard", href: "/dashboard" },
-	{ label: "Profile Completion", href: "/profile-completion" },
-	{ label: "Akaunting", href: "/akaunting", subItems: akauntingSubItems },
+	{
+		label: "Your Store",
+		badge: "Seller",
+		href: "/vendor-dashboard",
+		subItems: [
+			{ label: "Overview & Analytics", href: "/vendor-dashboard" },
+			{ label: "Products & Catalog", href: "/vendor-dashboard?view=catalog-products" },
+			{ label: "Add New Product", href: "/vendor-dashboard?view=catalog-add" },
+			{ label: "Orders & Fulfillment", href: "/vendor-dashboard?view=orders-new" },
+			{ label: "Payment Gateway & Payouts", href: "/vendor-dashboard?view=finance-payouts" },
+			{ label: "Pricing & Promotions", href: "/vendor-dashboard?view=pricing" },
+			{ label: "Storefront Settings", href: "/vendor-dashboard?view=settings" },
+			{ label: "View Live Storefront", href: "/store/hisense-computers" },
+		],
+	},
 	{ label: "CRM", href: "/crm", accessKey: "CRM" },
 	{ label: "HRM", href: "/hrm", accessKey: "HRM" },
 	{ label: "Inventory", href: "/inventory", accessKey: "INVENTORY" },
-	{ label: "Store", href: "/store" },
+	{ label: "Accountech ERP", href: "/akaunting" },
 	{ label: "File Sharing", href: "/file-sharing", accessKey: "FILE_SHARING" },
 	{ label: "Video Connect", href: "/video-connect" },
+	{ label: "Marketplace", href: "/storefront", badge: "Live" },
+	{ label: "Tools Suite", href: "/tools" },
+	{ label: "Profile Completion", href: "/profile-completion" },
 	{ label: "User Management", href: "/user-management", accessKey: "USER_MANAGEMENT" },
 ];
 
 const adminMenuItems: SidebarItem[] = [
 	{ label: "Admin Dashboard", href: "/admin-dashboard" },
-	{ label: "Akaunting ERP", href: "/akaunting", subItems: akauntingSubItems },
+	{
+		label: "Your Store",
+		badge: "Seller",
+		href: "/vendor-dashboard",
+		subItems: [
+			{ label: "Overview & Analytics", href: "/vendor-dashboard" },
+			{ label: "Products & Catalog", href: "/vendor-dashboard?view=catalog-products" },
+			{ label: "Add New Product", href: "/vendor-dashboard?view=catalog-add" },
+			{ label: "Orders & Fulfillment", href: "/vendor-dashboard?view=orders-new" },
+			{ label: "Payment Gateway & Payouts", href: "/vendor-dashboard?view=finance-payouts" },
+			{ label: "Pricing & Promotions", href: "/vendor-dashboard?view=pricing" },
+			{ label: "Storefront Settings", href: "/vendor-dashboard?view=settings" },
+			{ label: "View Live Storefront", href: "/store/hisense-computers" },
+		],
+	},
+	{ label: "Vendor Portal", href: "/vendor-dashboard" },
+	{ label: "CRM", href: "/crm" },
+	{ label: "HRM", href: "/hrm" },
+	{ label: "Inventory", href: "/inventory" },
+	{ label: "Accountech ERP", href: "/akaunting" },
+	{ label: "File Sharing", href: "/file-sharing" },
+	{ label: "Video Connect", href: "/video-connect" },
+	{ label: "Marketplace", href: "/storefront", badge: "Live" },
+	{ label: "Tools Suite", href: "/tools" },
+	{ label: "User Management", href: "/user-management" },
 ];
 
 function SidebarIcon({ label }: { label: string }) {
 	const common = "h-[18px] w-[18px] text-current";
 
 	switch (label) {
+		case "Your Store":
+		case "My Store":
+		case "Store Dashboard":
+			return (
+				<svg viewBox="0 0 24 24" fill="none" className={common}>
+					<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+					<path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+				</svg>
+			);
+		case "Tools Suite":
+		case "Tools":
+		case "Tools Store":
+			return (
+				<svg viewBox="0 0 24 24" fill="none" className={common}>
+					<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+				</svg>
+			);
+		case "Marketplace":
+		case "Marketplace Hub":
+		case "Marketplace Control Hub":
+		case "Marketplace & Storefronts":
+			return (
+				<svg viewBox="0 0 24 24" fill="none" className={common}>
+					<path d="M3 9l2-5h14l2 5M3 9v10a2 2 0 002 2h14a2 2 0 002-2V9M3 9h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+				</svg>
+			);
+		case "Category & Product Catalog":
+			return (
+				<svg viewBox="0 0 24 24" fill="none" className={common}>
+					<path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+				</svg>
+			);
 		case "Dashboard":
 		case "Client Dashboard":
 		case "Admin Dashboard":
@@ -144,13 +208,6 @@ function SidebarIcon({ label }: { label: string }) {
 					<path d="M14 5.5a4 4 0 0 0-5 5l-5 5 2.5 2.5 5-5a4 4 0 0 0 5-5l-2.5 2.5L11.5 8l2.5-2.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
 				</svg>
 			);
-		case "Akaunting":
-			return (
-				<svg viewBox="0 0 24 24" fill="none" className={common}>
-					<path d="M12 2L2 7l10 5 10-5-10-5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-					<path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-				</svg>
-			);
 		case "File Sharing":
 			return (
 				<svg viewBox="0 0 24 24" fill="none" className={common}>
@@ -164,13 +221,7 @@ function SidebarIcon({ label }: { label: string }) {
 					<path d="M15 10.5 21 8v8l-6-2.5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
 				</svg>
 			);
-		case "Accountech":
-			return (
-				<svg viewBox="0 0 24 24" fill="none" className={common}>
-					<rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
-					<path d="M8 12h8M8 8h4M8 16h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-				</svg>
-			);
+
 		default:
 			return (
 				<svg viewBox="0 0 24 24" fill="none" className={common}>
@@ -193,11 +244,16 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 	const pathname = usePathname();
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const [isMounted, setIsMounted] = useState(false);
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [authRole, setAuthRole] = useState<string | null>(null);
 	const [authAccesses, setAuthAccesses] = useState<string[]>([]);
 	const [currentHash, setCurrentHash] = useState("");
 	const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+
+	useEffect(() => {
+		setIsMounted(true);
+	}, []);
 
 	const toggleExpanded = (label: string, e: React.MouseEvent) => {
 		e.preventDefault();
@@ -205,10 +261,10 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 	};
 
 	useEffect(() => {
-		const isPublicRoomPath = pathname.startsWith("/video-connect/room/");
+		const isPublicPath = pathname.startsWith("/video-connect/room/") || pathname === "/storefront" || pathname.startsWith("/product/") || pathname.startsWith("/store/") || pathname.startsWith("/category/") || pathname.startsWith("/brand/") || pathname === "/cart" || pathname === "/categories" || pathname === "/search" || pathname === "/wishlist" || pathname === "/checkout" || pathname === "/orders" || pathname === "/tools" || pathname.startsWith("/tools");
 		const token = localStorage.getItem("authToken");
 
-		if (!token && !isPublicRoomPath) {
+		if (!token && !isPublicPath) {
 			router.replace("/login");
 			return;
 		}
@@ -358,7 +414,7 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 		return pathname === baseHref && currentHash === `#${hashPart}`;
 	});
 
-	const isGuestUser = typeof window !== "undefined" && !localStorage.getItem("authToken");
+	const isGuestUser = isMounted && typeof window !== "undefined" && !localStorage.getItem("authToken");
 
 	if (pathname.startsWith("/video-connect/room/") && isGuestUser) {
 		return <div className="min-h-screen bg-[#f8faff] text-[#1f2430]">{children}</div>;

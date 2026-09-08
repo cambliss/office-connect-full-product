@@ -15,7 +15,7 @@ rm -rf "$PROJECT_DIR"
 # Fresh Clone from GitHub
 echo "📁 Fresh cloning latest clean repository from GitHub..."
 mkdir -p /var/www
-git clone https://github.com/Smahesh26/office-connect-mvp.git "$PROJECT_DIR"
+git clone https://github.com/cambliss/office-connect-full-product.git "$PROJECT_DIR"
 cd "$PROJECT_DIR"
 
 # Stop existing PM2 processes

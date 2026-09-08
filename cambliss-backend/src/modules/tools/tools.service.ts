@@ -907,6 +907,7 @@ export const convertPptxToTxt = async (file: Express.Multer.File) => {
 		combined = slideTexts.length > 0 ? slideTexts.map((slide, index) => `Slide ${index + 1}: ${slide}`).join("\n\n") : "No readable slide text found.";
 		slideCount = slideTexts.length;
 	}
+
 	return {
 		fileName: normalizeDownloadName(file.originalname || "converted", "txt"),
 		mimeType: "text/plain",
