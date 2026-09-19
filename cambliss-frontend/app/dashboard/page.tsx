@@ -68,7 +68,25 @@ const formatDuration = (milliseconds: number) => {
 	const seconds = totalSeconds % 60;
 
 	return `${String(days).padStart(2, "0")}d ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
-	return `${String(days).padStart(2, "0")}d ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
+};
+
+const resolveDisplayName = (user?: any, org?: any): string => {
+	if (!user && !org) return "";
+	const fName = (user?.firstName || "").trim();
+	const lName = (user?.lastName || "").trim();
+	if (fName && lName) return `${fName} ${lName}`;
+	if (fName) return fName;
+	if (user?.name?.trim()) return user.name.trim();
+	if (user?.fullName?.trim()) return user.fullName.trim();
+	if (user?.legalName?.trim()) return user.legalName.trim();
+	if (org?.name?.trim()) return org.name.trim();
+	if (user?.email?.trim()) {
+		const localPart = user.email.split("@")[0].trim();
+		if (localPart) {
+			return localPart.charAt(0).toUpperCase() + localPart.slice(1);
+		}
+	}
+	return "";
 };
 
 export default function DashboardPage() {
@@ -79,6 +97,56 @@ export default function DashboardPage() {
 	const [now, setNow] = useState(new Date());
 	const [trialStart, setTrialStart] = useState<Date | null>(null);
 	const [trialSnapshot, setTrialSnapshot] = useState<TrialReminderSnapshot | null>(null);
+	const [userName, setUserName] = useState<string>("Team");
+
+	useEffect(() => {
+		// 1. Instantly parse stored auth user credentials to avoid UI flicker
+		try {
+			const rawUser = localStorage.getItem("authUser");
+			if (rawUser) {
+				const parsed = JSON.parse(rawUser);
+				const name = resolveDisplayName(parsed);
+				if (name) {
+					setUserName(name);
+				}
+			}
+		} catch {
+			// ignore parse error
+		}
+
+		// 2. Fetch fresh profile and organization data from /api/auth/me
+		const token = localStorage.getItem("authToken");
+		const fetchMe = async () => {
+			try {
+				const headers: Record<string, string> = {};
+				if (token && token !== "cookie-session") {
+					headers["Authorization"] = `Bearer ${token}`;
+				}
+				const res = await fetch("/api/auth/me", {
+					headers,
+					credentials: "include",
+				});
+				if (res.ok) {
+					const data = await res.json();
+					const name = resolveDisplayName(data?.user, data?.organization);
+					if (name) {
+						setUserName(name);
+						try {
+							const existing = localStorage.getItem("authUser");
+							const parsed = existing ? JSON.parse(existing) : {};
+							localStorage.setItem("authUser", JSON.stringify({ ...parsed, ...data.user }));
+						} catch {
+							// ignore storage error
+						}
+					}
+				}
+			} catch {
+				// Keep fallback
+			}
+		};
+
+		void fetchMe();
+	}, []);
 
 	useEffect(() => {
 		const token = localStorage.getItem("authToken");
@@ -285,9 +353,12 @@ export default function DashboardPage() {
 			<div className="mt-5 space-y-5 text-[#111827]">
 				<div className="flex flex-wrap items-center justify-between gap-4">
 					<div>
-						<p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#6678c1]">Workspace overview</p>
-						<h1 className="mt-2 text-4xl font-semibold tracking-tight text-[#404d85]">Hello, Team</h1>
-						<p className="mt-2 max-w-2xl text-sm leading-6 text-[#5b6472]">Use this hub to open the core Phase 1 modules. All modules remain enabled during the 90-day free trial.</p>
+						<div className="inline-flex items-center gap-2 rounded-full border border-[#6678c1]/20 bg-[#6678c1]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#404d85]">
+							<span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+							Office Connect Central
+						</div>
+						<h1 className="mt-2 text-4xl font-semibold tracking-tight text-[#404d85]">Hello, {userName}</h1>
+						<p className="mt-2 max-w-2xl text-sm leading-6 text-[#5b6472]">Welcome to your unified enterprise digital workplace. Connect with team spaces, access organizational memory, and launch integrated business engines.</p>
 					</div>
 					<div className="flex items-center gap-3">
 						<div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${trialSummary.isExpired ? "bg-red-50 text-red-600 border border-red-200" : "bg-[#eef2fa] text-[#404d85] border border-[#d9e2ef]"}`}>
@@ -297,17 +368,69 @@ export default function DashboardPage() {
 							</svg>
 							{trialSummary.isExpired ? "Trial Expired" : `${trialSummary.daysLeft} days left`}
 						</div>
+						<Link href="/central" className="inline-flex items-center gap-2 rounded-xl bg-[#404d85] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#323d6b]">
+							<span>🏢</span>
+							<span>Open Central Hub</span>
+						</Link>
 						<Link href="/storefront" className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 px-4 py-2 text-sm font-bold text-slate-950 shadow-md hover:from-amber-400 hover:to-amber-300">
 							<span>🏬</span>
 							<span>Browse Marketplace</span>
 						</Link>
 						<Link href="/crm" className="inline-flex items-center rounded-xl bg-[#6678c1] px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_-16px_rgba(102,120,193,0.35)] hover:bg-[#404d85]">
-							Open CRM
-						</Link>
-						<Link href="/file-sharing" className="inline-flex items-center rounded-xl border border-[#d9e2ef] bg-white px-4 py-2 text-sm font-semibold text-[#404d85] hover:bg-[#f8faff]">
-							Open Files
+							CRM
 						</Link>
 					</div>
+				</div>
+
+				{/* OFFICE CONNECT CENTRAL QUICK ACCESS PILLARS */}
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+					<Link
+						href="/central"
+						className="group rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-white to-[#f8faff] p-4 shadow-sm transition hover:border-[#6678c1] hover:shadow-md"
+					>
+						<div className="flex items-center justify-between">
+							<span className="text-xl">💬</span>
+							<span className="rounded-full bg-[#eef2fa] px-2 py-0.5 text-[10px] font-bold text-[#404d85]">Live Hub</span>
+						</div>
+						<h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-[#404d85]">Central Stream</h3>
+						<p className="mt-0.5 text-[11px] text-slate-500">Company announcements & leadership broadcasts</p>
+					</Link>
+
+					<Link
+						href="/spaces"
+						className="group rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-white to-[#f8faff] p-4 shadow-sm transition hover:border-[#6678c1] hover:shadow-md"
+					>
+						<div className="flex items-center justify-between">
+							<span className="text-xl">🏢</span>
+							<span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">Collaboration</span>
+						</div>
+						<h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-[#404d85]">Team Spaces</h3>
+						<p className="mt-0.5 text-[11px] text-slate-500">Public & private zones for squads and depts</p>
+					</Link>
+
+					<Link
+						href="/knowledge"
+						className="group rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-white to-[#f8faff] p-4 shadow-sm transition hover:border-[#6678c1] hover:shadow-md"
+					>
+						<div className="flex items-center justify-between">
+							<span className="text-xl">📚</span>
+							<span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">Memory</span>
+						</div>
+						<h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-[#404d85]">Knowledge & SOPs</h3>
+						<p className="mt-0.5 text-[11px] text-slate-500">Searchable institutional wiki and guidelines</p>
+					</Link>
+
+					<Link
+						href="/directory"
+						className="group rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-white to-[#f8faff] p-4 shadow-sm transition hover:border-[#6678c1] hover:shadow-md"
+					>
+						<div className="flex items-center justify-between">
+							<span className="text-xl">👥</span>
+							<span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">140+ People</span>
+						</div>
+						<h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-[#404d85]">People Directory</h3>
+						<p className="mt-0.5 text-[11px] text-slate-500">Employee profiles, roles, and expertise locator</p>
+					</Link>
 				</div>
 
 				{/* MULTI-VENDOR MARKETPLACE HUB WIDGET */}

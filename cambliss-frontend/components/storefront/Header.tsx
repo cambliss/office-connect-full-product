@@ -25,7 +25,7 @@ export function StorefrontHeader() {
             </Link>
             <span className="text-[var(--brand-400)]">·</span>
             <Link
-              href="/login"
+              href="/seller-central"
               className="hover:text-white transition-colors"
             >
               Sign In
@@ -56,7 +56,7 @@ export function StorefrontHeader() {
         {/* Right actions */}
         <div className="flex items-center gap-2 ml-auto">
           <Link
-            href="/login"
+            href="/seller-central"
             className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-medium text-[var(--body)] hover:text-[var(--ink)] transition-colors"
           >
             <UserIcon />
@@ -91,7 +91,7 @@ export function StorefrontHeader() {
       {mobileMenuOpen && (
         <nav className="md:hidden border-t border-[var(--border)] bg-white px-4 py-3 space-y-1">
           <Link
-            href="/login"
+            href="/seller-central"
             className="block py-2 text-[14px] text-[var(--body)] hover:text-[var(--ink)]"
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -99,10 +99,10 @@ export function StorefrontHeader() {
           </Link>
           <Link
             href="/seller-central"
-            className="block py-2 text-[14px] text-[var(--body)] hover:text-[var(--ink)]"
+            className="block py-2 text-[14px] text-[var(--body)] hover:text-[var(--ink)] font-semibold text-amber-700"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Sell on Office Connect
+            Sell on Office Connect →
           </Link>
         </nav>
       )}

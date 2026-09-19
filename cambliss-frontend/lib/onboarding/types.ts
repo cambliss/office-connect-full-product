@@ -5,6 +5,7 @@ export type OnboardingState = {
 	preferredCurrency: string;
 	stackSelections: Record<string, string>;
 	onboardingPayload: Record<string, unknown>;
+	cardDetails?: PaymentCardDetails;
 	updatedAt: string;
 };
 
@@ -44,6 +45,7 @@ export type PlanSummary = {
 	price: number | string;
 	currency: string;
 	interval: string;
+	maxUsers?: number;
 };
 
 export type AddOn = {
@@ -91,12 +93,27 @@ export type RazorpayBilling = {
 	phone: string;
 };
 
+export type PaymentCardDetails = {
+	cardType: "CREDIT" | "DEBIT";
+	cardHolderName: string;
+	cardNumber?: string;
+	cardNumberLast4: string;
+	cardBrand: "VISA" | "MASTERCARD" | "RUPAY" | "AMEX" | "OTHER";
+	expiryMonth: string;
+	expiryYear: string;
+	cvv?: string;
+	billingZip?: string;
+	autoPayConsent?: boolean;
+};
+
 export type OnboardingPayload = {
-	selectedPlanId: string;
-	selectedAddOns: string[];
-	razorpayBilling: RazorpayBilling;
+	selectedPlanId?: string;
+	selectedAddOns?: string[];
+	razorpayBilling?: RazorpayBilling;
 	razorpayOrderId?: string;
 	razorpayPaymentId?: string;
+	cardDetails?: PaymentCardDetails;
+	paymentCard?: PaymentCardDetails;
 };
 
 export type OnboardingUpdateRequest = {
@@ -105,12 +122,14 @@ export type OnboardingUpdateRequest = {
 	preferredCurrency: string;
 	stackSelections: Record<string, string>;
 	onboardingPayload: OnboardingPayload;
+	cardDetails?: PaymentCardDetails;
 };
 
 export type RazorpayOrder = {
 	id: string;
 	amount: number;
 	currency: string;
+	keyId?: string;
 };
 
 export type RazorpayVerifyPayload = {

@@ -39,22 +39,6 @@ async function main() {
     console.log("Updated admin password:", admin.email);
   }
 
-  // ensure default org
-  let defaultOrg = await prisma.organization.findFirst({
-    where: { name: "Cambliss Enterprise Demo" }
-  });
-  if (!defaultOrg) {
-    defaultOrg = await prisma.organization.create({
-      data: { name: "Cambliss Enterprise Demo" }
-    });
-  }
-
-  const clientRole = await prisma.role.upsert({
-    where: { name: "CLIENT" },
-    update: {},
-    create: { name: "CLIENT" }
-  });
-
   // create user
   const userEmail = "newuser@camblissstudio.com";
   let user = await prisma.user.findUnique({ where: { email: userEmail } });
@@ -66,29 +50,16 @@ async function main() {
         lastName: "User",
         passwordHash,
         isPlatformUser: false,
-        organizationId: defaultOrg.id
+        organizationId: null
       }
     });
     console.log("Created user:", user.email);
   } else {
     await prisma.user.update({
       where: { email: userEmail },
-      data: { passwordHash, organizationId: defaultOrg.id }
+      data: { passwordHash }
     });
     console.log("Updated user password:", user.email);
-  }
-
-  const membership = await prisma.organizationUser.findFirst({
-    where: { userId: user.id, organizationId: defaultOrg.id }
-  });
-  if (!membership) {
-    await prisma.organizationUser.create({
-      data: {
-        userId: user.id,
-        organizationId: defaultOrg.id,
-        roleId: clientRole.id
-      }
-    });
   }
 }
 

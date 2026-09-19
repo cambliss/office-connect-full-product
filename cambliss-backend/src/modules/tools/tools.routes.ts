@@ -455,6 +455,38 @@ toolsRouter.post("/convert/txt-to-docx", upload.single("file"), async (req: Requ
 	}
 });
 
+toolsRouter.post("/convert/pptx-to-txt", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await convertPptxToTxt(req.file);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
+toolsRouter.post("/convert/txt-to-pptx", upload.single("file"), async (req: Request, res: Response) => {
+	try {
+		if (!req.file) {
+			res.status(400).json({ message: "file is required" });
+			return;
+		}
+
+		const result = await convertTxtToPptx(req.file);
+		res.status(200).json(result);
+	} catch (error) {
+		handleToolsError(res, error);
+	} finally {
+		await cleanupUploadedFiles([req.file]);
+	}
+});
+
 toolsRouter.get("/daily-catalog", (_req: Request, res: Response) => {
 	res.status(200).json({
 		items: getDailyUtilityCatalog(),

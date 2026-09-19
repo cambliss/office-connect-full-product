@@ -1,215 +1,56 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import Link from "next/link";
-import { StorefrontShell } from "@/components/storefront/StorefrontShell";
+import { MarketplacePageWrapper } from "@/components/storefront/MarketplacePageWrapper";
 import { SellerHeroHeader, SellerProfileData } from "@/components/seller-storefront/SellerHeroHeader";
 import { SellerStorefrontTabs } from "@/components/seller-storefront/SellerStorefrontTabs";
 import { ProductCardProps } from "@/components/commerce/CommercePrimitives";
 
 const VENDOR_PROFILES: Record<string, { seller: SellerProfileData; products: ProductCardProps[]; gstin: string; legalEntity: string }> = {
-  aerotech: {
+  "hisense-computers": {
     seller: {
-      id: "v-aerotech",
-      name: "AeroTech Official Store 👑",
-      legalEntity: "AeroTech Audio Systems Private Limited",
+      id: "v-hisense-computers",
+      name: "Hisense Computers Official Store 🖥️",
+      legalEntity: "Hisense Computers & Systems India Private Limited",
       tier: "premium",
-      bannerImage: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80",
-      logoImage: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=400&q=80",
-      rating: 4.9,
-      reviewsCount: 1840,
-      location: "Bengaluru, Karnataka",
-      memberSince: "2023",
-      onTimeDispatchPct: 99.4,
-      returnRatePct: 0.6,
-      productCount: 18,
-      tagline: "Pioneering high-fidelity acoustic hardware and noise-canceling studio technology.",
-      gstin: "29AABCA1234D1ZX",
-    },
-    legalEntity: "AeroTech Audio Systems Private Limited",
-    gstin: "29AABCA1234D1ZX",
-    products: [
-      {
-        id: "prod-1",
-        title: "AeroTech ANC-500 Wireless Studio Noise Canceling Headphones",
-        brand: "AeroTech",
-        price: 29990,
-        originalPrice: 34990,
-        sellerName: "AeroTech Official Store",
-        sellerTier: "premium",
-        rating: 4.9,
-        reviewsCount: 1420,
-        stockQty: 24,
-        deliveryEstimate: "FREE Delivery by Tomorrow",
-        image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
-        badge: "★ FLAGSHIP",
-      },
-      {
-        id: "prod-aerotech-earbuds",
-        title: "AeroTech AirPulse Truly Wireless ANC Earbuds (30H Battery)",
-        brand: "AeroTech",
-        price: 12990,
-        originalPrice: 15990,
-        sellerName: "AeroTech Official Store",
-        sellerTier: "premium",
-        rating: 4.8,
-        reviewsCount: 420,
-        stockQty: 30,
-        deliveryEstimate: "FREE Delivery by Tomorrow",
-        image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80",
-      },
-    ],
-  },
-  urbanstyle: {
-    seller: {
-      id: "v-urbanstyle",
-      name: "UrbanStyle Apparel Co.",
-      legalEntity: "UrbanStyle Clothing & Textiles LLP",
-      tier: "verified",
-      bannerImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
-      logoImage: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=400&q=80",
-      rating: 4.8,
-      reviewsCount: 920,
-      location: "Tirupur, Tamil Nadu",
-      memberSince: "2024",
-      onTimeDispatchPct: 98.8,
-      returnRatePct: 1.2,
-      productCount: 42,
-      tagline: "Luxury 240 GSM organic French Terry streetwear and executive apparel.",
-      gstin: "33AABCU5678E1ZY",
-    },
-    legalEntity: "UrbanStyle Clothing & Textiles LLP",
-    gstin: "33AABCU5678E1ZY",
-    products: [
-      {
-        id: "prod-2",
-        title: "UrbanStyle 240 GSM Heavyweight Oversized French Terry T-Shirt",
-        brand: "UrbanStyle",
-        price: 1499,
-        originalPrice: 2499,
-        sellerName: "UrbanStyle Apparel Co.",
-        sellerTier: "verified",
-        rating: 4.8,
-        reviewsCount: 310,
-        stockQty: 45,
-        deliveryEstimate: "Same-Day Dispatch",
-        image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80",
-        badge: "⚡ 24H DISPATCH",
-      },
-    ],
-  },
-  "glow-beauty": {
-    seller: {
-      id: "v-glow-beauty",
-      name: "Glow Beauty Organics 🌸",
-      legalEntity: "Glow Botanicals India Private Limited",
-      tier: "premium",
-      bannerImage: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=80",
-      logoImage: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80",
+      bannerImage: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
+      logoImage: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=400&q=80",
       rating: 5.0,
-      reviewsCount: 640,
-      location: "Mumbai, Maharashtra",
-      memberSince: "2023",
-      onTimeDispatchPct: 99.6,
-      returnRatePct: 0.3,
-      productCount: 25,
-      tagline: "Cold-pressed French Damask Rose elixirs and certified organic skincare.",
-      gstin: "27AABCG9101F1ZX",
-    },
-    legalEntity: "Glow Botanicals India Private Limited",
-    gstin: "27AABCG9101F1ZX",
-    products: [
-      {
-        id: "rec-p3",
-        title: "Damask Rose Botanical Hydrating Serum (50ml)",
-        brand: "Glow Beauty",
-        price: 2499,
-        originalPrice: 3200,
-        sellerName: "Glow Beauty Organics",
-        sellerTier: "premium",
-        rating: 5.0,
-        reviewsCount: 310,
-        stockQty: 30,
-        deliveryEstimate: "FREE Delivery by Tomorrow",
-        image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80",
-        badge: "ORGANIC CERTIFIED",
-      },
-    ],
-  },
-  autocare: {
-    seller: {
-      id: "v-autocare",
-      name: "AutoCare Motors 🚘",
-      legalEntity: "AutoCare Logistics & Spares Corporation",
-      tier: "verified",
-      bannerImage: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=1200&q=80",
-      logoImage: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=400&q=80",
-      rating: 4.8,
-      reviewsCount: 410,
-      location: "Pune, Maharashtra",
+      reviewsCount: 0,
+      location: "Bengaluru, Karnataka, India",
       memberSince: "2024",
-      onTimeDispatchPct: 98.5,
-      returnRatePct: 1.1,
-      productCount: 60,
-      tagline: "Direct-from-factory synthetic motor oils, filters, and automotive fluids.",
-      gstin: "27AABCA1112G1ZY",
+      onTimeDispatchPct: 100,
+      returnRatePct: 0.0,
+      productCount: 0,
+      tagline: "Official verified merchant storefront on Office Connect Marketplace.",
+      gstin: "29AAACH8921K1Z5",
     },
-    legalEntity: "AutoCare Logistics & Spares Corporation",
-    gstin: "27AABCA1112G1ZY",
-    products: [
-      {
-        id: "rec-p4",
-        title: "5W-40 Fully Synthetic Engine Motor Oil (5 Liters)",
-        brand: "AutoCare",
-        price: 3200,
-        originalPrice: 3800,
-        sellerName: "AutoCare Motors",
-        sellerTier: "verified",
-        rating: 4.8,
-        reviewsCount: 88,
-        stockQty: 15,
-        deliveryEstimate: "Priority Courier 2-Day Delivery",
-        image: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80",
-      },
-    ],
+    legalEntity: "Hisense Computers & Systems India Private Limited",
+    gstin: "29AAACH8921K1Z5",
+    products: [],
   },
-  lumina: {
+  hisense: {
     seller: {
-      id: "v-lumina",
-      name: "Lumina Keyboards Official ⌨️",
-      legalEntity: "Lumina Peripheral Technologies Private Limited",
+      id: "v-hisense",
+      name: "Hisense Computers Official Store 🖥️",
+      legalEntity: "Hisense Computers & Systems India Private Limited",
       tier: "premium",
-      bannerImage: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=1200&q=80",
-      logoImage: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=400&q=80",
-      rating: 4.9,
-      reviewsCount: 780,
-      location: "Gurugram, Haryana",
-      memberSince: "2023",
-      onTimeDispatchPct: 99.1,
-      returnRatePct: 0.5,
-      productCount: 16,
-      tagline: "Custom wireless mechanical keyboards engineered for power users.",
-      gstin: "06AABCL1314H1ZX",
+      bannerImage: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
+      logoImage: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=400&q=80",
+      rating: 5.0,
+      reviewsCount: 0,
+      location: "Bengaluru, Karnataka, India",
+      memberSince: "2024",
+      onTimeDispatchPct: 100,
+      returnRatePct: 0.0,
+      productCount: 0,
+      tagline: "Official verified merchant storefront on Office Connect Marketplace.",
+      gstin: "29AAACH8921K1Z5",
     },
-    legalEntity: "Lumina Peripheral Technologies Private Limited",
-    gstin: "06AABCL1314H1ZX",
-    products: [
-      {
-        id: "prod-3",
-        title: "Lumina Q1 Pro Custom Wireless Mechanical Keyboard QMK/VIA",
-        brand: "Lumina Keyboards",
-        price: 16999,
-        originalPrice: 19999,
-        sellerName: "Lumina Keyboards Official",
-        sellerTier: "premium",
-        rating: 4.9,
-        reviewsCount: 680,
-        stockQty: 12,
-        deliveryEstimate: "Express 24-Hour Dispatch",
-        image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=600&q=80",
-        badge: "★ TOP PICK",
-      },
-    ],
+    legalEntity: "Hisense Computers & Systems India Private Limited",
+    gstin: "29AAACH8921K1Z5",
+    products: [],
   },
 };
 
@@ -221,9 +62,6 @@ export default function DedicatedVendorStorePage({
   const resolvedParams = use(params);
   const vendorSlug = resolvedParams.slug.toLowerCase();
 
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [inquiryText, setInquiryText] = useState("");
-
   const storeData = VENDOR_PROFILES[vendorSlug] || {
     seller: {
       id: `v-${vendorSlug}`,
@@ -232,35 +70,51 @@ export default function DedicatedVendorStorePage({
       tier: "verified" as const,
       bannerImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
       logoImage: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80",
-      rating: 4.8,
-      reviewsCount: 150,
+      rating: 5.0,
+      reviewsCount: 0,
       location: "India",
       memberSince: "2024",
-      onTimeDispatchPct: 99.0,
-      returnRatePct: 0.8,
-      productCount: 12,
+      onTimeDispatchPct: 100,
+      returnRatePct: 0.0,
+      productCount: 0,
       tagline: "Verified 3P Merchant Seller on Office Connect Marketplace",
       gstin: "27AAACX9999Z1ZX",
     },
     legalEntity: `${vendorSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} Enterprises Private Limited`,
     gstin: "27AAACX9999Z1ZX",
-    products: [
-      {
-        id: `prod-${vendorSlug}-1`,
-        title: `${vendorSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} Premium Product`,
-        brand: vendorSlug.toUpperCase(),
-        price: 3999,
-        originalPrice: 4999,
-        sellerName: `${vendorSlug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} Store`,
-        sellerTier: "verified" as const,
-        rating: 4.8,
-        reviewsCount: 88,
-        stockQty: 20,
-        deliveryEstimate: "FREE Delivery in 2 Days",
-        image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80",
-      },
-    ],
+    products: [],
   };
+
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [inquiryText, setInquiryText] = useState("");
+  const [storeProducts, setStoreProducts] = useState<ProductCardProps[]>(storeData.products);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("officeconnect_custom_products");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && (vendorSlug === "hisense-computers" || vendorSlug === "hisense")) {
+          const formatted: ProductCardProps[] = parsed.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            brand: item.brand || "Hisense Computers",
+            price: Number(item.price),
+            originalPrice: Number(item.mrp || item.originalPrice || item.price * 1.2),
+            sellerName: item.sellerName || "Hisense Computers (bhaskeradv1@gmail.com)",
+            sellerTier: "premium",
+            rating: item.rating || 4.9,
+            reviewsCount: item.reviewsCount || 100,
+            stockQty: Number(item.stock !== undefined ? item.stock : (item.stockQty || 10)),
+            deliveryEstimate: "FREE Delivery by Tomorrow",
+            image: item.image || "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=600&q=80",
+            badge: item.badge || "★ VERIFIED SELLER",
+          }));
+          setStoreProducts(formatted);
+        }
+      }
+    } catch (e) {}
+  }, [vendorSlug]);
 
   const handleSendInquiry = (e: React.FormEvent) => {
     e.preventDefault();
@@ -271,7 +125,7 @@ export default function DedicatedVendorStorePage({
   };
 
   return (
-    <StorefrontShell>
+    <MarketplacePageWrapper>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-8 pb-32 select-none">
         
         {/* Breadcrumb Navigation */}
@@ -291,7 +145,7 @@ export default function DedicatedVendorStorePage({
 
         {/* 2. Vendor Storefront Navigation Tabs (Catalog, Deals, KYB & Policies) */}
         <SellerStorefrontTabs
-          products={storeData.products}
+          products={storeProducts}
           sellerName={storeData.seller.name}
           legalEntity={storeData.legalEntity}
           gstin={storeData.gstin}
@@ -353,6 +207,6 @@ export default function DedicatedVendorStorePage({
         )}
 
       </div>
-    </StorefrontShell>
+    </MarketplacePageWrapper>
   );
 }
