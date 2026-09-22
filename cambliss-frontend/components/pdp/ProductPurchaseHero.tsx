@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { formatINR, SellerBadge } from "@/components/commerce/CommercePrimitives";
 
@@ -54,6 +54,18 @@ export const ProductPurchaseHero = ({
   const [activeImage, setActiveImage] = useState<string>(
     selectedVariant.image || product.images[0]
   );
+
+  // Synchronize variant and active image whenever the product data updates
+  useEffect(() => {
+    const firstVariant = product.variants?.[0];
+    const initialImg = firstVariant?.image || product.images?.[0];
+    if (firstVariant) {
+      setSelectedVariant(firstVariant);
+    }
+    if (initialImg) {
+      setActiveImage(initialImg);
+    }
+  }, [product.id, product.images, product.variants]);
   const [quantity, setQuantity] = useState<number>(1);
   const [pincode, setPincode] = useState<string>("560001");
   const [isPincodeChecked, setIsPincodeChecked] = useState<boolean>(true);

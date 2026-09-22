@@ -265,6 +265,50 @@ const KNOWN_PRODUCTS: Record<string, ProductHeroData> = {
     dispatchSla: "FREE Delivery by Tomorrow",
     stockCount: 22,
   },
+  "BF-78-000": {
+    id: "BF-78-000",
+    title: "Royal Purple Sequin Embellished Kurta",
+    brand: "Bhasker Fashion",
+    brandSlug: "bhasker-fashion",
+    category: "Fashion & Apparel",
+    rating: 5.0,
+    reviewsCount: 0,
+    questionsCount: 0,
+    basePrice: 999,
+    originalPrice: 1457,
+    images: [
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
+    ],
+    variants: [
+      { id: "v-default", name: "Standard Edition", colorCode: "#581c87", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80", inStock: true, priceOffset: 0 },
+    ],
+    sellerName: "Bhasker Fashion 👑",
+    sellerTier: "verified",
+    dispatchSla: "FREE Express Delivery by Tomorrow",
+    stockCount: 50,
+  },
+  "bf-78-000": {
+    id: "BF-78-000",
+    title: "Royal Purple Sequin Embellished Kurta",
+    brand: "Bhasker Fashion",
+    brandSlug: "bhasker-fashion",
+    category: "Fashion & Apparel",
+    rating: 5.0,
+    reviewsCount: 0,
+    questionsCount: 0,
+    basePrice: 999,
+    originalPrice: 1457,
+    images: [
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
+    ],
+    variants: [
+      { id: "v-default", name: "Standard Edition", colorCode: "#581c87", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80", inStock: true, priceOffset: 0 },
+    ],
+    sellerName: "Bhasker Fashion 👑",
+    sellerTier: "verified",
+    dispatchSla: "FREE Express Delivery by Tomorrow",
+    stockCount: 50,
+  },
 };
 
 export default function ProductDetailPage({
@@ -276,36 +320,46 @@ export default function ProductDetailPage({
   const productId = resolvedParams.id;
 
   const [productData, setProductData] = useState<ProductHeroData>(() => {
-    if (KNOWN_PRODUCTS[productId]) {
-      return KNOWN_PRODUCTS[productId];
+    const cleanId = (productId || "").trim();
+    if (KNOWN_PRODUCTS[cleanId] || KNOWN_PRODUCTS[cleanId.toUpperCase()] || KNOWN_PRODUCTS[cleanId.toLowerCase()]) {
+      return KNOWN_PRODUCTS[cleanId] || KNOWN_PRODUCTS[cleanId.toUpperCase()] || KNOWN_PRODUCTS[cleanId.toLowerCase()];
     }
-    // Dynamic fallback for any custom product ID
-    const formattedTitle = productId
-      .replace(/^prod-|^rec-|^deal-/, "")
-      .replace(/-/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+
+    const isKurtaOrFashion =
+      cleanId.toLowerCase().includes("bf") ||
+      cleanId.toLowerCase().includes("kurta") ||
+      cleanId.toLowerCase().includes("fashion");
+
+    const fallbackImg = isKurtaOrFashion
+      ? "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80"
+      : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
+
+    const formattedTitle = isKurtaOrFashion
+      ? "Royal Purple Sequin Embellished Kurta"
+      : cleanId
+          .replace(/^prod-|^rec-|^deal-/, "")
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
 
     return {
-      id: productId,
-      title: formattedTitle ? `${formattedTitle} Premium Edition` : "Verified Marketplace Product",
-      brand: "Verified Brand",
-      brandSlug: "verified-brand",
-      category: "General Merchandise",
-      rating: 4.8,
-      reviewsCount: 140,
-      questionsCount: 22,
-      basePrice: 4999,
-      originalPrice: 6999,
-      images: [
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80",
-      ],
+      id: cleanId,
+      title: formattedTitle ? `${formattedTitle}` : "Verified Marketplace Product",
+      brand: isKurtaOrFashion ? "Bhasker Fashion" : "Verified Brand",
+      brandSlug: isKurtaOrFashion ? "bhasker-fashion" : "verified-brand",
+      category: isKurtaOrFashion ? "Fashion & Apparel" : "General Merchandise",
+      rating: 5.0,
+      reviewsCount: 0,
+      questionsCount: 0,
+      basePrice: isKurtaOrFashion ? 999 : 4999,
+      originalPrice: isKurtaOrFashion ? 1457 : 6999,
+      images: [fallbackImg],
       variants: [
-        { id: "v-standard", name: "Standard Edition", colorCode: "#3b82f6", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80", inStock: true, priceOffset: 0 },
+        { id: "v-standard", name: "Standard Edition", colorCode: isKurtaOrFashion ? "#581c87" : "#3b82f6", image: fallbackImg, inStock: true, priceOffset: 0 },
       ],
-      sellerName: "Office Connect Direct 👑",
+      sellerName: isKurtaOrFashion ? "Bhasker Fashion 👑" : "Office Connect Direct 👑",
       sellerTier: "verified",
-      dispatchSla: "Standard 2-3 Business Days",
-      stockCount: 18,
+      dispatchSla: "FREE Delivery by Tomorrow",
+      stockCount: isKurtaOrFashion ? 50 : 18,
     };
   });
 
@@ -450,6 +504,7 @@ export default function ProductDetailPage({
 
         {/* 2. Top Purchase Area */}
         <ProductPurchaseHero
+          key={`${productData.id}-${productData.images?.[0] || "default"}`}
           product={productData}
           onAddToCart={handleAddToCart}
           onBuyNow={handleBuyNow}
