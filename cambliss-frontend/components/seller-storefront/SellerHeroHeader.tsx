@@ -80,9 +80,15 @@ export const SellerHeroHeader = ({
                 {seller.tagline}
               </p>
               <div className="flex items-center gap-2.5 text-xs text-slate-500 flex-wrap pt-0.5">
-                <span className="font-extrabold text-amber-500 flex items-center gap-1">
-                  ★ {seller.rating.toFixed(1)} <span className="text-slate-600 font-semibold">({seller.reviewsCount})</span>
-                </span>
+                {seller.reviewsCount > 0 ? (
+                  <span className="font-extrabold text-amber-500 flex items-center gap-1">
+                    ★ {seller.rating.toFixed(1)} <span className="text-slate-600 font-semibold">({seller.reviewsCount})</span>
+                  </span>
+                ) : (
+                  <span className="font-medium text-slate-500 flex items-center gap-1">
+                    ★ New Merchant Store (No reviews yet)
+                  </span>
+                )}
                 <span className="text-slate-300">•</span>
                 <span className="font-semibold text-slate-700">📍 {seller.location}</span>
                 <span className="text-slate-300">•</span>

@@ -1,19 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const AccountProfileSettings = () => {
   const [profile, setProfile] = useState({
-    fullName: "Bhasker Mahesh",
-    email: "bhaskeradv1@gmail.com",
-    phone: "+91 98450 12345",
-    companyName: "Bhasker Fashions / Cambliss Studio",
-    gstin: "29AABCU9603R1ZM",
-    pan: "AABCU9603R",
-    designation: "Chief Executive Officer / Procurement Lead",
+    fullName: "",
+    email: "",
+    phone: "",
+    companyName: "",
+    gstin: "",
+    pan: "",
+    designation: "",
   });
 
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("authUser");
+        if (raw) {
+          const user = JSON.parse(raw);
+          setProfile({
+            fullName: user.name || user.fullName || "Registered Platform User",
+            email: user.email || "",
+            phone: user.phone || "",
+            companyName: user.organization?.name || user.companyName || "Cambliss Enterprise",
+            gstin: user.gstin || "",
+            pan: user.pan || "",
+            designation: user.role || "Enterprise Member",
+          });
+        }
+      } catch (err) {}
+    }
+  }, []);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();

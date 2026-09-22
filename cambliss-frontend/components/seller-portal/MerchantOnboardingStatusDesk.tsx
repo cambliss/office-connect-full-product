@@ -31,12 +31,12 @@ interface MerchantOnboardingStatusDeskProps {
 }
 
 export const MerchantOnboardingStatusDesk = ({
-  userEmail = "bhaskeradv1@gmail.com",
+  userEmail = "",
   onNavigateToStore,
   onNavigateToBrowse,
 }: MerchantOnboardingStatusDeskProps) => {
   const [effectiveEmail, setEffectiveEmail] = useState<string>(userEmail);
-  const [status, setStatus] = useState<MerchantVerificationStatus>("PENDING_REVIEW");
+  const [status, setStatus] = useState<MerchantVerificationStatus>("NOT_STARTED");
   const [applicationData, setApplicationData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSimulatingApproval, setIsSimulatingApproval] = useState<boolean>(false);
@@ -60,11 +60,10 @@ export const MerchantOnboardingStatusDesk = ({
   // Load application and verification status for effectiveEmail
   useEffect(() => {
     const loadStatus = async () => {
-      const emailKey = `officeconnect_merchant_status_${effectiveEmail}`;
-      const fallbackKey = `officeconnect_merchant_status_bhaskeradv1@gmail.com`;
+      const emailKey = effectiveEmail ? `officeconnect_merchant_status_${effectiveEmail}` : "";
 
       // 1. Check direct localStorage key for this user
-      let storedStatus = localStorage.getItem(emailKey) || localStorage.getItem(fallbackKey);
+      let storedStatus = emailKey ? localStorage.getItem(emailKey) : null;
       if (storedStatus) {
         try {
           const parsed = JSON.parse(storedStatus);
@@ -124,13 +123,14 @@ export const MerchantOnboardingStatusDesk = ({
 
     // Check for existing notifications on load
     try {
-      const notifKey = `officeconnect_notification_${effectiveEmail}`;
-      const fallbackNotifKey = `officeconnect_notification_bhaskeradv1@gmail.com`;
-      const savedNotif = localStorage.getItem(notifKey) || localStorage.getItem(fallbackNotifKey);
-      if (savedNotif) {
-        const parsed = JSON.parse(savedNotif);
-        if (!parsed.read) {
-          setApprovalNotification(parsed);
+      if (effectiveEmail) {
+        const notifKey = `officeconnect_notification_${effectiveEmail}`;
+        const savedNotif = localStorage.getItem(notifKey);
+        if (savedNotif) {
+          const parsed = JSON.parse(savedNotif);
+          if (!parsed.read) {
+            setApprovalNotification(parsed);
+          }
         }
       }
     } catch (e) {}
@@ -139,13 +139,14 @@ export const MerchantOnboardingStatusDesk = ({
     const handleStorageOrApprove = () => {
       loadStatus();
       try {
-        const notifKey = `officeconnect_notification_${effectiveEmail}`;
-        const fallbackNotifKey = `officeconnect_notification_bhaskeradv1@gmail.com`;
-        const savedNotif = localStorage.getItem(notifKey) || localStorage.getItem(fallbackNotifKey);
-        if (savedNotif) {
-          const parsed = JSON.parse(savedNotif);
-          if (!parsed.read) {
-            setApprovalNotification(parsed);
+        if (effectiveEmail) {
+          const notifKey = `officeconnect_notification_${effectiveEmail}`;
+          const savedNotif = localStorage.getItem(notifKey);
+          if (savedNotif) {
+            const parsed = JSON.parse(savedNotif);
+            if (!parsed.read) {
+              setApprovalNotification(parsed);
+            }
           }
         }
       } catch (err) {}
@@ -403,20 +404,20 @@ export const MerchantOnboardingStatusDesk = ({
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-0.5 font-mono">
               <span className="text-slate-400 font-bold block text-[10px]">GSTIN & PAN</span>
               <span className="font-bold text-slate-900 block">
-                GST: {applicationData?.gstin || "29AABCH9912R1Z8"}
+                GST: {applicationData?.gstin || "Pending Verification"}
               </span>
               <span className="text-slate-600">
-                PAN: {applicationData?.pan || "AABCH9912R"}
+                PAN: {applicationData?.pan || "Pending Verification"}
               </span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-0.5">
               <span className="text-slate-400 font-bold block text-[10px]">Escrow Bank Settlement</span>
               <span className="font-bold text-slate-900 block">
-                {applicationData?.bankName || "HDFC Bank"} ({applicationData?.ifscCode || "HDFC0000128"})
+                {applicationData?.bankName || "Pending Setup"} {applicationData?.ifscCode ? `(${applicationData.ifscCode})` : ""}
               </span>
               <span className="text-slate-500 font-mono text-[11px]">
-                A/C: {applicationData?.accountNumber || "50200088192019"}
+                A/C: {applicationData?.accountNumber || "Not Configured"}
               </span>
             </div>
           </div>

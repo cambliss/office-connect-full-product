@@ -54,10 +54,10 @@ const ARTICLES_DATABASE: Record<
 		version: "v3.2 - Annual Board Approved",
 		readingTime: "8 min read",
 		author: {
-			name: "Elena Rostova",
-			role: "People & Talent Lead",
-			avatar: "ER",
-			department: "Human Resources",
+			name: "Sunaina Mahesh",
+			role: "Corporate Governance Member",
+			avatar: "SM",
+			department: "Governance & Policies",
 		},
 		sections: [
 			{
@@ -85,9 +85,9 @@ const ARTICLES_DATABASE: Record<
 		version: "v4.0 - Production Architecture",
 		readingTime: "12 min read",
 		author: {
-			name: "David Chen",
+			name: "Platform Administrator",
 			role: "Lead Platform Architect",
-			avatar: "DC",
+			avatar: "PA",
 			department: "Engineering Core",
 		},
 		sections: [
@@ -117,9 +117,9 @@ const ARTICLES_DATABASE: Record<
 		version: "v2.1",
 		readingTime: "6 min read",
 		author: {
-			name: "Marcus Vance",
-			role: "VP Sales",
-			avatar: "MV",
+			name: "Bhasker Mahesh",
+			role: "Commercial & Merchant Lead",
+			avatar: "BM",
 			department: "Commercial Operations",
 		},
 		sections: [

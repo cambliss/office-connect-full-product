@@ -6,7 +6,8 @@ set -e
 echo "🚀 Starting Hostinger VPS Deployment & 502 Fix..."
 
 PROJECT_DIR="/var/www/office-connect-mvp"
-TARGET_BRANCH="${1:-master}"
+TARGET_BRANCH="${1:-main}"
+REPO_URL="https://github.com/cambliss/office-connect-full-product.git"
 
 # Clean up legacy directories
 rm -rf /var/www/officeconnect-cambliss
@@ -18,6 +19,7 @@ rm -f "$PROJECT_DIR/.git/index.lock" "$PROJECT_DIR/.git/shallow.lock" 2>/dev/nul
 if [ -d "$PROJECT_DIR/.git" ]; then
     echo "🔄 Updating existing repository on branch $TARGET_BRANCH..."
     cd "$PROJECT_DIR"
+    git remote set-url origin "$REPO_URL" || true
     rm -f .git/index.lock .git/shallow.lock 2>/dev/null || true
     if git fetch origin "$TARGET_BRANCH"; then
         git checkout -B "$TARGET_BRANCH" "origin/$TARGET_BRANCH" 2>/dev/null || git checkout "$TARGET_BRANCH"
@@ -27,14 +29,14 @@ if [ -d "$PROJECT_DIR/.git" ]; then
         echo "⚠️ Git fetch failed. Re-cloning fresh clean repository..."
         cd /var/www
         rm -rf "$PROJECT_DIR"
-        git clone -b "$TARGET_BRANCH" https://github.com/Smahesh26/office-connect-mvp.git "$PROJECT_DIR"
+        git clone -b "$TARGET_BRANCH" "$REPO_URL" "$PROJECT_DIR"
         cd "$PROJECT_DIR"
     fi
 else
     echo "📁 Fresh cloning latest clean repository from GitHub..."
     rm -rf "$PROJECT_DIR"
     mkdir -p /var/www
-    git clone -b "$TARGET_BRANCH" https://github.com/Smahesh26/office-connect-mvp.git "$PROJECT_DIR"
+    git clone -b "$TARGET_BRANCH" "$REPO_URL" "$PROJECT_DIR"
     cd "$PROJECT_DIR"
 fi
 

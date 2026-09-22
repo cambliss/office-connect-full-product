@@ -169,72 +169,7 @@ export async function fetchGenuineKybApplications(): Promise<SellerKybApplicatio
     }
   }
 
-  let list = Array.from(applicationMap.values());
-
-  // If no application has been submitted yet in the current session, supply the reference merchant
-  if (list.length === 0) {
-    let isBhaskerApproved = false;
-    if (typeof window !== "undefined") {
-      try {
-        isBhaskerApproved =
-          localStorage.getItem("officeconnect_merchant_approved_bhasker") === "true" ||
-          (localStorage.getItem("officeconnect_merchant_status_bhaskeradv1@gmail.com") || "").includes("Approved");
-      } catch (e) {}
-    }
-
-    const defaultReferenceApp: SellerKybApplication = {
-      id: "app-bhasker-default",
-      applicationId: "OC-KYB-2026-9214",
-      businessName: "Bhasker Fashions Private Limited",
-      tradeName: "Bhasker Fashions",
-      storeSlug: "bhasker-fashions",
-      ownerName: "Bhasker Mahesh",
-      email: "bhaskeradv1@gmail.com",
-      phone: "+91 98450 12345",
-      entityType: "Private Limited",
-      gstin: "29AABCU9603R1ZM",
-      pan: "AABCU9603R",
-      isGstExempt: false,
-      category: "Fashion & Apparel",
-      warehouseAddress: "Plot 42, KIADB Industrial Area, Phase II",
-      warehouseCity: "Bengaluru",
-      warehouseState: "Karnataka",
-      warehousePinCode: "560001",
-      dispatchManagerName: "Bhasker Mahesh",
-      dispatchManagerPhone: "+91 98450 12345",
-      bankName: "HDFC Bank",
-      accountNumber: "50200088192019",
-      ifscCode: "HDFC0000128",
-      accountHolderName: "Bhasker Fashions Private Limited",
-      pennyDropVerified: true,
-      gstRateTier: "12%",
-      hsnCode: "6104",
-      automatedInvoicing: true,
-      tcsAccepted: true,
-      kycDocType: "Aadhaar Card",
-      kycDocNumber: "9821-4412-8819",
-      kycDocUploaded: true,
-      gstDocUploaded: true,
-      gstDocName: "GST_REG06_29AABCU9603R1ZM.pdf",
-      selfieCaptured: true,
-      faceMatchScore: 98,
-      videoKycSlot: "Completed Instantly",
-      fulfillmentModel: "EASY_SHIP",
-      signatureName: "Bhasker Mahesh",
-      appliedDate: new Date().toISOString().split("T")[0],
-      status: isBhaskerApproved ? "Approved" : "Pending Review",
-      sampleProduct: {
-        title: "Designer Handcrafted Linen Kurta",
-        brand: "Bhasker Fashions",
-        category: "Fashion & Apparel",
-        price: 1899,
-        mrp: 2999,
-        sku: "BF-LNN-KRT-01",
-      },
-    };
-
-    list = [defaultReferenceApp];
-  }
+  const list = Array.from(applicationMap.values());
 
   // 3. Proactively sync local applications to the server API
   if (typeof window !== "undefined" && list.length > 0) {

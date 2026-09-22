@@ -428,10 +428,10 @@ function AkauntingContent() {
     {
       id: "c2",
       name: "Global Tech Solutions",
-      contactPerson: "Marcus Vance",
-      email: "finance@globaltech.com",
+      contactPerson: "Bhasker Mahesh",
+      email: "bhaskeradv1@gmail.com",
       secondaryEmail: "ap@globaltech.com",
-      phone: "+1 (555) 342-9912",
+      phone: "+91 98450 12345",
       taxId: "US-TAX-44102",
       currency: "USD ($)",
       address: "500 Silicon Ave",
@@ -446,9 +446,9 @@ function AkauntingContent() {
     {
       id: "c3",
       name: "Nexus Systems Inc",
-      contactPerson: "Elena Rostova",
-      email: "accounts@nexussystems.com",
-      phone: "+1 (555) 881-2099",
+      contactPerson: "Sunaina Mahesh",
+      email: "sunainamahesh1@gmail.com",
+      phone: "+91 98450 67890",
       taxId: "US-TAX-33901",
       currency: "USD ($)",
       address: "220 Tech Blvd",
@@ -504,11 +504,11 @@ function AkauntingContent() {
   ]);
 
   const [projects, setProjects] = useState<Project[]>([
-    { id: "prj-1", name: "Enterprise Custom API Integration", customer: "Acme Corp", manager: "Sarah Jenkins", budget: 15000.00, spent: 4200.00, hoursLogged: 64, hourlyRate: 150.00, startDate: "2026-03-01", dueDate: "2026-11-30", priority: "High", status: "In Progress", description: "Full integration of REST APIs and OAuth2 SSO endpoints." },
+    { id: "prj-1", name: "Enterprise Custom API Integration", customer: "Acme Corp", manager: "Bhasker Mahesh", budget: 15000.00, spent: 4200.00, hoursLogged: 64, hourlyRate: 150.00, startDate: "2026-03-01", dueDate: "2026-11-30", priority: "High", status: "In Progress", description: "Full integration of REST APIs and OAuth2 SSO endpoints." },
   ]);
 
   const [employees, setEmployees] = useState<Employee[]>([
-    { id: "emp-1", employeeCode: "EMP-001", name: "Sarah Jenkins", role: "Senior Software Engineer", department: "Engineering", email: "sarah@camblissstudio.com", phone: "+1 (555) 012-3456", joinDate: "2024-03-15", employmentType: "Full-Time", monthlySalary: 8500.00, allowances: 500.00, taxDeductions: 1200.00, expenseClaims: 150.00, bankAccountNo: "****7890", bankName: "Chase", status: "Active" },
+    { id: "emp-1", employeeCode: "EMP-001", name: "Admin User", role: "Super Administrator", department: "Operations", email: "admin@camblissstudio.com", phone: "+91 98450 12345", joinDate: "2024-03-15", employmentType: "Full-Time", monthlySalary: 8500.00, allowances: 500.00, taxDeductions: 1200.00, expenseClaims: 150.00, bankAccountNo: "****7890", bankName: "HDFC Bank", status: "Active" },
   ]);
 
   const [chartOfAccounts, setChartOfAccounts] = useState<AccountLedger[]>([

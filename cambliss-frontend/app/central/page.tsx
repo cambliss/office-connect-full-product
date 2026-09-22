@@ -75,8 +75,8 @@ const INITIAL_SPACES: SpaceSummary[] = [
 		id: "general",
 		name: "General Announcements",
 		description: "Company-wide updates, quarterly town halls, and milestones.",
-		membersCount: 142,
-		unreadCount: 3,
+		membersCount: 6,
+		unreadCount: 0,
 		isPrivate: false,
 		icon: "general",
 	},
@@ -84,8 +84,8 @@ const INITIAL_SPACES: SpaceSummary[] = [
 		id: "engineering",
 		name: "Engineering & Tech",
 		description: "Architecture reviews, sprint deployments, and tech SOPs.",
-		membersCount: 38,
-		unreadCount: 7,
+		membersCount: 3,
+		unreadCount: 0,
 		isPrivate: false,
 		icon: "engineering",
 	},
@@ -93,7 +93,7 @@ const INITIAL_SPACES: SpaceSummary[] = [
 		id: "sales",
 		name: "Sales & Marketing",
 		description: "Revenue pipeline targets, campaign assets, and customer feedback.",
-		membersCount: 45,
+		membersCount: 3,
 		unreadCount: 0,
 		isPrivate: false,
 		icon: "sales",
@@ -102,69 +102,14 @@ const INITIAL_SPACES: SpaceSummary[] = [
 		id: "executive",
 		name: "Executive Committee",
 		description: "Strategic governance, audit reviews, and compliance.",
-		membersCount: 8,
-		unreadCount: 1,
+		membersCount: 2,
+		unreadCount: 0,
 		isPrivate: true,
 		icon: "executive",
 	},
 ];
 
-const INITIAL_POSTS: Post[] = [
-	{
-		id: "post-1",
-		author: {
-			name: "Sarah Jenkins",
-			role: "Chief Operating Officer",
-			avatar: "SJ",
-			department: "Executive Leadership",
-		},
-		title: "Office Connect Central Operating Layer Rollout",
-		content:
-			"Welcome to Office Connect Central! This foundational digital workplace is now our unified operating layer. It ties together our team spaces, institutional knowledge SOPs, and core operational engines (CRM, HRMS, Accountech ERP, and Marketplace). Please ensure your department documentation is updated in the Knowledge Hub.",
-		space: "General Announcements",
-		pinned: true,
-		timestamp: "2 hours ago",
-		likes: 24,
-		comments: 6,
-		tags: ["Announcement", "Governance", "Operations"],
-	},
-	{
-		id: "post-2",
-		author: {
-			name: "David Chen",
-			role: "Lead Platform Architect",
-			avatar: "DC",
-			department: "Engineering Core",
-		},
-		title: "API & Data Exchange Architecture Documentation Completed",
-		content:
-			"We've published the new multi-module sync playbook inside the Knowledge Wiki. This guarantees automated synchronization between CRM deal stages, Accountech invoicing, and Inventory stock levels. Feel free to review the architecture specs in the Tech SOPs section.",
-		space: "Engineering & Tech",
-		pinned: false,
-		timestamp: "4 hours ago",
-		likes: 18,
-		comments: 3,
-		tags: ["Architecture", "Knowledge", "Integrations"],
-	},
-	{
-		id: "post-3",
-		author: {
-			name: "Elena Rostova",
-			role: "People & Talent Lead",
-			avatar: "ER",
-			department: "Human Resources",
-		},
-		title: "Q3 Flexible Workplace & Time-Off Policy Update",
-		content:
-			"The updated 2026 remote collaboration policy and benefits schedule are now live in the People & Policies repository. Please review and submit any Q3 leaves directly through our integrated HRM portal.",
-		space: "General Announcements",
-		pinned: false,
-		timestamp: "Yesterday at 4:30 PM",
-		likes: 31,
-		comments: 11,
-		tags: ["HRM", "Policy", "Culture"],
-	},
-];
+const INITIAL_POSTS: Post[] = [];
 
 export default function OfficeConnectCentralPage() {
 	const [userName, setUserName] = useState("Team");
@@ -342,7 +287,7 @@ export default function OfficeConnectCentralPage() {
 						</div>
 						<h2 className="mt-2 text-base font-bold text-slate-900 group-hover:text-[#404d85]">Users & Presence</h2>
 						<p className="mt-1 text-xs text-slate-500">
-							Search across 142 colleagues, departments, skillsets, and availability status.
+							Search across 6 registered colleagues, departments, skillsets, and availability status.
 						</p>
 					</Link>
 
@@ -418,83 +363,103 @@ export default function OfficeConnectCentralPage() {
 						</div>
 
 						{/* Posts stream */}
-						<div className="space-y-4">
-							{filteredPosts.map((post) => (
-								<div
-									key={post.id}
-									className={`rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md ${
-										post.pinned ? "border-amber-200 bg-amber-50/20" : "border-[#d9e2ef]"
-									}`}
-								>
-									{post.pinned && (
-										<div className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700">
-											<Pin className="h-3.5 w-3.5" />
-											<span>Pinned Leadership Announcement</span>
-										</div>
-									)}
-
-									<div className="flex items-start justify-between gap-4">
-										<div className="flex items-center gap-3">
-											<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-[#323d6b] to-[#6678c1] text-sm font-bold text-white shadow-sm">
-												{post.author.avatar}
-											</div>
-											<div>
-												<h4 className="text-sm font-bold text-slate-900">{post.author.name}</h4>
-												<p className="text-[11px] text-slate-500">
-													{post.author.role} • <span className="font-medium text-[#404d85]">{post.author.department}</span>
-												</p>
-											</div>
-										</div>
-
-										<div className="flex items-center gap-2">
-											<span className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-600">
-												{post.space}
-											</span>
-											<span className="text-[11px] text-slate-400">{post.timestamp}</span>
-										</div>
-									</div>
-
-									<div className="mt-4">
-										<h3 className="text-base font-bold text-slate-900">{post.title}</h3>
-										<p className="mt-1.5 text-xs leading-relaxed text-slate-600">{post.content}</p>
-									</div>
-
-									{post.tags && post.tags.length > 0 && (
-										<div className="mt-3 flex flex-wrap gap-1.5">
-											{post.tags.map((tag) => (
-												<span
-													key={tag}
-													className="rounded-md bg-[#eef2fa] px-2 py-0.5 text-[10px] font-semibold text-[#404d85]"
-												>
-													#{tag}
-												</span>
-											))}
-										</div>
-									)}
-
-									<div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-										<div className="flex items-center gap-4">
-											<button
-												onClick={() => {
-													setPosts(
-														posts.map((p) => (p.id === post.id ? { ...p, likes: p.likes + 1 } : p))
-													);
-												}}
-												className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-slate-600 transition hover:bg-slate-100 hover:text-red-500"
-											>
-												<Heart className="h-3.5 w-3.5" />
-												<span>{post.likes}</span>
-											</button>
-											<button className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-slate-600 transition hover:bg-slate-100 hover:text-[#404d85]">
-												<MessageSquare className="h-3.5 w-3.5" />
-												<span>{post.comments} comments</span>
-											</button>
-										</div>
-										<span className="text-[11px] text-slate-400">Enterprise Verified</span>
-									</div>
+						{filteredPosts.length === 0 ? (
+							<div className="rounded-2xl border border-dashed border-[#d9e2ef] bg-white p-10 text-center space-y-3 shadow-2xs">
+								<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#eef2fa] text-xl">
+									💬
 								</div>
-							))}
-						</div>
+								<h3 className="text-sm font-bold text-slate-900">No Workplace Broadcasts Yet</h3>
+								<p className="mx-auto max-w-sm text-xs text-slate-500 leading-relaxed">
+									Keep your registered team members in sync. Share announcements, milestones, or policy updates directly to your spaces.
+								</p>
+								<div className="pt-2">
+									<button
+										onClick={() => setNewPostModalOpen(true)}
+										className="inline-flex items-center gap-1.5 rounded-xl bg-[#404d85] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#323d6b] transition"
+									>
+										+ Broadcast Update
+									</button>
+								</div>
+							</div>
+						) : (
+							<div className="space-y-4">
+								{filteredPosts.map((post) => (
+									<div
+										key={post.id}
+										className={`rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md ${
+											post.pinned ? "border-amber-200 bg-amber-50/20" : "border-[#d9e2ef]"
+										}`}
+									>
+										{post.pinned && (
+											<div className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700">
+												<Pin className="h-3.5 w-3.5" />
+												<span>Pinned Leadership Announcement</span>
+											</div>
+										)}
+
+										<div className="flex items-start justify-between gap-4">
+											<div className="flex items-center gap-3">
+												<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-[#323d6b] to-[#6678c1] text-sm font-bold text-white shadow-sm">
+													{post.author.avatar}
+												</div>
+												<div>
+													<h4 className="text-sm font-bold text-slate-900">{post.author.name}</h4>
+													<p className="text-[11px] text-slate-500">
+														{post.author.role} • <span className="font-medium text-[#404d85]">{post.author.department}</span>
+													</p>
+												</div>
+											</div>
+
+											<div className="flex items-center gap-2">
+												<span className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-600">
+													{post.space}
+												</span>
+												<span className="text-[11px] text-slate-400">{post.timestamp}</span>
+											</div>
+										</div>
+
+										<div className="mt-4">
+											<h3 className="text-base font-bold text-slate-900">{post.title}</h3>
+											<p className="mt-1.5 text-xs leading-relaxed text-slate-600">{post.content}</p>
+										</div>
+
+										{post.tags && post.tags.length > 0 && (
+											<div className="mt-3 flex flex-wrap gap-1.5">
+												{post.tags.map((tag) => (
+													<span
+														key={tag}
+														className="rounded-md bg-[#eef2fa] px-2 py-0.5 text-[10px] font-semibold text-[#404d85]"
+													>
+														#{tag}
+													</span>
+												))}
+											</div>
+										)}
+
+										<div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
+											<div className="flex items-center gap-4">
+												<button
+													onClick={() => {
+														setPosts(
+															posts.map((p) => (p.id === post.id ? { ...p, likes: p.likes + 1 } : p))
+														);
+													}}
+													className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-slate-600 transition hover:bg-slate-100 hover:text-red-500"
+												>
+													<Heart className="h-3.5 w-3.5" />
+													<span>{post.likes}</span>
+												</button>
+												<button className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-slate-600 transition hover:bg-slate-100 hover:text-[#404d85]">
+													<MessageSquare className="h-3.5 w-3.5" />
+													<span>{post.comments} comments</span>
+												</button>
+											</div>
+											<span className="text-[11px] text-slate-400">Enterprise Verified</span>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
 					</div>
 
 					{/* Right Column: Spaces Switcher & Module Quick Launcher */}

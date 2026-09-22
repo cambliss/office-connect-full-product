@@ -50,22 +50,22 @@ export const RealDocumentViewerModal = ({
   if (!isOpen || !application) return null;
 
   const app = application;
-  const businessName = app.businessName || "Bhasker Fashions Private Limited";
-  const tradeName = app.tradeName || "Bhasker Fashions";
-  const ownerName = app.ownerName || "Bhasker Mahesh";
-  const gstin = app.gstin || "29AABCU9603R1ZM";
-  const pan = app.pan || (gstin.length >= 12 ? gstin.slice(2, 12) : "AABCU9603R");
-  const bankName = app.bankName || "HDFC Bank";
-  const accountNumber = app.accountNumber || "50200088192019";
-  const ifscCode = app.ifscCode || "HDFC0000128";
-  const warehouseCity = app.warehouseCity || "Bengaluru";
-  const warehouseState = app.warehouseState || "Karnataka";
-  const warehousePinCode = app.warehousePinCode || "560001";
+  const businessName = app.businessName || "Registered Merchant Entity";
+  const tradeName = app.tradeName || "Merchant Store";
+  const ownerName = app.ownerName || "Registered User";
+  const gstin = app.gstin || "NOT PROVIDED";
+  const pan = app.pan || (gstin && gstin.length >= 12 && gstin !== "NOT PROVIDED" ? gstin.slice(2, 12) : "NOT PROVIDED");
+  const bankName = app.bankName || "Pending Verification";
+  const accountNumber = app.accountNumber || "XXXXXXXXXXXX";
+  const ifscCode = app.ifscCode || "PENDING";
+  const warehouseCity = app.warehouseCity || "N/A";
+  const warehouseState = app.warehouseState || "N/A";
+  const warehousePinCode = app.warehousePinCode || "N/A";
   const warehouseAddress =
-    app.warehouseAddress || "Plot 42, KIADB Industrial Area, Phase II";
-  const kycDocType = app.kycDocType || "Aadhaar Card";
-  const kycDocNumber = app.kycDocNumber || "9821-4412-8819";
-  const faceScore = app.faceMatchScore || 98;
+    app.warehouseAddress || "Registered Business Address";
+  const kycDocType = app.kycDocType || "Government Identity Document";
+  const kycDocNumber = app.kycDocNumber || "XXXX-XXXX-XXXX";
+  const faceScore = app.faceMatchScore || 0;
   const appliedDate = app.appliedDate || new Date().toISOString().split("T")[0];
 
   const handlePrint = () => {

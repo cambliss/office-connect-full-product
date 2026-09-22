@@ -53,35 +53,14 @@ export const ProductFullSpecsAndReviews = ({
   const [activeTab, setActiveTab] = useState<"overview" | "specs" | "sellers" | "reviews">("overview");
 
   const ratingBreakdown = [
-    { stars: 5, pct: 85 },
-    { stars: 4, pct: 15 },
+    { stars: 5, pct: 100 },
+    { stars: 4, pct: 0 },
     { stars: 3, pct: 0 },
     { stars: 2, pct: 0 },
     { stars: 1, pct: 0 },
   ];
 
-  const sampleReviews: ReviewItem[] = reviews && reviews.length > 0
-    ? reviews
-    : [
-        {
-          author: "Kavita Rao",
-          city: "Bengaluru, KA",
-          date: "Verified Store Order",
-          stars: 5,
-          title: "Stunning finish and rich craftsmanship!",
-          comment: "Arrived within 48 hours in sealed protective packaging with official GST tax invoice. Looks even better in person!",
-          verified: true,
-        },
-        {
-          author: "Rohan Varma",
-          city: "Hyderabad, TS",
-          date: "Verified Store Order",
-          stars: 5,
-          title: "100% genuine merchant product",
-          comment: "Fabric and fit are exceptional. Very satisfied with the quick dispatch and genuine quality.",
-          verified: true,
-        },
-      ];
+  const sampleReviews: ReviewItem[] = reviews || [];
 
   return (
     <div className="space-y-6 select-none">
@@ -146,24 +125,20 @@ export const ProductFullSpecsAndReviews = ({
 
             <div className="space-y-2 text-[11px] text-slate-700">
               <div className="flex items-center justify-between">
-                <span>On-Time Dispatch Rate:</span>
-                <strong className="text-emerald-700 font-bold">99.8% (24h SLA)</strong>
+                <span>Dispatch SLA:</span>
+                <strong className="text-emerald-700 font-bold">Express 24-48 Hours</strong>
               </div>
               <div className="flex items-center justify-between">
-                <span>Return / RMA Rate:</span>
-                <strong className="text-slate-900 font-bold">0.2% (Top 1%)</strong>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>GSTIN Verified:</span>
-                <strong className="text-[#404d85] font-mono">29AABCU9603R1ZM</strong>
+                <span>Merchant Status:</span>
+                <strong className="text-slate-900 font-bold">KYB & GST Verified</strong>
               </div>
             </div>
 
             <Link
-              href="/brand/sony"
+              href="/storefront"
               className="block w-full py-2 bg-white border border-slate-300 hover:border-[#404d85] text-slate-800 font-bold text-center rounded text-xs transition"
             >
-              Visit Official Storefront →
+              Explore Merchant Catalog →
             </Link>
           </div>
         </div>
@@ -277,62 +252,71 @@ export const ProductFullSpecsAndReviews = ({
       {/* 4. RATINGS & REVIEWS HISTOGRAM */}
       {activeTab === "reviews" && (
         <div className="bg-white p-6 rounded-[8px] border border-slate-200 shadow-2xs space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pb-6 border-b border-slate-200">
-            
-            {/* Score Summary */}
-            <div className="lg:col-span-4 text-center space-y-1">
-              <div className="text-5xl font-black text-slate-900">{rating.toFixed(1)}</div>
-              <div className="flex items-center justify-center gap-1 text-amber-500 text-base">
-                ★★★★★
-              </div>
-              <p className="text-xs text-slate-500 font-medium">
-                Based on {reviewsCount.toLocaleString()} verified customer purchases
+          {sampleReviews.length === 0 ? (
+            <div className="py-12 text-center space-y-2">
+              <span className="text-3xl block">⭐</span>
+              <h4 className="font-extrabold text-sm text-slate-800">No Verified Customer Reviews Yet</h4>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Be the first verified customer to purchase this SKU and leave authentic feedback.
               </p>
             </div>
-
-            {/* 5-Star Histogram */}
-            <div className="lg:col-span-8 space-y-2 text-xs">
-              {ratingBreakdown.map((row) => (
-                <div key={row.stars} className="flex items-center gap-3">
-                  <span className="w-12 font-bold text-slate-700">{row.stars} Star</span>
-                  <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full bg-amber-400 rounded-full"
-                      style={{ width: `${row.pct}%` }}
-                    />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pb-6 border-b border-slate-200">
+                {/* Score Summary */}
+                <div className="lg:col-span-4 text-center space-y-1">
+                  <div className="text-5xl font-black text-slate-900">{rating.toFixed(1)}</div>
+                  <div className="flex items-center justify-center gap-1 text-amber-500 text-base">
+                    ★★★★★
                   </div>
-                  <span className="w-10 text-right font-bold text-slate-500">{row.pct}%</span>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Based on {reviewsCount.toLocaleString()} verified customer purchases
+                  </p>
                 </div>
-              ))}
-            </div>
 
-          </div>
-
-          {/* Customer Reviews Feed */}
-          <div className="space-y-4">
-            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-              Verified Buyer Reviews
-            </h4>
-            <div className="space-y-4 divide-y divide-slate-100">
-              {sampleReviews.map((rev, idx) => (
-                <div key={idx} className="pt-4 first:pt-0 space-y-1.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900">{rev.author}</span>
-                      <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-black border border-emerald-200">
-                        ✓ Verified Purchase
-                      </span>
+                {/* 5-Star Histogram */}
+                <div className="lg:col-span-8 space-y-2 text-xs">
+                  {ratingBreakdown.map((row) => (
+                    <div key={row.stars} className="flex items-center gap-3">
+                      <span className="w-12 font-bold text-slate-700">{row.stars} Star</span>
+                      <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full bg-amber-400 rounded-full"
+                          style={{ width: `${row.pct}%` }}
+                        />
+                      </div>
+                      <span className="w-10 text-right font-bold text-slate-500">{row.pct}%</span>
                     </div>
-                    <span className="text-slate-400 text-[11px]">{rev.date}</span>
-                  </div>
-                  <div className="text-amber-500 text-xs">★★★★★</div>
-                  <h5 className="font-bold text-slate-900">{rev.title}</h5>
-                  <p className="text-slate-600 leading-relaxed">{rev.comment}</p>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
+              {/* Customer Reviews Feed */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                  Verified Buyer Reviews
+                </h4>
+                <div className="space-y-4 divide-y divide-slate-100">
+                  {sampleReviews.map((rev, idx) => (
+                    <div key={idx} className="pt-4 first:pt-0 space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900">{rev.author}</span>
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-black border border-emerald-200">
+                            ✓ Verified Purchase
+                          </span>
+                        </div>
+                        <span className="text-slate-400 text-[11px]">{rev.date}</span>
+                      </div>
+                      <div className="text-amber-500 text-xs">★★★★★</div>
+                      <h5 className="font-bold text-slate-900">{rev.title}</h5>
+                      <p className="text-slate-600 leading-relaxed">{rev.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 

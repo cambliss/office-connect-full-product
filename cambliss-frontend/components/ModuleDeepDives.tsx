@@ -59,37 +59,37 @@ export function ModuleDeepDives() {
               <div className="flex items-center gap-4 py-4">
                 <div className="h-10 w-10 shrink-0 rounded-xl bg-brand"></div>
                 <div className="flex-1">
-                  <div className="text-sm font-bold text-foreground-strong">Priya Nair</div>
-                  <div className="text-xs text-foreground-muted">Annual leave · 3 days</div>
+                  <div className="text-sm font-bold text-foreground-strong">Bhasker Mahesh</div>
+                  <div className="text-xs text-foreground-muted">Merchant Partner · Active</div>
                 </div>
-                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-extrabold text-green-700">Approved</span>
+                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-extrabold text-green-700">Verified</span>
               </div>
               <div className="flex items-center gap-4 py-4">
                 <div className="h-10 w-10 shrink-0 rounded-xl bg-brand-soft"></div>
                 <div className="flex-1">
-                  <div className="text-sm font-bold text-foreground-strong">Marcus Webb</div>
-                  <div className="text-xs text-foreground-muted">Sick leave · 1 day</div>
+                  <div className="text-sm font-bold text-foreground-strong">Sunaina Mahesh</div>
+                  <div className="text-xs text-foreground-muted">Corporate Governance · Active</div>
                 </div>
-                <span className="rounded-full bg-brand/10 px-3 py-1 text-xs font-extrabold text-brand">Pending</span>
+                <span className="rounded-full bg-brand/10 px-3 py-1 text-xs font-extrabold text-brand">Admin</span>
               </div>
               <div className="flex items-center gap-4 py-4">
                 <div className="h-10 w-10 shrink-0 rounded-xl bg-brand-strong"></div>
                 <div className="flex-1">
-                  <div className="text-sm font-bold text-foreground-strong">Aiko Tanaka</div>
-                  <div className="text-xs text-foreground-muted">Parental leave · 12 weeks</div>
+                  <div className="text-sm font-bold text-foreground-strong">Platform Administrator</div>
+                  <div className="text-xs text-foreground-muted">Super Administrator · Active</div>
                 </div>
-                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-extrabold text-green-700">Approved</span>
+                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-extrabold text-green-700">Super Admin</span>
               </div>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-4">
               <div className="rounded-2xl border border-line bg-background p-4">
-                <div className="text-2xl font-extrabold text-brand-strong">142</div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted">Active employees</div>
+                <div className="text-2xl font-extrabold text-brand-strong">6</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted">Registered Platform Users</div>
               </div>
               <div className="rounded-2xl border border-line bg-background p-4">
-                <div className="text-2xl font-extrabold text-brand-strong">98%</div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted">Onboarding completed</div>
+                <div className="text-2xl font-extrabold text-brand-strong">100%</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-foreground-muted">Identity Verified</div>
               </div>
             </div>
           </div>

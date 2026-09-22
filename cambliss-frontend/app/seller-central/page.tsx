@@ -116,7 +116,7 @@ export default function SellerCentralPage() {
       icon: TrendingUp,
       badge: "Conversion Engine",
       highlight: "Dynamic Pricing & SLA Scoring",
-      stat: "4.2x Faster Sales",
+      stat: "Dynamic Buy Box",
     },
     {
       title: "Escrow Security & 7-Day Bank Payouts",
@@ -213,35 +213,14 @@ export default function SellerCentralPage() {
     },
   ];
 
-  const sellerReviews = [
-    {
-      name: "Rajesh Kulkarni",
-      company: "Apex Enterprise IT Solutions",
-      city: "Bengaluru, Karnataka",
-      category: "IT Hardware",
-      rating: 5,
-      comment:
-        "Switching our distribution to Office Connect Marketplace reduced our operational costs dramatically. 7-day escrow disbursements are 100% on time, and inventory connects straight into our warehouse POs.",
-    },
-    {
-      name: "Ananya Mehta",
-      company: "AeroTech Studio India",
-      city: "Gurugram, Haryana",
-      category: "Consumer Audio",
-      rating: 5,
-      comment:
-        "The automated Buy Box engine and transparent fee simulator give us full visibility over our product margins. The 12-step verification gave our enterprise buyers immediate confidence.",
-    },
-    {
-      name: "Pooja Sundaram",
-      company: "UrbanStyle Apparel Co.",
-      city: "Tirupur, Tamil Nadu",
-      category: "Apparel & Textiles",
-      rating: 5,
-      comment:
-        "Zero monthly subscription fee meant we could test our new collection with zero financial exposure. Doorstep Easy Ship pickups work like clockwork across North and South India.",
-    },
-  ];
+  const sellerReviews: Array<{
+    name: string;
+    company: string;
+    city: string;
+    category: string;
+    rating: number;
+    comment: string;
+  }> = [];
 
   const faqs = [
     {
@@ -810,35 +789,47 @@ export default function SellerCentralPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {sellerReviews.map((rev, i) => (
-            <div
-              key={i}
-              className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between space-y-4 hover:border-[#404d85]/30 transition"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center gap-1 text-amber-400">
-                  {[...Array(rev.rating)].map((_, idx) => (
-                    <Star key={idx} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-xs text-slate-600 italic leading-relaxed">
-                  &quot;{rev.comment}&quot;
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <div>
-                  <h5 className="font-extrabold text-xs text-slate-900">{rev.name}</h5>
-                  <p className="text-[10px] text-slate-500">{rev.company} • {rev.city}</p>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#eef2ff] text-[#404d85]">
-                  {rev.category}
-                </span>
-              </div>
+        {sellerReviews.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center max-w-xl mx-auto space-y-3">
+            <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-xl mx-auto">
+              ⭐
             </div>
-          ))}
-        </div>
+            <h3 className="font-bold text-sm text-slate-900">Verified Merchant Feedback Queue</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Customer reviews and merchant ratings will automatically appear here once registered sellers fulfill customer orders through the platform.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {sellerReviews.map((rev, i) => (
+              <div
+                key={i}
+                className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between space-y-4 hover:border-[#404d85]/30 transition"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(rev.rating)].map((_, idx) => (
+                      <Star key={idx} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-600 italic leading-relaxed">
+                    &quot;{rev.comment}&quot;
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div>
+                    <h5 className="font-extrabold text-xs text-slate-900">{rev.name}</h5>
+                    <p className="text-[10px] text-slate-500">{rev.company} • {rev.city}</p>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#eef2ff] text-[#404d85]">
+                    {rev.category}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ========================================================================= */}

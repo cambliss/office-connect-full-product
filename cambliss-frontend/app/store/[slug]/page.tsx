@@ -26,19 +26,19 @@ export default function DedicatedVendorStorePage({
     tier: "verified" as const,
     bannerImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
     logoImage: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=400&q=80",
-    rating: 5.0,
-    reviewsCount: 14,
-    location: "Bengaluru, India",
+    rating: 0,
+    reviewsCount: 0,
+    location: "India",
     memberSince: "2026",
     onTimeDispatchPct: 100,
     returnRatePct: 0.0,
-    productCount: 1,
-    tagline: "Verified 3P Merchant Seller on Office Connect Marketplace",
-    gstin: "29AABCU9603R1ZM",
+    productCount: 0,
+    tagline: "Verified Merchant Seller on Office Connect Marketplace",
+    gstin: "Pending Verification",
   });
 
   const [legalEntity, setLegalEntity] = useState<string>(`${formattedSlugName} Private Limited`);
-  const [gstin, setGstin] = useState<string>("29AABCU9603R1ZM");
+  const [gstin, setGstin] = useState<string>("Pending Verification");
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [inquiryText, setInquiryText] = useState("");
   const [storeProducts, setStoreProducts] = useState<ProductCardProps[]>([]);
@@ -68,9 +68,7 @@ export default function DedicatedVendorStorePage({
       }
 
       if (!matchingApp) {
-        const single =
-          localStorage.getItem("officeconnect_merchant_status_bhaskeradv1@gmail.com") ||
-          localStorage.getItem("officeconnect_merchant_status");
+        const single = localStorage.getItem("officeconnect_merchant_status");
         if (single) {
           const parsed = JSON.parse(single);
           matchingApp = parsed.payload || parsed;
@@ -78,13 +76,13 @@ export default function DedicatedVendorStorePage({
       }
 
       if (matchingApp) {
-        const displayName = matchingApp.tradeName || "Bhasker Fashions";
-        const businessLegal = matchingApp.businessName || "Bhasker Fashions Private Limited";
-        const taxGstin = matchingApp.gstin || "29AABCU9603R1ZM";
-        const city = matchingApp.warehouseCity || "Bengaluru";
-        const state = matchingApp.warehouseState || "Karnataka";
+        const displayName = matchingApp.tradeName || formattedSlugName;
+        const businessLegal = matchingApp.businessName || `${displayName} Private Limited`;
+        const taxGstin = matchingApp.gstin || "Pending Verification";
+        const city = matchingApp.warehouseCity || "Fulfillment Center";
+        const state = matchingApp.warehouseState || "India";
 
-        // Fashion & Apparel theme logo
+        // Merchant logo
         const fashionLogo =
           matchingApp.sampleProduct?.image ||
           "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=400&q=80";
@@ -96,14 +94,14 @@ export default function DedicatedVendorStorePage({
           tier: "verified",
           bannerImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
           logoImage: fashionLogo,
-          rating: 5.0,
-          reviewsCount: 14,
+          rating: 0,
+          reviewsCount: 0,
           location: `${city}, ${state}`,
           memberSince: "2026",
           onTimeDispatchPct: 100,
           returnRatePct: 0.0,
           productCount: matchingApp.sampleProduct ? 1 : 0,
-          tagline: `Verified ${matchingApp.category || "Fashion & Apparel"} Merchant Seller on Office Connect Marketplace`,
+          tagline: `Verified ${matchingApp.category || "Merchant"} Seller on Office Connect Marketplace`,
           gstin: taxGstin,
         });
 
@@ -113,8 +111,8 @@ export default function DedicatedVendorStorePage({
         // Extract the exact product uploaded in Step 11
         if (matchingApp.sampleProduct && matchingApp.sampleProduct.title) {
           const sp = matchingApp.sampleProduct;
-          const priceNum = Number(sp.price) || 2499;
-          const mrpNum = Number(sp.mrp) || Math.round(priceNum * 1.35);
+          const priceNum = Number(sp.price) || 0;
+          const mrpNum = Number(sp.mrp) || priceNum;
 
           productsList.push({
             id: sp.sku || "sku-uploaded-step11",
@@ -124,9 +122,9 @@ export default function DedicatedVendorStorePage({
             originalPrice: mrpNum,
             sellerName: displayName,
             sellerTier: "verified",
-            rating: 5.0,
-            reviewsCount: 8,
-            stockQty: Number(sp.inventory) || 25,
+            rating: 0,
+            reviewsCount: 0,
+            stockQty: Number(sp.inventory) || 0,
             deliveryEstimate: "FREE Express Delivery in 24-48 Hours",
             image: sp.image || "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80",
             badge: "★ VERIFIED MERCHANT SKU",
@@ -151,8 +149,8 @@ export default function DedicatedVendorStorePage({
             originalPrice: Number(item.mrp || item.originalPrice || item.price * 1.2),
             sellerName: item.sellerName || sellerData.name,
             sellerTier: "premium",
-            rating: item.rating || 4.9,
-            reviewsCount: item.reviewsCount || 100,
+            rating: item.rating || 0,
+            reviewsCount: item.reviewsCount || 0,
             stockQty: Number(item.stock !== undefined ? item.stock : (item.stockQty || 10)),
             deliveryEstimate: "FREE Delivery by Tomorrow",
             image: item.image || "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=600&q=80",
@@ -162,25 +160,6 @@ export default function DedicatedVendorStorePage({
         }
       }
     } catch (e) {}
-
-    // Fallback if user uploaded product title but no image was saved
-    if (productsList.length === 0 && vendorSlug.includes("bhasker")) {
-      productsList.push({
-        id: "sku-bhasker-kurta",
-        title: "Royal Purple Sequin Embellished Kurta Set",
-        brand: "Bhasker Fashions",
-        price: 2499,
-        originalPrice: 3999,
-        sellerName: "Bhasker Fashions",
-        sellerTier: "verified",
-        rating: 5.0,
-        reviewsCount: 14,
-        stockQty: 30,
-        deliveryEstimate: "FREE Delivery in 2 Days",
-        image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80",
-        badge: "★ BESTSELLER",
-      });
-    }
 
     setStoreProducts(productsList);
     setSellerData((prev) => ({

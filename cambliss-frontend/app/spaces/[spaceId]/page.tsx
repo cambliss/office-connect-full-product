@@ -73,14 +73,14 @@ const SPACE_DETAILS: Record<
 		category: "Public Space",
 		description: "Company-wide updates, quarterly town halls, executive messages, and milestones.",
 		icon: "📢",
-		lead: "Sarah Jenkins (COO)",
+		lead: "Super Admin",
 		pinnedDoc: "2026 Company Strategic Roadmap & Operating Rhythm",
 		guidelines: "All company-wide announcements are broadcast here. Keep replies constructive and on-topic.",
 		members: [
-			{ name: "Sarah Jenkins", role: "COO", avatar: "SJ" },
-			{ name: "David Chen", role: "Lead Architect", avatar: "DC" },
-			{ name: "Elena Rostova", role: "People Lead", avatar: "ER" },
-			{ name: "Marcus Vance", role: "VP Sales", avatar: "MV" },
+			{ name: "Super Admin", role: "Platform Admin", avatar: "SA" },
+			{ name: "Bhasker User", role: "Merchant Lead", avatar: "BU" },
+			{ name: "SUNAINA MAHESH", role: "Corporate Member", avatar: "SM" },
+			{ name: "Global Admin", role: "Lead Architect", avatar: "GA" },
 		],
 	},
 	engineering: {
@@ -88,14 +88,13 @@ const SPACE_DETAILS: Record<
 		category: "Department",
 		description: "Architecture reviews, sprint planning, deployment announcements, and system health.",
 		icon: "⚡",
-		lead: "David Chen (Lead Architect)",
+		lead: "Global Admin",
 		pinnedDoc: "Central Multi-Module API & Synchronization Protocol",
 		guidelines: "Code review standards, CI/CD procedures, and architectural decisions are logged here.",
 		members: [
-			{ name: "David Chen", role: "Lead Architect", avatar: "DC" },
-			{ name: "Alex Wong", role: "Senior Backend Eng", avatar: "AW" },
-			{ name: "Kavita Reddy", role: "Frontend Lead", avatar: "KR" },
-			{ name: "Liam O'Connor", role: "DevOps Engineer", avatar: "LO" },
+			{ name: "Global Admin", role: "Lead Architect", avatar: "GA" },
+			{ name: "Super Admin", role: "Platform Admin", avatar: "SA" },
+			{ name: "New Admin", role: "Operations Admin", avatar: "NA" },
 		],
 	},
 	sales: {
@@ -103,13 +102,13 @@ const SPACE_DETAILS: Record<
 		category: "Department",
 		description: "Pipeline discussions, deal closes, CRM integration guidelines, and revenue milestones.",
 		icon: "📈",
-		lead: "Marcus Vance (VP Sales)",
+		lead: "New Admin",
 		pinnedDoc: "Enterprise CRM Pipeline & Closing Playbook",
 		guidelines: "Share lead insights, high-value opportunities, and CRM workflow updates.",
 		members: [
-			{ name: "Marcus Vance", role: "VP Sales", avatar: "MV" },
-			{ name: "Rachel Adams", role: "Account Executive", avatar: "RA" },
-			{ name: "Jordan Smith", role: "Sales Ops", avatar: "JS" },
+			{ name: "New Admin", role: "Operations Admin", avatar: "NA" },
+			{ name: "Bhasker User", role: "Merchant Lead", avatar: "BU" },
+			{ name: "New User", role: "Solutions Member", avatar: "NU" },
 		],
 	},
 	executive: {
@@ -117,12 +116,12 @@ const SPACE_DETAILS: Record<
 		category: "Private Zone",
 		description: "Strategic planning, board materials, confidential compliance, and governance oversight.",
 		icon: "🏛️",
-		lead: "Executive Board",
+		lead: "Super Admin & SUNAINA MAHESH",
 		pinnedDoc: "Annual Strategic Budget & Audit Review 2026",
 		guidelines: "Strict confidentiality applies. Access is governed by RBAC clearance.",
 		members: [
-			{ name: "Sarah Jenkins", role: "COO", avatar: "SJ" },
-			{ name: "Executive Board", role: "Governance", avatar: "EB" },
+			{ name: "Super Admin", role: "Platform Admin", avatar: "SA" },
+			{ name: "SUNAINA MAHESH", role: "Corporate Member", avatar: "SM" },
 		],
 	},
 };
@@ -135,12 +134,12 @@ export default function SpaceDetailPage() {
 		category: "Department",
 		description: "Collaboration space for team discussions, files, and project coordination.",
 		icon: "🏢",
-		lead: "Team Lead",
+		lead: "Space Lead",
 		pinnedDoc: "Space Documentation & Getting Started Guide",
 		guidelines: "Engage respectfully and keep documentation updated.",
 		members: [
-			{ name: "Team Member 1", role: "Member", avatar: "M1" },
-			{ name: "Team Member 2", role: "Member", avatar: "M2" },
+			{ name: "Super Admin", role: "Platform Admin", avatar: "SA" },
+			{ name: "Bhasker User", role: "Merchant Lead", avatar: "BU" },
 		],
 	};
 
@@ -149,24 +148,16 @@ export default function SpaceDetailPage() {
 		{
 			id: "t-1",
 			author: {
-				name: currentSpace.lead.split("(")[0].trim(),
+				name: currentSpace.lead.split("&")[0].trim(),
 				role: "Space Lead",
 				avatar: currentSpace.lead.slice(0, 2).toUpperCase(),
 			},
 			title: `Welcome to the ${currentSpace.name} space`,
 			content:
 				"Use this space for all relevant discussions, ongoing task synchronization, and knowledge sharing. Let's make sure all relevant updates are logged here to preserve institutional memory.",
-			timestamp: "2 hours ago",
-			likes: 8,
-			comments: [
-				{
-					id: "c-1",
-					author: "David Chen",
-					avatar: "DC",
-					content: "Confirmed. All technical guidelines are linked in the Space Wiki tab.",
-					time: "1 hour ago",
-				},
-			],
+			timestamp: "Active",
+			likes: 0,
+			comments: [],
 		},
 	]);
 

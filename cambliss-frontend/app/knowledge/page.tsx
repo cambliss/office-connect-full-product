@@ -42,9 +42,9 @@ const DEFAULT_ARTICLES: Article[] = [
 		summary:
 			"The core organizational principles, professional standards, remote work guidelines, and compliance expectations for all personnel.",
 		author: {
-			name: "Elena Rostova",
-			role: "People & Talent Lead",
-			avatar: "ER",
+			name: "Sunaina Mahesh",
+			role: "Corporate Governance Member",
+			avatar: "SM",
 		},
 		updatedAt: "Sep 12, 2026",
 		readingTime: "8 min read",
@@ -60,9 +60,9 @@ const DEFAULT_ARTICLES: Article[] = [
 		summary:
 			"Technical architecture specification for cross-module data exchange between CRM, Accountech ERP, and Multi-Vendor Marketplace.",
 		author: {
-			name: "David Chen",
+			name: "Platform Administrator",
 			role: "Lead Platform Architect",
-			avatar: "DC",
+			avatar: "PA",
 		},
 		updatedAt: "Sep 14, 2026",
 		readingTime: "12 min read",
@@ -78,9 +78,9 @@ const DEFAULT_ARTICLES: Article[] = [
 		summary:
 			"Standard procedure for logging leads, transitioning deals from Discovery to Negotiation, and triggering automated ERP invoice generation.",
 		author: {
-			name: "Marcus Vance",
-			role: "VP Sales",
-			avatar: "MV",
+			name: "Bhasker Mahesh",
+			role: "Commercial & Merchant Lead",
+			avatar: "BM",
 		},
 		updatedAt: "Sep 08, 2026",
 		readingTime: "6 min read",
@@ -114,9 +114,9 @@ const DEFAULT_ARTICLES: Article[] = [
 		summary:
 			"Step-by-step checklist for reviewing merchant business licenses, verifying payout details, and auditing product listings.",
 		author: {
-			name: "Carlos Ramos",
-			role: "Marketplace Ops",
-			avatar: "CR",
+			name: "Operations Admin",
+			role: "Marketplace Operations Lead",
+			avatar: "OA",
 		},
 		updatedAt: "Sep 04, 2026",
 		readingTime: "7 min read",
@@ -132,9 +132,9 @@ const DEFAULT_ARTICLES: Article[] = [
 		summary:
 			"Day 1 to Day 30 milestones, mentor assignment, software provisioning, and key organizational contacts.",
 		author: {
-			name: "Elena Rostova",
-			role: "People & Talent Lead",
-			avatar: "ER",
+			name: "Sunaina Mahesh",
+			role: "Corporate Governance Member",
+			avatar: "SM",
 		},
 		updatedAt: "Aug 15, 2026",
 		readingTime: "5 min read",
