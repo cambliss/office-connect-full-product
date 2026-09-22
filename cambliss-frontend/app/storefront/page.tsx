@@ -15,6 +15,7 @@ import { MerchantOnboardingStatusDesk } from "@/components/seller-portal/Merchan
 import { MerchantStorefrontAndUploadTab } from "@/components/seller-portal/MerchantStorefrontAndUploadTab";
 import WorkspaceShell from "@/components/WorkspaceShell";
 import Link from "next/link";
+import { fetchGenuineKybApplications } from "@/lib/sellerKybDiscovery";
 
 export default function StorefrontPage() {
   return (
@@ -627,6 +628,17 @@ function StorefrontHomeContent() {
   }, []);
 
   const [customProds, setCustomProds] = useState<any[]>([]);
+  const [merchantApps, setMerchantApps] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadMerchantApps() {
+      try {
+        const apps = await fetchGenuineKybApplications();
+        setMerchantApps(apps);
+      } catch (e) {}
+    }
+    loadMerchantApps();
+  }, []);
 
   useEffect(() => {
     try {
@@ -639,6 +651,25 @@ function StorefrontHomeContent() {
   }, []);
 
   const displayProducts = useMemo(() => {
+    const fromApps = merchantApps
+      .filter((app) => app.sampleProduct && app.sampleProduct.title)
+      .map((app) => {
+        const sp = app.sampleProduct;
+        return {
+          id: sp.sku || "BF-78-000",
+          title: sp.title,
+          image: sp.image || "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80",
+          price: typeof sp.price === "number" ? sp.price : parseFloat(sp.price) || 999,
+          originalPrice: typeof sp.mrp === "number" ? sp.mrp : parseFloat(sp.mrp) || 1457,
+          sellerName: `${sp.brand || app.tradeName || "Bhasker Fashion"} 👑`,
+          sellerTier: "premium" as const,
+          badge: "★ REGISTERED MERCHANT",
+          rating: 5.0,
+          reviewsCount: 0,
+          category: sp.category || app.category || "Apparel",
+        };
+      });
+
     const fromApi = liveCatalogProducts.map((p) => ({
       id: p.id,
       title: p.title,
@@ -667,12 +698,17 @@ function StorefrontHomeContent() {
       category: cp.category || "General",
     }));
 
-    return [...fromCustom, ...fromApi];
-  }, [customProds, liveCatalogProducts]);
+    return [...fromApps, ...fromCustom, ...fromApi];
+  }, [merchantApps, customProds, liveCatalogProducts]);
 
   const filteredRecommended = recommendedCategoryTab === "All"
     ? displayProducts
-    : displayProducts.filter((p) => p.category === recommendedCategoryTab);
+    : displayProducts.filter((p) => {
+        if (recommendedCategoryTab === "Apparel") {
+          return (p.category || "").toLowerCase().includes("apparel") || (p.category || "").toLowerCase().includes("fashion");
+        }
+        return (p.category || "").toLowerCase().includes(recommendedCategoryTab.toLowerCase());
+      });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-12 pb-24 lg:pb-16 select-none font-sans">

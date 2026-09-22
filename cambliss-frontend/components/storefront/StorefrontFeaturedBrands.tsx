@@ -13,12 +13,12 @@ export const StorefrontFeaturedBrands = () => {
     async function loadApprovedBrands() {
       try {
         const apps = await fetchGenuineKybApplications();
-        const approved = apps.filter((a) => a.status === "Approved");
-        if (approved.length > 0) {
-          const merchantBrands = approved.map((a) => ({
+        const activeMerchants = apps.filter((a) => a.tradeName || a.businessName);
+        if (activeMerchants.length > 0) {
+          const merchantBrands = activeMerchants.map((a) => ({
             name: a.tradeName || a.businessName,
-            tag: "Verified Merchant",
-            icon: "🏬",
+            tag: a.status === "Approved" ? "Verified Merchant" : "Enrolled Merchant",
+            icon: a.category?.toLowerCase().includes("fashion") ? "👗" : "🏬",
             href: `/store/${a.storeSlug || "store"}`,
           }));
           setBrands([

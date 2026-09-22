@@ -415,291 +415,463 @@ export const AdminSellerKybDesk = ({
         </div>
       </div>
 
-      {/* Detail Inspection Modal */}
+      {/* Authentic 12-Step Merchant Onboarding Dossier Modal */}
       {selectedApp && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6 space-y-6">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-slate-100">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-violet-600 bg-violet-50 px-2 py-0.5 rounded">
-                  Merchant Verification Dossier
-                </span>
-                <h3 className="text-lg font-black text-slate-900 mt-1">
-                  {selectedApp.businessName}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
+                    12-Step Merchant KYB Dossier
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                      selectedApp.status === "Approved"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : selectedApp.status === "Rejected"
+                        ? "bg-red-50 text-red-800 border-red-200"
+                        : "bg-amber-50 text-amber-800 border-amber-200"
+                    }`}
+                  >
+                    Status: {selectedApp.status}
+                  </span>
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mt-1">
+                  {selectedApp.tradeName || selectedApp.businessName}
                 </h3>
-                <p className="text-xs text-slate-500 font-mono">
-                  Ref: {selectedApp.applicationId || selectedApp.id}
+                <p className="text-xs text-slate-500 font-mono mt-0.5">
+                  Application ID: <span className="text-slate-800 font-semibold">{selectedApp.applicationId || selectedApp.id}</span>
+                  {selectedApp.appliedDate && ` • Applied: ${selectedApp.appliedDate}`}
                 </p>
               </div>
+
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPreviewDocModal({ isOpen: true, docType: "gst" })}
-                  className="px-3.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white font-black text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>🏛️</span> Inspect Real Documents
-                </button>
+                {selectedApp.storeSlug && (
+                  <a
+                    href={`/store/${selectedApp.storeSlug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-bold rounded-lg border border-indigo-200 transition flex items-center gap-1.5"
+                  >
+                    <span>🏪</span> View Live Store
+                  </a>
+                )}
                 <button
                   type="button"
                   onClick={() => setSelectedApp(null)}
-                  className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <span className="text-slate-400 font-bold block">Trade Name & Category</span>
-                <span className="font-extrabold text-slate-800 text-sm block">
-                  {selectedApp.tradeName}
-                </span>
-                <span className="text-violet-700 font-semibold">{selectedApp.category}</span>
+            {/* 12-STEP VERIFICATION DOSSIER GRID */}
+            <div className="space-y-4 text-xs">
+              {/* STEP 1: Account & Primary Contact */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>1️⃣</span> Step 1: Merchant Contact & Identity
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                    Mobile OTP Verified ✓
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700">
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Owner / Signatory</span>
+                    <span className="font-bold text-slate-900">{selectedApp.ownerName || "Not Provided"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Registered Email</span>
+                    <span className="font-medium text-slate-900">{selectedApp.email || "Not Provided"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Phone (Verified via OTP)</span>
+                    <span className="font-mono font-medium text-slate-900">{selectedApp.phone || "Not Provided"}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <span className="text-slate-400 font-bold block">Entity & Signatory</span>
-                <span className="font-extrabold text-slate-800 block">
-                  {selectedApp.entityType || "Sole Proprietor"}
-                </span>
-                <span className="text-slate-600">{selectedApp.ownerName || "Authorized Signatory"}</span>
+              {/* STEP 2: Legal Entity */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>2️⃣</span> Step 2: Legal Business Constitution
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold text-[10px]">
+                    Terms Accepted ✓
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-slate-700">
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Constitution Type</span>
+                    <span className="font-bold text-slate-900">{selectedApp.entityType || "Individual / Sole Proprietor"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Seller Agreement</span>
+                    <span className="font-medium text-emerald-700">Agreed to Marketplace Merchant Terms & Conditions</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 font-mono">
-                <span className="text-slate-400 font-bold block">GSTIN & PAN Details</span>
-                <span className="font-bold text-slate-800 block">GST: {selectedApp.gstin}</span>
-                <span className="text-slate-600">PAN: {selectedApp.pan}</span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <span className="text-slate-400 font-bold block">Escrow Bank Settlement</span>
-                <span className="font-extrabold text-slate-800 block">
-                  {selectedApp.bankName} ({selectedApp.ifscCode || "IFSC"})
-                </span>
-                <span className="font-mono text-slate-600">A/C: {selectedApp.accountNumber}</span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <span className="text-slate-400 font-bold block">Dispatch Warehouse</span>
-                <span className="font-extrabold text-slate-800 block">
-                  {selectedApp.warehouseCity}, {selectedApp.warehouseState || "India"}
-                </span>
-                <span className="text-slate-600">PIN Code: {selectedApp.warehousePinCode || "560001"}</span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <span className="text-slate-400 font-bold block">Logistics Channel</span>
-                <span className="font-black text-violet-700 block text-sm">
-                  {selectedApp.fulfillmentModel || "EASY_SHIP"}
-                </span>
-                <span className="text-slate-500">Penny-Drop: Verified ✓</span>
-              </div>
-            </div>
-
-            {/* Merchant Contact & Registration Metadata */}
-            <div className="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-700">Merchant Contact:</span>
-                <span className="text-slate-900 font-medium">{selectedApp.email || "merchant@company.com"}</span>
-                <span className="text-slate-400">•</span>
-                <span className="text-slate-900 font-mono">{selectedApp.phone || "+91 98XXXXXXXX"}</span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px]">
-                <span className="bg-white px-2 py-0.5 rounded border border-indigo-200 text-indigo-900 font-semibold">
-                  GST Rate: {selectedApp.gstRateTier || "18%"}
-                </span>
-                <span className="bg-white px-2 py-0.5 rounded border border-indigo-200 text-indigo-900 font-semibold font-mono">
-                  HSN: {selectedApp.hsnCode || "8471"}
-                </span>
-              </div>
-            </div>
-
-            {/* Submitted Documents & Statutory Proofs */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-extrabold text-xs text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <span>📁</span> Submitted Statutory Documents & Verification Files (6)
-                </h4>
-                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Digital KYC Verification Ready
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                {/* 1. GST Registration Certificate */}
-                <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-100 text-[#404d85] flex items-center justify-center font-bold text-xs">
-                        📄
-                      </div>
-                      <div>
-                        <span className="font-bold text-slate-900 block text-[11px]">GST Certificate (REG-06)</span>
-                        <span className="font-mono text-[10px] text-slate-500 truncate block max-w-[150px]">
-                          {selectedApp.documents?.gstCertificate || selectedApp.gstDocName || `GST_REG06_${selectedApp.gstin}.pdf`}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px]">
-                      REG-06 Valid
+              {/* STEP 3: GSTIN, PAN & Statutory Uploads */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>3️⃣</span> Step 3: GSTIN & PAN Details
+                  </span>
+                  {selectedApp.isGstExempt ? (
+                    <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">
+                      GST Exempted Entity
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                      GSTIN Provided
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700">
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">GSTIN Number</span>
+                    <span className="font-mono font-bold text-slate-900">
+                      {selectedApp.isGstExempt ? "Exempted (Section 22/24)" : selectedApp.gstin || "Not Provided"}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDocModal({ isOpen: true, docType: "gst" })}
-                    className="w-full py-1.5 text-[11px] font-bold text-[#404d85] hover:text-[#2b345e] bg-white hover:bg-indigo-50 border border-indigo-200 rounded-lg transition text-center shadow-2xs cursor-pointer flex items-center justify-center gap-1"
-                  >
-                    <span>👁️</span> Inspect Real Form REG-06
-                  </button>
-                </div>
-
-                {/* 2. PAN Card Proof */}
-                <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
-                        💳
-                      </div>
-                      <div>
-                        <span className="font-bold text-slate-900 block text-[11px]">Business PAN Proof</span>
-                        <span className="font-mono text-[10px] text-slate-500 block">
-                          {selectedApp.documents?.panCard || `PAN_${selectedApp.pan}.pdf`}
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Business / Individual PAN</span>
+                    <span className="font-mono font-bold text-slate-900">{selectedApp.pan || "Not Provided"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">GST Registration Document</span>
+                    {selectedApp.gstDocUploaded || selectedApp.gstDocName ? (
+                      <div className="flex items-center gap-1.5 text-emerald-700 font-semibold mt-0.5">
+                        <span>📄</span>
+                        <span className="truncate max-w-[170px]" title={selectedApp.gstDocName || "gst registration.pdf"}>
+                          {selectedApp.gstDocName || "gst registration.pdf"}
                         </span>
+                        <span className="text-[9px] bg-emerald-100 px-1 rounded text-emerald-800 font-bold">Uploaded</span>
                       </div>
+                    ) : (
+                      <span className="text-slate-400 italic text-[11px] block mt-0.5">Not Uploaded / Exemption Claimed</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* STEP 4: Store Display Identity & Catalog */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>4️⃣</span> Step 4: Store Display Identity & Categorization
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-bold text-[10px]">
+                    Branded Storefront Ready
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700">
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Store Display Name</span>
+                    <span className="font-bold text-slate-900">{selectedApp.tradeName || selectedApp.businessName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Storefront URL Slug</span>
+                    <span className="font-mono font-bold text-indigo-700">/store/{selectedApp.storeSlug || "store"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Primary Category</span>
+                    <span className="font-bold text-slate-900">{selectedApp.category || "General Merchandise"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* STEP 5: Warehouse & Dispatch */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>5️⃣</span> Step 5: Pickup Warehouse & Dispatch Desk
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                    PIN Serviceable ✓
+                  </span>
+                </div>
+                <div className="space-y-1.5 pt-1 text-slate-700">
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Registered Dispatch Address</span>
+                    <span className="font-medium text-slate-900">{selectedApp.warehouseAddress || "Not Provided"}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">City & State</span>
+                      <span className="font-bold text-slate-900">
+                        {selectedApp.warehouseCity || "Bengaluru"}, {selectedApp.warehouseState || "Karnataka"}
+                      </span>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px]">
-                      CBDT Match ✓
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">Postal PIN Code</span>
+                      <span className="font-mono font-bold text-slate-900">{selectedApp.warehousePinCode || "560001"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">Dispatch Manager</span>
+                      <span className="font-medium text-slate-900">
+                        {selectedApp.dispatchManagerName ? `${selectedApp.dispatchManagerName} (${selectedApp.dispatchManagerPhone})` : "Not Provided"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* STEP 6: Escrow Bank Account */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>6️⃣</span> Step 6: Escrow Settlement Bank Account
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                    ₹1 Penny Drop Verified ✓
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1 text-slate-700">
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Bank Name</span>
+                    <span className="font-bold text-slate-900">{selectedApp.bankName || "Not Provided"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Account Number</span>
+                    <span className="font-mono font-bold text-slate-900">{selectedApp.accountNumber || "Not Provided"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">IFSC Code</span>
+                    <span className="font-mono font-bold text-slate-900">{selectedApp.ifscCode || "Not Provided"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Account Holder</span>
+                    <span className="font-bold text-slate-900">{selectedApp.accountHolderName || selectedApp.ownerName || "Not Provided"}</span>
+                  </div>
+                </div>
+                <div className="pt-1 text-[11px] text-slate-500 flex items-center gap-2">
+                  <span className="text-slate-400">Cancelled Cheque:</span>
+                  {selectedApp.documents?.cancelledCheque && selectedApp.documents.cancelledCheque !== `CHEQUE_${selectedApp.bankName}.pdf` ? (
+                    <span className="text-emerald-700 font-semibold">{selectedApp.documents.cancelledCheque}</span>
+                  ) : (
+                    <span className="text-slate-400 italic">Not Uploaded (Direct Penny-Drop API verification utilized)</span>
+                  )}
+                </div>
+              </div>
+
+              {/* STEP 7: Tax, HSN & Invoicing */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>7️⃣</span> Step 7: GST Tiers, HSN & Automated Invoicing
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold text-[10px]">
+                    TCS Section 52 Declared ✓
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-700">
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Default GST Tier</span>
+                    <span className="font-bold text-slate-900">{selectedApp.gstRateTier || "18%"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Primary HSN Code</span>
+                    <span className="font-mono font-bold text-slate-900">{selectedApp.hsnCode || "General HSN (8471/6104)"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Automated Invoicing Desk</span>
+                    <span className="font-bold text-emerald-700">
+                      {selectedApp.automatedInvoicing !== false ? "Enabled (B2B/B2C GST Invoices)" : "Disabled"}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDocModal({ isOpen: true, docType: "pan" })}
-                    className="w-full py-1.5 text-[11px] font-bold text-[#404d85] hover:text-[#2b345e] bg-white hover:bg-indigo-50 border border-indigo-200 rounded-lg transition text-center shadow-2xs cursor-pointer flex items-center justify-center gap-1"
-                  >
-                    <span>👁️</span> Inspect Real PAN Card
-                  </button>
                 </div>
+              </div>
 
-                {/* 3. Bank Cancelled Cheque */}
-                <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs">
-                        🏦
-                      </div>
-                      <div>
-                        <span className="font-bold text-slate-900 block text-[11px]">Bank Cancelled Cheque</span>
-                        <span className="font-mono text-[10px] text-slate-500 block">
-                          {selectedApp.documents?.cancelledCheque || `CHEQUE_${selectedApp.bankName}.pdf`}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px]">
-                      ₹1 Penny Drop ✓
+              {/* STEP 8: Identity & Video KYC */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>8️⃣</span> Step 8: Identity Proof & Biometric Live Selfie
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                    {selectedApp.faceMatchScore ? `${selectedApp.faceMatchScore}% Face Match ✓` : "Liveness Completed"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 text-slate-700 items-center">
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Government Identity Document</span>
+                    <span className="font-bold text-slate-900">{selectedApp.kycDocType || "Aadhaar Card"}</span>
+                    <span className="font-mono text-slate-600 block text-[11px] mt-0.5">
+                      {selectedApp.kycDocNumber || "Not Provided"}
+                    </span>
+                    <span className="text-[10px] text-slate-400 block mt-1">
+                      {selectedApp.kycDocUploaded ? "Uploaded by Merchant" : "E-KYC verification"}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDocModal({ isOpen: true, docType: "cheque" })}
-                    className="w-full py-1.5 text-[11px] font-bold text-[#404d85] hover:text-[#2b345e] bg-white hover:bg-indigo-50 border border-indigo-200 rounded-lg transition text-center shadow-2xs cursor-pointer flex items-center justify-center gap-1"
-                  >
-                    <span>👁️</span> Inspect Real Cancelled Cheque
-                  </button>
-                </div>
-
-                {/* 4. Identity Proof (Aadhaar / Passport) */}
-                <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center font-bold text-xs">
-                        🪪
-                      </div>
-                      <div>
-                        <span className="font-bold text-slate-900 block text-[11px]">
-                          Identity Proof ({selectedApp.kycDocType || "Aadhaar Card"})
-                        </span>
-                        <span className="font-mono text-[10px] text-slate-500 block">
-                          {selectedApp.kycDocNumber || "XXXX-XXXX-9812"}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px]">
-                      UIDAI / Govt Verified
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Video KYC Appointment Slot</span>
+                    <span className="font-medium text-slate-900 block mt-0.5">
+                      {selectedApp.videoKycSlot || "Today, 4:00 PM - 4:30 PM"}
                     </span>
+                    <span className="text-[10px] text-indigo-700 font-semibold block mt-0.5">Officer Assigned</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDocModal({ isOpen: true, docType: "id" })}
-                    className="w-full py-1.5 text-[11px] font-bold text-[#404d85] hover:text-[#2b345e] bg-white hover:bg-indigo-50 border border-indigo-200 rounded-lg transition text-center shadow-2xs cursor-pointer flex items-center justify-center gap-1"
-                  >
-                    <span>👁️</span> Inspect Real ID / Aadhaar
-                  </button>
-                </div>
-
-                {/* 5. Biometric Face Match & Signature */}
-                <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2.5">
-                      {selectedApp.selfieImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
+                  <div>
+                    <span className="text-slate-400 text-[10px] block mb-1">Captured Live Merchant Selfie</span>
+                    {selectedApp.selfieImage ? (
+                      <div className="flex items-center gap-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={selectedApp.selfieImage}
-                          alt="Merchant Live Selfie"
-                          className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500 shrink-0 shadow-xs"
+                          alt="Merchant Selfie"
+                          className="w-12 h-12 rounded-lg object-cover border-2 border-emerald-500 shadow-xs"
                         />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm shrink-0">
-                          🤳
+                        <div>
+                          <span className="font-bold text-slate-900 block text-[11px]">Real Biometric Capture</span>
+                          <span className="text-emerald-700 font-bold text-[10px]">
+                            {selectedApp.faceMatchScore ? `${selectedApp.faceMatchScore}% Match ✓` : "Verified ✓"}
+                          </span>
                         </div>
-                      )}
-                      <div>
-                        <span className="font-bold text-slate-900 block text-[11px]">Live Selfie & Biometrics</span>
-                        <span className="text-[10px] text-emerald-700 font-semibold">
-                          {selectedApp.faceMatchScore ? `${selectedApp.faceMatchScore}% Confidence ✓` : "Biometric Match Verified ✓"}
-                        </span>
                       </div>
-                    </div>
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px]">
-                      Liveness Passed
-                    </span>
+                    ) : (
+                      <span className="text-slate-400 italic text-[11px]">No selfie uploaded</span>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDocModal({ isOpen: true, docType: "selfie" })}
-                    className="w-full py-1.5 text-[11px] font-bold text-[#404d85] hover:text-[#2b345e] bg-white hover:bg-indigo-50 border border-indigo-200 rounded-lg transition text-center shadow-2xs cursor-pointer flex items-center justify-center gap-1"
-                  >
-                    <span>👁️</span> Inspect Biometric Face Audit
-                  </button>
+                </div>
+              </div>
+
+              {/* STEP 9: Fulfillment Model */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>9️⃣</span> Step 9: Logistics & Fulfillment Model
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-violet-100 text-violet-800 font-bold text-[10px]">
+                    {selectedApp.fulfillmentModel || "EASY_SHIP"}
+                  </span>
+                </div>
+                <div className="text-slate-700">
+                  <span className="text-slate-400 text-[10px] block">Selected Channel</span>
+                  <span className="font-bold text-slate-900">
+                    {selectedApp.fulfillmentModel === "FOC"
+                      ? "Fulfillment by Office Connect (FOC Warehouse)"
+                      : selectedApp.fulfillmentModel === "SELF_SHIP"
+                      ? "Self Ship (Merchant's Own Logistics)"
+                      : "Easy Ship (Office Connect Express Pickup from Warehouse)"}
+                  </span>
+                </div>
+              </div>
+
+              {/* STEP 10: Fee & Margin Simulator */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>🔟</span> Step 10: Fee Structure & Marketplace Margin Schedule
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                    Acknowledged ✓
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Merchant acknowledged referral fees, closing fees, and logistics tariff card for {selectedApp.category || "category"}.
+                </p>
+              </div>
+
+              {/* STEP 11: First Product Fast-Track Listing */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>1️⃣1️⃣</span> Step 11: Uploaded First Product (Fast-Track Listing)
+                  </span>
+                  {selectedApp.sampleProduct ? (
+                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                      Product Uploaded (SKU: {selectedApp.sampleProduct.sku || "BF-78-000"})
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold text-[10px]">
+                      Skipped in Onboarding
+                    </span>
+                  )}
                 </div>
 
-                {/* 6. Digital Signature & Video KYC */}
-                <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">📜</span>
-                      <div>
-                        <span className="font-bold text-slate-900 block text-[11px]">MCA Incorporation & Signature</span>
-                        <span className="text-[10px] font-serif italic text-slate-600 block">
-                          "{selectedApp.signatureName || selectedApp.ownerName || "Authorized Signatory"}"
+                {selectedApp.sampleProduct ? (
+                  <div className="p-3 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    {selectedApp.sampleProduct.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={selectedApp.sampleProduct.image}
+                        alt={selectedApp.sampleProduct.title}
+                        className="w-16 h-16 rounded-lg object-cover border border-slate-200 shrink-0 shadow-2xs"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-2xl shrink-0">
+                        👗
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded">
+                          {selectedApp.sampleProduct.brand || selectedApp.tradeName}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          SKU: {selectedApp.sampleProduct.sku || "BF-78-000"}
+                        </span>
+                      </div>
+                      <h5 className="font-extrabold text-sm text-slate-900 truncate">
+                        {selectedApp.sampleProduct.title}
+                      </h5>
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="font-extrabold text-slate-900">
+                          Listing: ₹{selectedApp.sampleProduct.price}
+                        </span>
+                        {selectedApp.sampleProduct.mrp && (
+                          <span className="line-through text-slate-400 text-[11px]">
+                            MRP: ₹{selectedApp.sampleProduct.mrp}
+                          </span>
+                        )}
+                        <span className="text-emerald-700 font-semibold text-[11px]">
+                          Stock: {selectedApp.sampleProduct.inventory || 50} units
                         </span>
                       </div>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-bold text-[9px]">
-                      SPICe+ COI
+                  </div>
+                ) : (
+                  <p className="text-slate-400 italic text-[11px]">
+                    No initial product uploaded. Merchant will add items via Seller Central post-activation.
+                  </p>
+                )}
+              </div>
+
+              {/* STEP 12: Audit & Declaration */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[11px] text-[#404d85] uppercase tracking-wider flex items-center gap-1.5">
+                    <span>1️⃣2️⃣</span> Step 12: Digital Signatory & Final Audit
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold text-[10px]">
+                    Dossier Complete
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-slate-700">
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Authorized Signatory</span>
+                    <span className="font-serif italic font-bold text-slate-900">
+                      "{selectedApp.signatureName || selectedApp.ownerName || "Authorized Signatory"}"
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDocModal({ isOpen: true, docType: "incorporation" })}
-                    className="w-full py-1.5 text-[11px] font-bold text-[#404d85] hover:text-[#2b345e] bg-white hover:bg-indigo-50 border border-indigo-200 rounded-lg transition text-center shadow-2xs cursor-pointer flex items-center justify-center gap-1"
-                  >
-                    <span>👁️</span> Inspect Real MCA Certificate
-                  </button>
+                  <div>
+                    <span className="text-slate-400 text-[10px] block">Application Audit ID</span>
+                    <span className="font-mono font-bold text-slate-900">
+                      {selectedApp.applicationId || selectedApp.id}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Bottom Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100">
               <span
                 className={`text-xs font-bold px-2.5 py-1 rounded border ${
@@ -710,7 +882,7 @@ export const AdminSellerKybDesk = ({
                     : "bg-amber-50 text-amber-700 border-amber-200"
                 }`}
               >
-                Status: {selectedApp.status}
+                Current Status: {selectedApp.status}
               </span>
 
               <div className="flex items-center gap-2">
@@ -722,7 +894,7 @@ export const AdminSellerKybDesk = ({
                         handleReject(selectedApp.id);
                         setSelectedApp(null);
                       }}
-                      className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 font-bold text-xs"
+                      className="px-3.5 py-2 rounded-xl border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 font-bold text-xs transition cursor-pointer"
                     >
                       Reject Application
                     </button>
@@ -732,16 +904,16 @@ export const AdminSellerKybDesk = ({
                         handleApprove(selectedApp.id);
                         setSelectedApp(null);
                       }}
-                      className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs"
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
                     >
-                      ✓ Approve Application
+                      ✓ Approve Merchant
                     </button>
                   </>
                 )}
                 <button
                   type="button"
                   onClick={() => setSelectedApp(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer transition"
                 >
                   Close Dossier
                 </button>

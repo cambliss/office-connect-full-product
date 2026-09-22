@@ -2,36 +2,61 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { fetchGenuineKybApplications } from "@/lib/sellerKybDiscovery";
 
 export const StorefrontFeaturedStores = () => {
   const [stores, setStores] = useState<any[]>([]);
 
   useEffect(() => {
-    // Check if any registered merchant has an active store in localStorage or API
-    try {
-      const allSubmitted = localStorage.getItem("officeconnect_submitted_applications");
-      if (allSubmitted) {
-        const list = JSON.parse(allSubmitted);
-        const approved = list.filter((a: any) => a.status === "Approved");
-        if (approved.length > 0) {
+    async function loadStores() {
+      try {
+        const apps = await fetchGenuineKybApplications();
+        const active = apps.filter((a: any) => a.tradeName || a.businessName);
+        if (active.length > 0) {
           setStores(
-            approved.map((a: any) => ({
+            active.map((a: any) => ({
               id: a.id || a.applicationId,
-              slug: a.storeSlug || "store",
+              slug: a.storeSlug || "bhasker-fashion",
               name: a.tradeName || a.businessName,
-              tagline: `Official verified merchant store for ${a.category || "merchandise"}.`,
-              badge: "VERIFIED MERCHANT",
+              tagline: `Official merchant store for ${a.category || "Fashion & Apparel"} with direct seller warranty.`,
+              badge: a.status === "Approved" ? "VERIFIED MERCHANT" : "ENROLLED MERCHANT",
               rating: 5.0,
               reviewsCount: 0,
-              productsCount: 0,
+              productsCount: a.sampleProduct ? 1 : 0,
               salesCount: "Verified Merchant",
-              location: `${a.warehouseCity || "India"}, India`,
-              banner: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
+              location: `${a.warehouseCity || "Bengaluru"}, India`,
+              banner: a.sampleProduct?.image || "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=800&q=80",
             }))
           );
+          return;
         }
-      }
-    } catch (e) {}
+
+        // Fallback to localStorage if offline
+        const allSubmitted = localStorage.getItem("officeconnect_submitted_applications");
+        if (allSubmitted) {
+          const list = JSON.parse(allSubmitted);
+          const activeLocal = list.filter((a: any) => a.tradeName || a.businessName);
+          if (activeLocal.length > 0) {
+            setStores(
+              activeLocal.map((a: any) => ({
+                id: a.id || a.applicationId,
+                slug: a.storeSlug || "store",
+                name: a.tradeName || a.businessName,
+                tagline: `Official merchant store for ${a.category || "merchandise"}.`,
+                badge: a.status === "Approved" ? "VERIFIED MERCHANT" : "ENROLLED MERCHANT",
+                rating: 5.0,
+                reviewsCount: 0,
+                productsCount: a.sampleProduct ? 1 : 0,
+                salesCount: "Verified Merchant",
+                location: `${a.warehouseCity || "India"}, India`,
+                banner: a.sampleProduct?.image || "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
+              }))
+            );
+          }
+        }
+      } catch (e) {}
+    }
+    loadStores();
   }, []);
 
   return (
