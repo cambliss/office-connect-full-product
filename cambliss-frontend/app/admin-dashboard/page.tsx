@@ -12,7 +12,6 @@ import { AdminOperationsDomain } from "@/components/admin-marketplace/AdminOpera
 import { AdminSettingsDomain } from "@/components/admin-marketplace/AdminSettingsDomain";
 import { SellerKybApplication, AdminSellerKybDesk } from "@/components/admin-marketplace/AdminSellerKybDesk";
 import { Seller12StepDossierModal } from "@/components/admin-marketplace/Seller12StepDossierModal";
-import { RealDocumentViewerModal } from "@/components/admin-marketplace/RealDocumentViewerModal";
 import { fetchGenuineKybApplications } from "@/lib/sellerKybDiscovery";
 import {
   CheckCircle2,
@@ -486,17 +485,6 @@ export default function AdminDashboardPage() {
 
         </main>
       </div>
-
-      {/* Real Statutory Government Document Viewer */}
-      {inspectingApp && (
-        <RealDocumentViewerModal
-          isOpen={!!inspectingApp}
-          onClose={() => setInspectingApp(null)}
-          application={inspectingApp}
-          initialDocType="gst"
-        />
-      )}
-
     </div>
   );
 }

@@ -18,7 +18,6 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
-import { RealDocumentViewerModal, DocumentType } from "./RealDocumentViewerModal";
 import { Seller12StepDossierModal } from "./Seller12StepDossierModal";
 import { fetchGenuineKybApplications, fetchGenuineMerchantByEmail } from "@/lib/sellerKybDiscovery";
 
@@ -107,7 +106,6 @@ export const AdminSellerKybDesk = ({
   const [activeTab, setActiveTab] = useState<"All" | "Pending Review" | "Approved" | "Rejected">("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedApp, setSelectedApp] = useState<SellerKybApplication | null>(null);
-  const [previewDocModal, setPreviewDocModal] = useState<{ isOpen: boolean; docType: DocumentType } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Load genuine submitted merchant applications (0 dummy data)
@@ -423,16 +421,6 @@ export const AdminSellerKybDesk = ({
           onClose={() => setSelectedApp(null)}
           onApprove={(id) => handleApprove(id)}
           onReject={(id) => handleReject(id)}
-        />
-      )}
-
-      {/* Real Statutory Government Document Viewer */}
-      {previewDocModal?.isOpen && selectedApp && (
-        <RealDocumentViewerModal
-          isOpen={previewDocModal.isOpen}
-          onClose={() => setPreviewDocModal(null)}
-          application={selectedApp}
-          initialDocType={previewDocModal.docType}
         />
       )}
     </div>
