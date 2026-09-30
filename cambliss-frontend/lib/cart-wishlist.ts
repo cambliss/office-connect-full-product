@@ -89,6 +89,16 @@ export const updateCartQuantityStorage = (id: string, delta: number) => {
   }
 };
 
+export const clearCartStorage = () => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem("oc_cart");
+    window.dispatchEvent(new Event("oc_cart_updated"));
+  } catch (err) {
+    console.error("Failed to clear cart:", err);
+  }
+};
+
 export const getStoredWishlist = (): WishlistStorageItem[] => {
   if (typeof window === "undefined") return [];
   try {

@@ -12,8 +12,9 @@ export interface CartLineItem {
   originalPrice?: number;
   quantity: number;
   image: string;
-  variantName: string;
-  inStock: boolean;
+  sku?: string;
+  variantName?: string;
+  inStock?: boolean;
   priceChangedAlert?: {
     oldPrice: number;
     newPrice: number;
@@ -24,9 +25,11 @@ export interface CartLineItem {
 export interface SellerPackage {
   sellerId: string;
   sellerName: string;
-  sellerTier: "premium" | "verified" | "new";
-  carrier: string;
+  sellerTier?: "premium" | "verified" | "new";
+  carrier?: string;
+  dispatchPincode?: string;
   deliveryEstimate: string;
+  deliveryFee?: number;
   items: CartLineItem[];
 }
 

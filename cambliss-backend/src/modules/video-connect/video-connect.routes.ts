@@ -150,6 +150,76 @@ router.post("/room/:meetingId/signal", (req: Request, res: Response) => {
 	res.json({ success: true });
 });
 
+// Host Control Endpoint (Mute Guest, Mute All, Request Unmute)
+router.post("/room/:meetingId/host-control", (req: Request, res: Response) => {
+	const meetingId = extractMeetingId(req.params.meetingId);
+	const { hostId, hostName, targetParticipantId, action } = req.body as {
+		hostId?: string;
+		hostName?: string;
+		targetParticipantId?: string; // specific participant ID or "all"
+		action?: "mute" | "request-unmute";
+	};
+
+	if (!meetingId || !hostId || !action) {
+		res.status(400).json({ message: "Missing required host control parameters" });
+		return;
+	}
+
+	const room = getOrCreateRoom(meetingId);
+	const sender = hostName || "Host";
+
+	if (action === "mute") {
+		if (targetParticipantId === "all") {
+			// Mute all remote participants (exclude host)
+			for (const [id, participant] of room.participants.entries()) {
+				if (id !== hostId && !participant.isHost) {
+					participant.audioEnabled = false;
+					room.signals.push({
+						id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+						senderId: hostId,
+						targetId: id,
+						signal: { type: "host-mute-mic", by: sender },
+					});
+				}
+			}
+		} else if (targetParticipantId && room.participants.has(targetParticipantId)) {
+			const target = room.participants.get(targetParticipantId)!;
+			target.audioEnabled = false;
+			room.signals.push({
+				id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+				senderId: hostId,
+				targetId: targetParticipantId,
+				signal: { type: "host-mute-mic", by: sender },
+			});
+		}
+	} else if (action === "request-unmute" && targetParticipantId) {
+		room.signals.push({
+			id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+			senderId: hostId,
+			targetId: targetParticipantId,
+			signal: { type: "host-request-unmute", by: sender },
+		});
+	}
+
+	// Keep max 100 signals in memory
+	if (room.signals.length > 100) {
+		room.signals = room.signals.slice(-100);
+	}
+
+	const activeList = Array.from(room.participants.values()).map((p) => ({
+		id: p.id,
+		name: p.name,
+		isHost: p.isHost,
+		audioEnabled: p.audioEnabled,
+		videoEnabled: p.videoEnabled,
+	}));
+
+	res.json({
+		success: true,
+		participants: activeList,
+	});
+});
+
 router.get("/room/:meetingId/signal/:myId", (req: Request, res: Response) => {
 	const meetingId = extractMeetingId(req.params.meetingId);
 	const myId = extractMeetingId(req.params.myId);
