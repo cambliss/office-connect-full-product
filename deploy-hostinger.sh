@@ -5,7 +5,13 @@ set -e
 
 echo "🚀 Starting Hostinger VPS Deployment & 502 Fix..."
 
-PROJECT_DIR="/var/www/office-connect-mvp"
+if [ -d "/var/www/office-connect-mvp/.git" ]; then
+    PROJECT_DIR="/var/www/office-connect-mvp"
+elif [ -d "/var/www/saas-platform/.git" ]; then
+    PROJECT_DIR="/var/www/saas-platform"
+else
+    PROJECT_DIR="/var/www/office-connect-mvp"
+fi
 TARGET_BRANCH="${1:-main}"
 REPO_URL="https://github.com/cambliss/office-connect-full-product.git"
 
