@@ -14,7 +14,7 @@ import {
 
 const projectRouter = Router();
 
-projectRouter.use(authenticateJWT, requireActiveSubscription);
+projectRouter.use(["/projects", "/tasks"], authenticateJWT, requireActiveSubscription);
 
 projectRouter.get(
 	"/projects",
