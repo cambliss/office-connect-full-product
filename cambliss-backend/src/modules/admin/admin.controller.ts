@@ -7,6 +7,7 @@ import {
 	generateAdminOrderInvoice,
 	getAllOrderHistory,
 	getAllOrganizations,
+	getAllPlatformUsers,
 	getGlobalAnalytics,
 	getAllPlans,
 	getAllSubscriptions,
@@ -38,6 +39,15 @@ const getRequiredParam = (value: string | string[] | undefined, label: string): 
 	}
 
 	return normalized;
+};
+
+export const getAllPlatformUsersController = async (_req: Request, res: Response): Promise<void> => {
+	try {
+		const users = await getAllPlatformUsers();
+		res.status(200).json(users);
+	} catch (error) {
+		handleControllerError(res, error);
+	}
 };
 
 export const getAllOrganizationsController = async (_req: Request, res: Response): Promise<void> => {

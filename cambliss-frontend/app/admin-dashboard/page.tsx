@@ -10,6 +10,7 @@ import { AdminFinanceDomain } from "@/components/admin-marketplace/AdminFinanceD
 import { AdminMarketingDomain } from "@/components/admin-marketplace/AdminMarketingDomain";
 import { AdminOperationsDomain } from "@/components/admin-marketplace/AdminOperationsDomain";
 import { AdminSettingsDomain } from "@/components/admin-marketplace/AdminSettingsDomain";
+import { AdminSaasDomain } from "@/components/admin-marketplace/AdminSaasDomain";
 import { SellerKybApplication, AdminSellerKybDesk } from "@/components/admin-marketplace/AdminSellerKybDesk";
 import { Seller12StepDossierModal } from "@/components/admin-marketplace/Seller12StepDossierModal";
 import { fetchGenuineKybApplications } from "@/lib/sellerKybDiscovery";
@@ -409,6 +410,13 @@ export default function AdminDashboardPage() {
               onClose={() => setInspectingApp(null)}
               onApprove={(id) => handleApproveApp(id)}
               onReject={(id) => handleRejectApp(id)}
+            />
+          )}
+
+          {/* 1.5 SAAS PLATFORM & CLIENTS DOMAIN */}
+          {activeView.startsWith("saas-") && (
+            <AdminSaasDomain
+              subView={activeView as "saas-clients" | "saas-tenants" | "saas-analytics"}
             />
           )}
 

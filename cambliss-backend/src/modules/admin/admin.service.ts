@@ -139,6 +139,55 @@ export const getGlobalAnalytics = async () => {
 	};
 };
 
+export const getAllPlatformUsers = async () => {
+	const users = await prisma.user.findMany({
+		select: {
+			id: true,
+			email: true,
+			firstName: true,
+			lastName: true,
+			isPlatformUser: true,
+			createdAt: true,
+			organizationId: true,
+			organization: {
+				select: {
+					id: true,
+					name: true,
+				},
+			},
+			memberships: {
+				select: {
+					role: {
+						select: {
+							name: true,
+						},
+					},
+					organization: {
+						select: {
+							id: true,
+							name: true,
+						},
+					},
+				},
+			},
+		},
+		orderBy: {
+			createdAt: "desc",
+		},
+	});
+
+	return users.map((u) => ({
+		id: u.id,
+		email: u.email,
+		name: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email.split("@")[0],
+		role: u.isPlatformUser ? "SUPER_ADMIN" : u.memberships[0]?.role?.name || "CLIENT",
+		organizationName: u.organization?.name || u.memberships[0]?.organization?.name || "Platform / Unassigned",
+		organizationId: u.organizationId || u.memberships[0]?.organization?.id || null,
+		isPlatformUser: u.isPlatformUser,
+		createdAt: u.createdAt,
+	}));
+};
+
 export const getOrganizationById = async (organizationId: string) => {
 	const organization = await prisma.organization.findUnique({
 		where: { id: organizationId },

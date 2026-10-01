@@ -5,6 +5,9 @@ import Link from "next/link";
 
 export type AdminDomainView =
   | "dashboard"
+  | "saas-clients"
+  | "saas-tenants"
+  | "saas-analytics"
   | "mkt-customers"
   | "mkt-sellers"
   | "mkt-stores"
@@ -40,6 +43,7 @@ export const AdminMasterSidebar = ({
   onSelectView: (view: AdminDomainView) => void;
 }) => {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    saas: true,
     marketplace: true,
     commerce: true,
     finance: true,
@@ -86,6 +90,46 @@ export const AdminMasterSidebar = ({
           </span>
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
         </button>
+
+        {/* 1.5 SaaS Clients & Platform */}
+        <div>
+          <button
+            type="button"
+            onClick={() => toggleSection("saas")}
+            className="w-full p-2 rounded text-left flex items-center justify-between hover:bg-slate-800 text-slate-200 transition"
+          >
+            <span className="flex items-center gap-2">
+              <span>🏢</span>
+              <span>SaaS Clients & Tenants</span>
+            </span>
+            <span className="text-[10px] text-slate-500 font-mono">
+              {openSections.saas ? "▼" : "▶"}
+            </span>
+          </button>
+
+          {openSections.saas && (
+            <div className="pl-6 pt-1 space-y-0.5 border-l border-slate-800 ml-3">
+              {[
+                { id: "saas-clients" as AdminDomainView, label: "Registered Clients & Users" },
+                { id: "saas-tenants" as AdminDomainView, label: "Tenant Organizations" },
+                { id: "saas-analytics" as AdminDomainView, label: "Platform Health & Metrics" },
+              ].map((sub) => (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => onSelectView(sub.id)}
+                  className={`w-full py-1.5 px-2 rounded text-left text-[11px] flex items-center justify-between transition ${
+                    activeView === sub.id
+                      ? "bg-indigo-600 text-white font-bold"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                  }`}
+                >
+                  <span>{sub.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* 2. Marketplace */}
         <div>

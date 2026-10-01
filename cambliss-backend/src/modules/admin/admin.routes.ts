@@ -8,6 +8,7 @@ import {
 	downloadAdminOrderInvoiceController,
 	getAllOrderHistoryController,
 	getAllOrganizationsController,
+	getAllPlatformUsersController,
 	getGlobalAnalyticsController,
 	getAllPlansController,
 	suspendOrganizationController,
@@ -17,7 +18,10 @@ import {
 
 const adminRouter = Router();
 
-adminRouter.use(authenticateJWT, authorizeRoles(RoleName.SUPER_ADMIN));
+adminRouter.use(authenticateJWT, authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN));
+
+// Platform Users / Clients
+adminRouter.get("/users", getAllPlatformUsersController);
 
 adminRouter.get("/plans", getAllPlansController);
 adminRouter.post("/plans", createPlanController);
