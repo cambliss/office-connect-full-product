@@ -8,14 +8,14 @@ type ManagedUser = {
 	email: string;
 	firstName?: string | null;
 	lastName?: string | null;
-	role: "CLIENT" | "EMPLOYEE" | "PROJECT_MANAGER";
+	role: "ADMIN" | "CLIENT" | "EMPLOYEE" | "PROJECT_MANAGER";
 	phone?: string | null;
 	department?: string | null;
 	accesses: string[];
 	createdAt: string;
 };
 
-type ManagedRole = "CLIENT" | "EMPLOYEE" | "PROJECT_MANAGER";
+type ManagedRole = "ADMIN" | "CLIENT" | "EMPLOYEE" | "PROJECT_MANAGER";
 
 type UserEditState = {
 	phone: string;
@@ -27,12 +27,14 @@ type UserEditState = {
 const DEPARTMENTS = ["Engineering", "Sales", "Marketing", "HR", "Finance", "Operations", "Support", "Management"] as const;
 
 const accessOptions = [
+	{ key: "PROJECTS", label: "Projects & Tasks" },
 	{ key: "CRM", label: "CRM" },
 	{ key: "HRM", label: "HRM" },
 	{ key: "INVENTORY", label: "Inventory" },
 	{ key: "FILE_SHARING", label: "File Sharing" },
 	{ key: "STORE", label: "Store" },
 	{ key: "VIDEO_CONNECT", label: "Video Connect" },
+	{ key: "USER_MANAGEMENT", label: "User Management" },
 ] as const;
 
 export default function UserManagementPage() {
@@ -55,7 +57,15 @@ export default function UserManagementPage() {
 	const [phone, setPhone] = useState("");
 	const [department, setDepartment] = useState<string>("Engineering");
 	const [role, setRole] = useState<ManagedRole>("EMPLOYEE");
-	const [accesses, setAccesses] = useState<string[]>(["CRM", "HRM", "INVENTORY", "FILE_SHARING", "STORE", "VIDEO_CONNECT"]);
+	const [accesses, setAccesses] = useState<string[]>([
+		"PROJECTS",
+		"CRM",
+		"HRM",
+		"INVENTORY",
+		"FILE_SHARING",
+		"STORE",
+		"VIDEO_CONNECT",
+	]);
 
 	const [filterDepartment, setFilterDepartment] = useState("All");
 
@@ -356,10 +366,11 @@ export default function UserManagementPage() {
 								{DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
 							</select>
 						</div>
-						<select value={role} onChange={(event) => setRole(event.target.value as "CLIENT" | "EMPLOYEE" | "PROJECT_MANAGER")} className="w-full rounded-lg border border-zinc-300 px-2 py-1.5 text-sm">
+						<select value={role} onChange={(event) => setRole(event.target.value as ManagedRole)} className="w-full rounded-lg border border-zinc-300 px-2 py-1.5 text-sm">
 							<option value="EMPLOYEE">EMPLOYEE</option>
 							<option value="PROJECT_MANAGER">PROJECT_MANAGER</option>
 							<option value="CLIENT">CLIENT</option>
+							<option value="ADMIN">ADMIN (Organization Admin)</option>
 						</select>
 						<div className="rounded-lg border border-zinc-200 p-2">
 							<p className="text-xs font-semibold text-zinc-700">Access Rights</p>
@@ -439,6 +450,7 @@ export default function UserManagementPage() {
 														<option value="EMPLOYEE">EMPLOYEE</option>
 														<option value="PROJECT_MANAGER">PROJECT_MANAGER</option>
 														<option value="CLIENT">CLIENT</option>
+														<option value="ADMIN">ADMIN (Organization Admin)</option>
 													</select>
 													<div className="rounded-lg border border-zinc-200 p-2">
 														<p className="text-[11px] font-semibold text-zinc-700">Access Rights</p>

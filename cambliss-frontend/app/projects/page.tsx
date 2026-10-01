@@ -114,6 +114,7 @@ export default function ProjectsPage() {
 	// Search & filters
 	const [searchQuery, setSearchQuery] = useState("");
 	const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
+	const [onlyMyWork, setOnlyMyWork] = useState(false);
 
 	// Modals
 	const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
@@ -197,6 +198,17 @@ export default function ProjectsPage() {
 		return projects.find((p) => p.id === selectedProjectId) || projects[0] || null;
 	}, [projects, selectedProjectId]);
 
+	// Current user assigned task metrics
+	const myTasksCount = useMemo(() => {
+		if (!currentProject?.tasks || !currentUserId) return 0;
+		return currentProject.tasks.filter((t) => t.assignedTo === currentUserId).length;
+	}, [currentProject, currentUserId]);
+
+	const myPendingTasksCount = useMemo(() => {
+		if (!currentProject?.tasks || !currentUserId) return 0;
+		return currentProject.tasks.filter((t) => t.assignedTo === currentUserId && t.status !== "DONE").length;
+	}, [currentProject, currentUserId]);
+
 	// Filtered tasks
 	const filteredTasks = useMemo(() => {
 		if (!currentProject?.tasks) return [];
@@ -205,9 +217,10 @@ export default function ProjectsPage() {
 				task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				(task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
 			const matchesPriority = priorityFilter === "ALL" || task.priority === priorityFilter;
-			return matchesSearch && matchesPriority;
+			const matchesMyWork = !onlyMyWork || task.assignedTo === currentUserId;
+			return matchesSearch && matchesPriority && matchesMyWork;
 		});
-	}, [currentProject, searchQuery, priorityFilter]);
+	}, [currentProject, searchQuery, priorityFilter, onlyMyWork, currentUserId]);
 
 	// Task columns for Kanban
 	const todoTasks = useMemo(
@@ -463,7 +476,7 @@ export default function ProjectsPage() {
 				</div>
 
 				{/* Summary Metrics */}
-				<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+				<div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
 					<div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
 						<div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
 							<Folder className="h-4 w-4 text-indigo-600" />
@@ -501,6 +514,28 @@ export default function ProjectsPage() {
 						</div>
 						<div className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
 							{currentProject?.members.length ?? 0}
+						</div>
+					</div>
+
+					<div 
+						onClick={() => setOnlyMyWork((prev) => !prev)}
+						className={`rounded-xl border p-4 shadow-sm cursor-pointer transition ${
+							onlyMyWork 
+								? "border-emerald-500 bg-emerald-50/80 ring-2 ring-emerald-500/30 dark:bg-emerald-950/40" 
+								: "border-zinc-200 bg-white hover:border-emerald-300 dark:border-zinc-800 dark:bg-zinc-900"
+						}`}
+					>
+						<div className="flex items-center justify-between text-xs font-medium text-emerald-700 dark:text-emerald-400">
+							<div className="flex items-center gap-1.5">
+								<CheckSquare className="h-4 w-4 text-emerald-600" />
+								My Assigned Work
+							</div>
+							{onlyMyWork && (
+								<span className="rounded bg-emerald-600 px-1 py-0.2 text-[9px] font-bold text-white">ACTIVE</span>
+							)}
+						</div>
+						<div className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+							{myTasksCount} <span className="text-xs font-normal text-zinc-500">({myPendingTasksCount} active)</span>
 						</div>
 					</div>
 				</div>
@@ -630,7 +665,19 @@ export default function ProjectsPage() {
 							</div>
 
 							{/* Search & Filter */}
-							<div className="flex items-center gap-2">
+							<div className="flex flex-wrap items-center gap-2">
+								<button
+									type="button"
+									onClick={() => setOnlyMyWork((prev) => !prev)}
+									className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+										onlyMyWork
+											? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
+											: "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+									}`}
+								>
+									<CheckSquare className={`h-3.5 w-3.5 ${onlyMyWork ? "text-white" : "text-emerald-600"}`} />
+									⭐ My Work ({myTasksCount})
+								</button>
 								<div className="relative">
 									<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
 									<input
@@ -676,17 +723,24 @@ export default function ProjectsPage() {
 												className="group rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-indigo-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
 											>
 												<div className="flex items-start justify-between gap-2">
-													<span
-														className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-															task.priority === "URGENT"
-																? "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400"
-																: task.priority === "HIGH"
-																	? "bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-400"
-																	: "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400"
-														}`}
-													>
-														{task.priority || "NORMAL"}
-													</span>
+													<div className="flex flex-wrap items-center gap-1.5">
+														<span
+															className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+																task.priority === "URGENT"
+																	? "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400"
+																	: task.priority === "HIGH"
+																		? "bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-400"
+																		: "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400"
+															}`}
+														>
+															{task.priority || "NORMAL"}
+														</span>
+														{task.assignedTo === currentUserId && (
+															<span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 ring-1 ring-emerald-600/20 dark:bg-emerald-950/80 dark:text-emerald-300">
+																⭐ Assigned to You
+															</span>
+														)}
+													</div>
 													{isPMOrAdmin && (
 														<button
 															onClick={() => handleDeleteTask(task.id)}
@@ -705,12 +759,17 @@ export default function ProjectsPage() {
 													</p>
 												)}
 												<div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 text-xs text-zinc-500 dark:border-zinc-800">
-													<span>{task.assignee?.email?.split("@")[0] || "Unassigned"}</span>
+													<div className="flex items-center gap-1">
+														<span>{task.assignee?.email?.split("@")[0] || "Unassigned"}</span>
+														{task.assignedTo === currentUserId && (
+															<span className="text-[10px] font-bold text-emerald-600">(You)</span>
+														)}
+													</div>
 													<button
 														onClick={() => handleUpdateTaskStatus(task.id, "IN_PROGRESS")}
-														className="rounded bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400"
+														className="rounded bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400 transition"
 													>
-														Start →
+														Start Work →
 													</button>
 												</div>
 											</div>
@@ -739,17 +798,24 @@ export default function ProjectsPage() {
 												className="group rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-indigo-300 dark:border-zinc-800 dark:bg-zinc-900"
 											>
 												<div className="flex items-start justify-between gap-2">
-													<span
-														className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-															task.priority === "URGENT"
-																? "bg-red-100 text-red-700"
-																: task.priority === "HIGH"
-																	? "bg-orange-100 text-orange-700"
-																	: "bg-blue-100 text-blue-700"
-														}`}
-													>
-														{task.priority || "NORMAL"}
-													</span>
+													<div className="flex flex-wrap items-center gap-1.5">
+														<span
+															className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+																task.priority === "URGENT"
+																	? "bg-red-100 text-red-700"
+																	: task.priority === "HIGH"
+																		? "bg-orange-100 text-orange-700"
+																		: "bg-blue-100 text-blue-700"
+															}`}
+														>
+															{task.priority || "NORMAL"}
+														</span>
+														{task.assignedTo === currentUserId && (
+															<span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 ring-1 ring-emerald-600/20 dark:bg-emerald-950/80 dark:text-emerald-300">
+																⭐ Assigned to You
+															</span>
+														)}
+													</div>
 													{isPMOrAdmin && (
 														<button
 															onClick={() => handleDeleteTask(task.id)}
@@ -768,17 +834,23 @@ export default function ProjectsPage() {
 													</p>
 												)}
 												<div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 text-xs text-zinc-500 dark:border-zinc-800">
-													<span>{task.assignee?.email?.split("@")[0] || "Unassigned"}</span>
 													<div className="flex items-center gap-1">
+														<span>{task.assignee?.email?.split("@")[0] || "Unassigned"}</span>
+														{task.assignedTo === currentUserId && (
+															<span className="text-[10px] font-bold text-emerald-600">(You)</span>
+														)}
+													</div>
+													<div className="flex items-center gap-1.5">
 														<button
 															onClick={() => handleUpdateTaskStatus(task.id, "TODO")}
-															className="rounded px-1.5 py-1 text-zinc-500 hover:bg-zinc-100"
+															className="rounded px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100 transition"
+															title="Move back to To Do"
 														>
 															←
 														</button>
 														<button
 															onClick={() => handleUpdateTaskStatus(task.id, "DONE")}
-															className="rounded bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-400"
+															className="rounded bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-500 shadow-sm transition"
 														>
 															Complete ✓
 														</button>
@@ -860,9 +932,16 @@ export default function ProjectsPage() {
 									</thead>
 									<tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
 										{filteredTasks.map((t) => (
-											<tr key={t.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50">
+											<tr key={t.id} className={`hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 ${t.assignedTo === currentUserId ? "bg-emerald-50/30 dark:bg-emerald-950/20" : ""}`}>
 												<td className="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-													{t.title}
+													<div className="flex items-center gap-2">
+														<span>{t.title}</span>
+														{t.assignedTo === currentUserId && (
+															<span className="rounded bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800">
+																⭐ You
+															</span>
+														)}
+													</div>
 												</td>
 												<td className="px-4 py-3 text-xs">
 													<select

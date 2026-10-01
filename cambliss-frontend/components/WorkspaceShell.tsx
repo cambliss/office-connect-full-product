@@ -71,7 +71,7 @@ type SidebarItem = {
 	label: string;
 	href?: string;
 	badge?: string;
-	accessKey?: "CRM" | "HRM" | "INVENTORY" | "FILE_SHARING" | "USER_MANAGEMENT" | "STORE" | "VIDEO_CONNECT";
+	accessKey?: "CRM" | "HRM" | "INVENTORY" | "FILE_SHARING" | "USER_MANAGEMENT" | "STORE" | "VIDEO_CONNECT" | "PROJECTS";
 	isSso?: boolean;
 	ssoAppUrl?: string;
 	subItems?: SidebarItem[];
@@ -125,7 +125,7 @@ const clientMenuItems: SidebarItem[] = [
 		],
 	},
 	{ label: "CRM", href: "/crm", accessKey: "CRM" },
-	{ label: "Projects & Tasks", href: "/projects", badge: "PM" },
+	{ label: "Projects & Tasks", href: "/projects", accessKey: "PROJECTS", badge: "PM" },
 	{ label: "HRM", href: "/hrm", accessKey: "HRM" },
 	{
 		label: "Inventory",
@@ -352,6 +352,26 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 			setAuthRole(getRoleFromToken(token));
 			setAuthAccesses([]);
 		}
+
+		// Dynamically sync real-time role-based access permissions from backend
+		fetch("/api/user-management/my-access", {
+			headers: {
+				Authorization: token && token !== "cookie-session" ? `Bearer ${token}` : "",
+			},
+			credentials: "include",
+		})
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data) => {
+				if (data && Array.isArray(data.accesses)) {
+					setAuthAccesses(data.accesses);
+					try {
+						const current = JSON.parse(localStorage.getItem("authUser") || "{}");
+						current.accesses = data.accesses;
+						localStorage.setItem("authUser", JSON.stringify(current));
+					} catch {}
+				}
+			})
+			.catch(() => {});
 	}, [pathname, router]);
 
 	useEffect(() => {
@@ -459,6 +479,11 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 
 		if (item.label === "Order History") {
 			return false;
+		}
+
+		// Project Managers, Admins, and Super Admins always have access to Projects & Tasks
+		if (item.label === "Projects & Tasks" && (authRole === "PROJECT_MANAGER" || authRole === "ADMIN" || authRole === "SUPER_ADMIN")) {
+			return true;
 		}
 
 		if (item.accessKey) {

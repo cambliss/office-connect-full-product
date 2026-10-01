@@ -64,7 +64,7 @@ projectRouter.post(
 
 projectRouter.post(
 	"/projects/:id/status-updates",
-	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER),
+	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER, RoleName.EMPLOYEE),
 	createProjectStatusUpdateController,
 );
 
@@ -76,7 +76,7 @@ projectRouter.put(
 
 projectRouter.put(
 	"/tasks/:id/status",
-	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER, RoleName.EMPLOYEE),
+	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER, RoleName.EMPLOYEE, RoleName.CLIENT),
 	updateTaskStatusController,
 );
 

@@ -20,33 +20,38 @@ export const ACCESS_KEYS = [
 	"USER_MANAGEMENT",
 	"STORE",
 	"VIDEO_CONNECT",
+	"PROJECTS",
 ] as const;
 
 export type AccessKey = (typeof ACCESS_KEYS)[number];
 
 const ensureAccessProfileTable = async (): Promise<void> => {
-	await prisma.$executeRawUnsafe(`
-		CREATE TABLE IF NOT EXISTS "UserAccessProfile" (
-			"userId" TEXT PRIMARY KEY REFERENCES "User"("id") ON DELETE CASCADE,
-			"organizationId" TEXT NOT NULL REFERENCES "Organization"("id") ON DELETE CASCADE,
-			"phone" TEXT,
-			"department" TEXT,
-			"accesses" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
-			"createdBy" TEXT REFERENCES "User"("id") ON DELETE SET NULL,
-			"createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
-			"updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
-		);
-	`);
+	try {
+		await prisma.$executeRawUnsafe(`
+			CREATE TABLE IF NOT EXISTS "UserAccessProfile" (
+				"userId" TEXT PRIMARY KEY REFERENCES "User"("id") ON DELETE CASCADE,
+				"organizationId" TEXT NOT NULL REFERENCES "Organization"("id") ON DELETE CASCADE,
+				"phone" TEXT,
+				"department" TEXT,
+				"accesses" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+				"createdBy" TEXT REFERENCES "User"("id") ON DELETE SET NULL,
+				"createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+				"updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
+			);
+		`);
 
-	await prisma.$executeRawUnsafe(`
-		ALTER TABLE "UserAccessProfile" 
-		ADD COLUMN IF NOT EXISTS "department" TEXT;
-	`);
+		await prisma.$executeRawUnsafe(`
+			ALTER TABLE "UserAccessProfile" 
+			ADD COLUMN IF NOT EXISTS "department" TEXT;
+		`);
 
-	await prisma.$executeRawUnsafe(`
-		CREATE INDEX IF NOT EXISTS "UserAccessProfile_org_idx"
-		ON "UserAccessProfile"("organizationId");
-	`);
+		await prisma.$executeRawUnsafe(`
+			CREATE INDEX IF NOT EXISTS "UserAccessProfile_org_idx"
+			ON "UserAccessProfile"("organizationId");
+		`);
+	} catch {
+		// Ignore table/index concurrency notices
+	}
 };
 
 const normalizeAccesses = (accesses: unknown): AccessKey[] => {
@@ -225,9 +230,9 @@ export const createOrganizationUser = async (
 		throw new UserManagementError(400, "email is required");
 	}
 
-	const allowedRoles: RoleName[] = [RoleName.CLIENT, RoleName.EMPLOYEE, RoleName.PROJECT_MANAGER];
+	const allowedRoles: RoleName[] = [RoleName.ADMIN, RoleName.CLIENT, RoleName.EMPLOYEE, RoleName.PROJECT_MANAGER];
 	if (!allowedRoles.includes(input.role)) {
-		throw new UserManagementError(400, "role must be CLIENT, EMPLOYEE, or PROJECT_MANAGER");
+		throw new UserManagementError(400, "role must be ADMIN, CLIENT, EMPLOYEE, or PROJECT_MANAGER");
 	}
 
 	const existing = await prisma.user.findUnique({
