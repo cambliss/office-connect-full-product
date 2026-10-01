@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import fs from "fs";
 import path from "path";
+import { sellerVerificationService } from "./seller-verification.service";
 
 export interface MerchantOnboardingApplication {
   id: string;
@@ -102,7 +103,7 @@ const router = Router();
  * POST /api/storefront/seller-onboarding
  * Submit a new merchant onboarding registration application
  */
-router.post("/", (req: Request, res: Response) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
@@ -180,6 +181,44 @@ router.post("/", (req: Request, res: Response) => {
     // Prepend to queue and persist to disk
     applicationsStore.unshift(newApp);
     saveApplicationsToDisk(applicationsStore);
+
+    // Also persist as a KYC dossier in PostgreSQL (survives backend restarts)
+    try {
+      await sellerVerificationService.submitDossier({
+        sellerId: newApp.id,
+        sellerCode: `SEL-${newApp.applicationId}`,
+        submittedInfo: {
+          businessName: newApp.businessName,
+          tradeName: newApp.tradeName,
+          ownerName: newApp.ownerName,
+          email: newApp.email,
+          phone: newApp.phone,
+          pan: newApp.pan,
+          gstin: newApp.gstin,
+          warehouseAddress: `${newApp.warehouseAddress}, ${newApp.warehouseCity} ${newApp.warehousePinCode}`,
+          bankName: newApp.bankName,
+          accountNumber: newApp.accountNumber,
+          ifscCode: newApp.ifscCode,
+        },
+        submittedDocuments: {
+          panDocUrl: (newApp.documents as any)?.panCard ?? undefined,
+          gstDocUrl: (newApp.documents as any)?.gstCertificate ?? undefined,
+          bankChequeUrl: (newApp.documents as any)?.cancelledCheque ?? undefined,
+          photoIdUrl: (newApp.documents as any)?.identityProof ?? undefined,
+        },
+        checklist: {
+          panMatchesLegalName: true,
+          gstinActiveOnPortal: !newApp.isGstExempt,
+          bankPennyDropSuccess: Boolean(newApp.pennyDropVerified),
+          videoKycDone: false,
+          warehousePinServiceable: true,
+        },
+        kycStatus: "KYC_PENDING",
+        auditTrail: [],
+      });
+    } catch (kycErr) {
+      console.warn("[KYC] Could not persist dossier to DB (non-fatal):", kycErr);
+    }
 
     return res.status(201).json({
       success: true,

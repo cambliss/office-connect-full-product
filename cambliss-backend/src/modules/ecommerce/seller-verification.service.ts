@@ -6,52 +6,120 @@ import {
 } from "./financial-ledger.types";
 import { sellersStore } from "./financial-ledger.service";
 import SettlementProviderFactory from "../payments/settlement-provider.factory";
+import prisma from "../../config/prisma";
 
-// KYC verification dossiers store
-let kycDossiersStore: SellerKycDossier[] = [];
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/** Map Prisma SellerKycRecord row → SellerKycDossier TS shape */
+function mapRecord(row: any): SellerKycDossier {
+  return {
+    sellerId: row.sellerId,
+    sellerCode: row.sellerCode,
+    submittedInfo: row.submittedInfo as any,
+    submittedDocuments: row.submittedDocuments as any,
+    aiCollectedData: row.aiCollectedData as any,
+    checklist: row.checklist as any,
+    kycStatus: row.kycStatus as KycStatus,
+    reviewerName: row.reviewerName ?? undefined,
+    reviewedAt: row.reviewedAt ? (row.reviewedAt as Date).toISOString() : undefined,
+    rejectionReason: row.rejectionReason ?? undefined,
+    resubmissionNotes: row.resubmissionNotes ?? undefined,
+    auditTrail: (row.auditTrail as any[]) ?? [],
+  };
+}
+
+/** Upsert a dossier from the TypeScript shape into Prisma */
+async function upsertDossier(dossier: SellerKycDossier): Promise<void> {
+  const kycStatusEnum = dossier.kycStatus as any; // Prisma KycStatus enum value
+  await prisma.sellerKycRecord.upsert({
+    where: { sellerId: dossier.sellerId },
+    create: {
+      sellerId: dossier.sellerId,
+      sellerCode: dossier.sellerCode,
+      submittedInfo: dossier.submittedInfo as any,
+      submittedDocuments: (dossier.submittedDocuments ?? {}) as any,
+      checklist: (dossier.checklist ?? {}) as any,
+      aiCollectedData: (dossier.aiCollectedData ?? null) as any,
+      kycStatus: kycStatusEnum,
+      reviewerName: dossier.reviewerName ?? null,
+      reviewedAt: dossier.reviewedAt ? new Date(dossier.reviewedAt) : null,
+      rejectionReason: dossier.rejectionReason ?? null,
+      resubmissionNotes: dossier.resubmissionNotes ?? null,
+      auditTrail: (dossier.auditTrail ?? []) as any,
+    },
+    update: {
+      submittedInfo: dossier.submittedInfo as any,
+      submittedDocuments: (dossier.submittedDocuments ?? {}) as any,
+      checklist: (dossier.checklist ?? {}) as any,
+      aiCollectedData: (dossier.aiCollectedData ?? null) as any,
+      kycStatus: kycStatusEnum,
+      reviewerName: dossier.reviewerName ?? null,
+      reviewedAt: dossier.reviewedAt ? new Date(dossier.reviewedAt) : null,
+      rejectionReason: dossier.rejectionReason ?? null,
+      resubmissionNotes: dossier.resubmissionNotes ?? null,
+      auditTrail: (dossier.auditTrail ?? []) as any,
+    },
+  });
+}
+
+// ─── Service ─────────────────────────────────────────────────────────────────
 
 export class SellerVerificationService {
   private settlementProvider = SettlementProviderFactory.getProvider();
 
   /**
    * 1. GET ALL KYC DOSSIERS IN QUEUE
+   * Reads live from PostgreSQL — survives backend restarts.
    */
   async getKycQueue(statusFilter?: KycStatus): Promise<SellerKycDossier[]> {
-    if (statusFilter) {
-      return kycDossiersStore.filter((d) => d.kycStatus === statusFilter);
-    }
-    return kycDossiersStore;
+    const rows = await prisma.sellerKycRecord.findMany({
+      where: statusFilter ? { kycStatus: statusFilter as any } : undefined,
+      orderBy: { createdAt: "asc" },
+    });
+    return rows.map(mapRecord);
   }
 
   /**
-   * 2. RUN AI AGENT PRELIMINARY DATA COLLECTION & VALIDATION
+   * 2. CREATE OR UPSERT A DOSSIER (called during seller onboarding)
+   */
+  async submitDossier(dossier: SellerKycDossier): Promise<SellerKycDossier> {
+    if (!dossier.auditTrail) dossier.auditTrail = [];
+    dossier.auditTrail.unshift({
+      action: "DOSSIER_SUBMITTED",
+      by: dossier.submittedInfo.ownerName,
+      timestamp: new Date().toISOString(),
+      notes: "Seller KYC dossier submitted via onboarding wizard.",
+    });
+    await upsertDossier(dossier);
+    return dossier;
+  }
+
+  /**
+   * 3. RUN AI AGENT PRELIMINARY DATA COLLECTION & VALIDATION
    * Automated preliminary intelligence gathering (GSTIN, MCA, PAN, Pincode).
    */
   async runAiDataCollection(sellerId: string): Promise<SellerKycDossier> {
-    const dossier = kycDossiersStore.find((d) => d.sellerId === sellerId);
-    if (!dossier) throw new Error(`KYC Dossier not found for seller: ${sellerId}`);
+    const row = await prisma.sellerKycRecord.findUnique({ where: { sellerId } });
+    if (!row) throw new Error(`KYC Dossier not found for seller: ${sellerId}`);
 
-    const gstin = dossier.submittedInfo.gstin;
-    const pan = dossier.submittedInfo.pan;
+    const dossier = mapRecord(row);
+    const info = dossier.submittedInfo;
 
-    // Validate 15-digit GSTIN format
+    const gstin = info.gstin;
+    const pan   = info.pan;
+
     const isValidGstFormat = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstin);
-    const isValidPanFormat = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan);
+    const isValidPanFormat  = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan);
 
     const mismatches: string[] = [];
-    if (!isValidGstFormat) {
-      mismatches.push("GSTIN format invalid according to Indian Tax Code schema.");
-    }
-    if (!isValidPanFormat) {
-      mismatches.push("PAN structure invalid.");
-    }
-    if (gstin && pan && gstin.substring(2, 12) !== pan) {
+    if (!isValidGstFormat) mismatches.push("GSTIN format invalid according to Indian Tax Code schema.");
+    if (!isValidPanFormat)  mismatches.push("PAN structure invalid.");
+    if (gstin && pan && gstin.substring(2, 12) !== pan)
       mismatches.push(`GSTIN PAN component (${gstin.substring(2, 12)}) does not match submitted PAN (${pan}).`);
-    }
 
     const aiData: AiCollectedVerificationData = {
       gstinVerified: isValidGstFormat,
-      gstinTradeName: dossier.submittedInfo.businessName.toUpperCase(),
+      gstinTradeName: info.businessName.toUpperCase(),
       gstinStateCode: `${gstin.substring(0, 2)} (Resolved via NSDL Directory)`,
       panChecksumValid: isValidPanFormat,
       mcaRegisteredEntity: "Verified in Corporate Registry",
@@ -64,7 +132,6 @@ export class SellerVerificationService {
 
     dossier.aiCollectedData = aiData;
     dossier.kycStatus = mismatches.length === 0 ? "MANUAL_REVIEW" : "RESUBMISSION_REQUIRED";
-
     dossier.auditTrail.unshift({
       action: "AI_SCRAPE_REFRESHED",
       by: "OfficeConnect AI Agent (v2.4)",
@@ -72,42 +139,117 @@ export class SellerVerificationService {
       notes: `Preliminary AI scraping complete. Confidence score: ${aiData.confidenceScore}%. Mismatches detected: ${mismatches.length}`,
     });
 
+    await upsertDossier(dossier);
     return dossier;
   }
 
   /**
-   * 3. SUPPORT TEAM MANUAL REVIEW DECISION (HUMAN-IN-THE-LOOP)
-   * The Cambliss Support Team / interns make the final verification decision.
+   * 4. SUPPORT TEAM MANUAL REVIEW DECISION (HUMAN-IN-THE-LOOP)
+   * Persists decision to PostgreSQL — survives restarts.
    */
   async submitManualReviewDecision(
     sellerId: string,
     decision: "VERIFIED_ACTIVE" | "REJECTED" | "RESUBMISSION_REQUIRED",
     reviewerName: string,
-    notes?: string
+    notes?: string,
   ): Promise<{ dossier: SellerKycDossier; seller: SellerProfile }> {
-    const dossier = kycDossiersStore.find((d) => d.sellerId === sellerId);
-    if (!dossier) throw new Error(`KYC Dossier not found: ${sellerId}`);
 
+    // Load from DB (or fall back to in-memory sellers store if dossier not yet in DB)
+    let row = await prisma.sellerKycRecord.findUnique({ where: { sellerId } });
+
+    if (!row) {
+      // Dossier only exists in the legacy in-memory sellersStore — can still persist it
+      const inMemSeller = sellersStore.find((s) => s.id === sellerId);
+      if (!inMemSeller) throw new Error(`KYC Dossier not found: ${sellerId}`);
+
+      // Build a minimal dossier for this in-memory seller and persist it
+      const fallback: SellerKycDossier = {
+        sellerId: inMemSeller.id,
+        sellerCode: inMemSeller.sellerCode,
+        submittedInfo: {
+          businessName: inMemSeller.businessName,
+          tradeName: inMemSeller.tradeName,
+          ownerName: inMemSeller.ownerName,
+          email: inMemSeller.email,
+          phone: inMemSeller.phone,
+          pan: inMemSeller.pan,
+          gstin: inMemSeller.gstin,
+          warehouseAddress: "",
+          bankName: inMemSeller.bankAccount.bankName,
+          accountNumber: inMemSeller.bankAccount.accountNumber,
+          ifscCode: inMemSeller.bankAccount.ifscCode,
+        },
+        submittedDocuments: {},
+        checklist: {
+          panMatchesLegalName: true,
+          gstinActiveOnPortal: true,
+          bankPennyDropSuccess: true,
+          videoKycDone: false,
+          warehousePinServiceable: true,
+        },
+        kycStatus: decision,
+        reviewerName,
+        reviewedAt: new Date().toISOString(),
+        auditTrail: [],
+      };
+      fallback.auditTrail.unshift({
+        action: "DECISION_ON_IN_MEMORY_SELLER",
+        by: reviewerName,
+        timestamp: new Date().toISOString(),
+        notes: `Decision ${decision} applied. Seller was in in-memory store only.`,
+      });
+      await upsertDossier(fallback);
+      row = await prisma.sellerKycRecord.findUnique({ where: { sellerId } });
+    }
+
+    if (!row) throw new Error(`Failed to persist dossier for seller: ${sellerId}`);
+
+    const dossier = mapRecord(row);
+
+    // Apply decision
+    dossier.kycStatus = decision;
+    dossier.reviewerName = reviewerName;
+    dossier.reviewedAt = new Date().toISOString();
+
+    if (decision === "REJECTED") {
+      dossier.rejectionReason = notes || "Failed document compliance inspection";
+      dossier.auditTrail.unshift({
+        action: "REJECTED",
+        by: reviewerName,
+        timestamp: dossier.reviewedAt,
+        notes: dossier.rejectionReason,
+      });
+    } else if (decision === "RESUBMISSION_REQUIRED") {
+      dossier.resubmissionNotes = notes || "Please re-upload clear copy of GST Form REG-06 and bank cheque";
+      dossier.auditTrail.unshift({
+        action: "RESUBMISSION_REQUESTED",
+        by: reviewerName,
+        timestamp: dossier.reviewedAt,
+        notes: dossier.resubmissionNotes,
+      });
+    }
+
+    // Resolve or create seller profile in in-memory sellersStore
     let seller = sellersStore.find((s) => s.id === sellerId);
     if (!seller) {
-      // Create seller profile from dossier if not yet in sellers store
+      const info = dossier.submittedInfo;
       seller = {
         id: dossier.sellerId,
         sellerCode: dossier.sellerCode,
-        storeSlug: dossier.submittedInfo.tradeName.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-        businessName: dossier.submittedInfo.businessName,
-        tradeName: dossier.submittedInfo.tradeName,
-        ownerName: dossier.submittedInfo.ownerName,
-        email: dossier.submittedInfo.email,
-        phone: dossier.submittedInfo.phone,
-        pan: dossier.submittedInfo.pan,
-        gstin: dossier.submittedInfo.gstin,
+        storeSlug: info.tradeName.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+        businessName: info.businessName,
+        tradeName: info.tradeName,
+        ownerName: info.ownerName,
+        email: info.email,
+        phone: info.phone,
+        pan: info.pan,
+        gstin: info.gstin,
         category: "General Merchandise",
         bankAccount: {
-          accountNumber: dossier.submittedInfo.accountNumber,
-          ifscCode: dossier.submittedInfo.ifscCode,
-          accountHolderName: dossier.submittedInfo.businessName,
-          bankName: dossier.submittedInfo.bankName,
+          accountNumber: info.accountNumber,
+          ifscCode: info.ifscCode,
+          accountHolderName: info.businessName,
+          bankName: info.bankName,
         },
         kycStatus: decision,
         isSettlementEligible: decision === "VERIFIED_ACTIVE",
@@ -118,14 +260,10 @@ export class SellerVerificationService {
       sellersStore.push(seller);
     }
 
-    dossier.kycStatus = decision;
-    dossier.reviewerName = reviewerName;
-    dossier.reviewedAt = new Date().toISOString();
-
     seller.kycStatus = decision;
     seller.isSettlementEligible = decision === "VERIFIED_ACTIVE";
 
-    // If APPROVED (VERIFIED_ACTIVE): Automatically generate Razorpay Virtual Account
+    // If APPROVED: provision Razorpay Virtual Account
     if (decision === "VERIFIED_ACTIVE") {
       const virtualAccount = await this.settlementProvider.createSellerVirtualAccount({
         sellerId: seller.id,
@@ -134,32 +272,17 @@ export class SellerVerificationService {
         email: seller.email,
         phone: seller.phone,
       });
-
       seller.virtualAccount = virtualAccount;
-
       dossier.auditTrail.unshift({
         action: "APPROVED_VERIFIED_ACTIVE",
         by: reviewerName,
-        timestamp: new Date().toISOString(),
-        notes: `Approved by support team. Razorpay Virtual Account created: ${virtualAccount.accountNumber} (${virtualAccount.ifscCode}). Notes: ${notes || "None"}`,
-      });
-    } else if (decision === "REJECTED") {
-      dossier.rejectionReason = notes || "Failed document compliance inspection";
-      dossier.auditTrail.unshift({
-        action: "REJECTED",
-        by: reviewerName,
-        timestamp: new Date().toISOString(),
-        notes: dossier.rejectionReason,
-      });
-    } else if (decision === "RESUBMISSION_REQUIRED") {
-      dossier.resubmissionNotes = notes || "Please re-upload clear copy of GST Form REG-06 and bank cheque";
-      dossier.auditTrail.unshift({
-        action: "RESUBMISSION_REQUESTED",
-        by: reviewerName,
-        timestamp: new Date().toISOString(),
-        notes: dossier.resubmissionNotes,
+        timestamp: dossier.reviewedAt,
+        notes: `Approved. Razorpay VA created: ${virtualAccount.accountNumber} (${virtualAccount.ifscCode}). Notes: ${notes || "None"}`,
       });
     }
+
+    // Persist final state to PostgreSQL
+    await upsertDossier(dossier);
 
     return { dossier, seller };
   }

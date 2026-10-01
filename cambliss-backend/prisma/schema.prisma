@@ -1602,3 +1602,46 @@ model KnowledgeItem {
   @@index([organizationId])
   @@index([category])
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// MARKETPLACE: Seller KYC Dossiers (persisted to survive backend restarts)
+// ──────────────────────────────────────────────────────────────────────────────
+enum KycStatus {
+  KYC_PENDING
+  AI_DATA_COLLECTED
+  MANUAL_REVIEW
+  VERIFIED_ACTIVE
+  REJECTED
+  RESUBMISSION_REQUIRED
+  SUSPENDED
+}
+
+model SellerKycRecord {
+  id                  String    @id @default(cuid())
+  sellerId            String    @unique          // matches SellerProfile.id
+  sellerCode          String    @unique          // e.g. "SEL-KEYCHRON"
+
+  // All seller-submitted form fields stored as JSON
+  submittedInfo       Json
+  submittedDocuments  Json      @default("{}")
+  checklist           Json      @default("{}")
+
+  // AI collected data (populated after AI scrape)
+  aiCollectedData     Json?
+
+  // Review outcome
+  kycStatus           KycStatus @default(KYC_PENDING)
+  reviewerName        String?
+  reviewedAt          DateTime?
+  rejectionReason     String?
+  resubmissionNotes   String?
+
+  // Full immutable audit trail as JSON array
+  auditTrail          Json      @default("[]")
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([kycStatus])
+  @@index([createdAt])
+}
