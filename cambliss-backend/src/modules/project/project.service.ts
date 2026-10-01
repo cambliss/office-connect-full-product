@@ -24,7 +24,7 @@ const ensureActiveSubscription = async (organizationId: string): Promise<void> =
 	const subscription = await prisma.subscription.findFirst({
 		where: {
 			organizationId,
-			status: "ACTIVE",
+			status: { in: ["ACTIVE", "TRIALING", "PAST_DUE"] },
 		},
 		select: { id: true },
 	});
@@ -464,4 +464,116 @@ export const updateTaskDetails = async (
 			},
 		},
 	});
+};
+
+export const updateProject = async (
+	projectId: string,
+	payload: {
+		name?: string;
+		description?: string | null;
+		status?: string;
+	},
+	organizationId: string,
+	role?: RoleName,
+) => {
+	const project = await prisma.project.findUnique({
+		where: { id: projectId },
+		select: { id: true, organizationId: true },
+	});
+
+	if (!project) {
+		throw new HttpError(404, "Project not found");
+	}
+
+	assertOrganizationAccess(organizationId, project.organizationId, role);
+
+	const data: { name?: string; description?: string | null; status?: string } = {};
+	if (payload.name !== undefined) {
+		const trimmed = payload.name.trim();
+		if (!trimmed) throw new HttpError(400, "Project name cannot be empty");
+		data.name = trimmed;
+	}
+	if (payload.description !== undefined) {
+		data.description = payload.description ? payload.description.trim() : null;
+	}
+	if (payload.status !== undefined) {
+		data.status = payload.status.trim().toUpperCase();
+	}
+
+	return prisma.project.update({
+		where: { id: projectId },
+		data,
+		include: {
+			members: { include: { user: { select: { id: true, email: true, firstName: true, lastName: true } } } },
+			tasks: { include: { assignee: { select: { id: true, email: true, firstName: true, lastName: true } } } },
+		},
+	});
+};
+
+export const deleteProject = async (projectId: string, organizationId: string, role?: RoleName) => {
+	const project = await prisma.project.findUnique({
+		where: { id: projectId },
+		select: { id: true, organizationId: true },
+	});
+
+	if (!project) {
+		throw new HttpError(404, "Project not found");
+	}
+
+	assertOrganizationAccess(organizationId, project.organizationId, role);
+
+	await prisma.project.delete({
+		where: { id: projectId },
+	});
+
+	return { success: true, message: "Project deleted successfully" };
+};
+
+export const removeProjectMember = async (
+	projectId: string,
+	userId: string,
+	organizationId: string,
+	role?: RoleName,
+) => {
+	const project = await prisma.project.findUnique({
+		where: { id: projectId },
+		select: { id: true, organizationId: true },
+	});
+
+	if (!project) {
+		throw new HttpError(404, "Project not found");
+	}
+
+	assertOrganizationAccess(organizationId, project.organizationId, role);
+
+	await prisma.projectMember.deleteMany({
+		where: {
+			projectId,
+			userId,
+		},
+	});
+
+	return { success: true, message: "Member removed from project" };
+};
+
+export const deleteTask = async (taskId: string, organizationId: string, role?: RoleName) => {
+	const task = await prisma.task.findFirst({
+		where: { id: taskId },
+		select: {
+			id: true,
+			project: { select: { organizationId: true } },
+		},
+	});
+
+	if (!task) {
+		throw new HttpError(404, "Task not found");
+	}
+
+	assertOrganizationAccess(organizationId, task.project.organizationId, role);
+
+	await prisma.task.delete({
+		where: { id: taskId },
+	});
+
+	return { success: true, message: "Task deleted successfully" };
 };

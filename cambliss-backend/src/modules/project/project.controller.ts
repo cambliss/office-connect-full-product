@@ -5,8 +5,12 @@ import {
 	createProjectStatusUpdate,
 	createProject,
 	createTask,
+	deleteProject,
+	deleteTask,
 	getProjects,
 	HttpError,
+	removeProjectMember,
+	updateProject,
 	updateTaskDetails,
 	updateTaskStatus,
 } from "./project.service";
@@ -191,6 +195,60 @@ export const createProjectStatusUpdateController = async (req: Request, res: Res
 		const note = req.body?.note as string | undefined;
 		const entry = await createProjectStatusUpdate(projectId, status, note, organizationId, req.user?.role);
 		res.status(201).json(entry);
+	} catch (error) {
+		handleControllerError(res, error);
+	}
+};
+
+export const updateProjectController = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const organizationId = getOrganizationId(req);
+		const projectId = getRequiredParam(req.params.id, "projectId");
+		const updated = await updateProject(
+			projectId,
+			{
+				name: req.body?.name as string | undefined,
+				description: req.body?.description as string | null | undefined,
+				status: req.body?.status as string | undefined,
+			},
+			organizationId,
+			req.user?.role,
+		);
+		res.status(200).json(updated);
+	} catch (error) {
+		handleControllerError(res, error);
+	}
+};
+
+export const deleteProjectController = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const organizationId = getOrganizationId(req);
+		const projectId = getRequiredParam(req.params.id, "projectId");
+		const result = await deleteProject(projectId, organizationId, req.user?.role);
+		res.status(200).json(result);
+	} catch (error) {
+		handleControllerError(res, error);
+	}
+};
+
+export const removeProjectMemberController = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const organizationId = getOrganizationId(req);
+		const projectId = getRequiredParam(req.params.id, "projectId");
+		const userId = getRequiredParam(req.params.userId, "userId");
+		const result = await removeProjectMember(projectId, userId, organizationId, req.user?.role);
+		res.status(200).json(result);
+	} catch (error) {
+		handleControllerError(res, error);
+	}
+};
+
+export const deleteTaskController = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const organizationId = getOrganizationId(req);
+		const taskId = getRequiredParam(req.params.id, "taskId");
+		const result = await deleteTask(taskId, organizationId, req.user?.role);
+		res.status(200).json(result);
 	} catch (error) {
 		handleControllerError(res, error);
 	}

@@ -7,7 +7,11 @@ import {
 	createProjectStatusUpdateController,
 	createProjectController,
 	createTaskController,
+	deleteProjectController,
+	deleteTaskController,
 	getProjectsController,
+	removeProjectMemberController,
+	updateProjectController,
 	updateTaskDetailsController,
 	updateTaskStatusController,
 } from "./project.controller";
@@ -28,10 +32,28 @@ projectRouter.post(
 	createProjectController,
 );
 
+projectRouter.put(
+	"/projects/:id",
+	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER),
+	updateProjectController,
+);
+
+projectRouter.delete(
+	"/projects/:id",
+	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER),
+	deleteProjectController,
+);
+
 projectRouter.post(
 	"/projects/:id/members",
 	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER),
 	addProjectMemberController,
+);
+
+projectRouter.delete(
+	"/projects/:id/members/:userId",
+	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER),
+	removeProjectMemberController,
 );
 
 projectRouter.post(
@@ -56,6 +78,12 @@ projectRouter.put(
 	"/tasks/:id/status",
 	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER, RoleName.EMPLOYEE),
 	updateTaskStatusController,
+);
+
+projectRouter.delete(
+	"/tasks/:id",
+	authorizeRoles(RoleName.SUPER_ADMIN, RoleName.ADMIN, RoleName.PROJECT_MANAGER),
+	deleteTaskController,
 );
 
 export default projectRouter;

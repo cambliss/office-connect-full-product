@@ -125,6 +125,7 @@ const clientMenuItems: SidebarItem[] = [
 		],
 	},
 	{ label: "CRM", href: "/crm", accessKey: "CRM" },
+	{ label: "Projects & Tasks", href: "/projects", badge: "PM" },
 	{ label: "HRM", href: "/hrm", accessKey: "HRM" },
 	{
 		label: "Inventory",
@@ -196,6 +197,7 @@ const adminMenuItems: SidebarItem[] = [
 	},
 	{ label: "Vendor Portal", href: "/vendor-dashboard" },
 	{ label: "CRM", href: "/crm" },
+	{ label: "Projects & Tasks", href: "/projects", badge: "PM" },
 	{ label: "HRM", href: "/hrm" },
 	{
 		label: "Inventory",
@@ -227,6 +229,10 @@ function SidebarIcon({ label }: { label: string }) {
 	const className = "h-[18px] w-[18px] text-current";
 
 	switch (label) {
+		case "Projects & Tasks":
+		case "Projects":
+		case "Project Management":
+			return <Folder className={className} />;
 		case "Your Store":
 		case "My Store":
 		case "Store Dashboard":
