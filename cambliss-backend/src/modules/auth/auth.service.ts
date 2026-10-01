@@ -93,6 +93,7 @@ const toSafeUser = (params: {
 	role: RoleName;
 	accesses?: string[];
 	phone?: string | null;
+	department?: string | null;
 }) => {
 	return {
 		id: params.id,
@@ -103,6 +104,7 @@ const toSafeUser = (params: {
 		role: params.role,
 		accesses: params.accesses ?? [],
 		phone: params.phone ?? null,
+		department: params.department ?? null,
 	};
 };
 
@@ -343,15 +345,20 @@ export const login = async (input: LoginInput) => {
 	const role = user.isPlatformUser
 		? ("SUPER_ADMIN" as RoleName)
 		: ((primaryMembership?.role?.name ?? "CLIENT") as RoleName);
-	const organizationId = user.organizationId ?? primaryMembership?.organizationId;
+	let organizationId = user.organizationId ?? primaryMembership?.organizationId;
 
 	if (!organizationId && role !== "SUPER_ADMIN") {
 		throw new AuthError(403, "User is not linked to any organization");
 	}
 
+	if (!organizationId && role === "SUPER_ADMIN") {
+		const defaultOrg = await prisma.organization.findFirst({ orderBy: { createdAt: "asc" } });
+		organizationId = defaultOrg?.id ?? PLATFORM_ORGANIZATION_ID;
+	}
+
 	const resolvedOrganizationId = organizationId ?? PLATFORM_ORGANIZATION_ID;
 	const myAccess = role === "SUPER_ADMIN"
-		? { accesses: [], phone: null }
+		? { accesses: [], phone: null, department: null }
 		: await getMyAccess(resolvedOrganizationId, user.id);
 
 	if (role !== "SUPER_ADMIN") {
@@ -379,6 +386,7 @@ export const login = async (input: LoginInput) => {
 			role,
 			accesses: myAccess.accesses,
 			phone: myAccess.phone,
+			department: (myAccess as any).department ?? null,
 		}),
 	};
 };
@@ -407,15 +415,20 @@ export const getMe = async (userId: string) => {
 	const role = user.isPlatformUser
 		? ("SUPER_ADMIN" as RoleName)
 		: ((primaryMembership?.role?.name ?? "CLIENT") as RoleName);
-	const organizationId = user.organizationId ?? primaryMembership?.organizationId;
+	let organizationId = user.organizationId ?? primaryMembership?.organizationId;
 
 	if (!organizationId && role !== "SUPER_ADMIN") {
 		throw new AuthError(403, "User is not linked to any organization");
 	}
 
+	if (!organizationId && role === "SUPER_ADMIN") {
+		const defaultOrg = await prisma.organization.findFirst({ orderBy: { createdAt: "asc" } });
+		organizationId = defaultOrg?.id ?? PLATFORM_ORGANIZATION_ID;
+	}
+
 	const resolvedOrganizationId = organizationId ?? PLATFORM_ORGANIZATION_ID;
 	const myAccess = role === "SUPER_ADMIN"
-		? { accesses: [], phone: null }
+		? { accesses: [], phone: null, department: null }
 		: await getMyAccess(resolvedOrganizationId, user.id);
 
 	return {
@@ -428,6 +441,7 @@ export const getMe = async (userId: string) => {
 			role,
 			accesses: myAccess.accesses,
 			phone: myAccess.phone,
+			department: (myAccess as any).department ?? null,
 		}),
 		organization: user.organization,
 	};

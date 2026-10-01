@@ -62,7 +62,7 @@ export default function UserManagementPage() {
 	const getAuthHeaders = (): Headers => {
 		const headers = new Headers();
 		const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-		if (token) {
+		if (token && token !== "cookie-session") {
 			headers.set("Authorization", `Bearer ${token}`);
 		}
 		return headers;
@@ -74,6 +74,7 @@ export default function UserManagementPage() {
 		try {
 			const response = await fetch("/api/user-management/users", {
 				headers: getAuthHeaders(),
+				credentials: "include",
 			});
 			if (!response.ok) {
 				const raw = await response.text();
@@ -142,6 +143,7 @@ export default function UserManagementPage() {
 			const response = await fetch(`/api/user-management/users/${userId}/access`, {
 				method: "PUT",
 				headers,
+				credentials: "include",
 				body: JSON.stringify({
 					phone: editState.phone,
 					department: editState.department,
@@ -179,6 +181,7 @@ export default function UserManagementPage() {
 			const response = await fetch(`/api/user-management/users/${userId}`, {
 				method: "DELETE",
 				headers: getAuthHeaders(),
+				credentials: "include",
 			});
 
 			const raw = await response.text();
@@ -221,6 +224,7 @@ export default function UserManagementPage() {
 			const response = await fetch("/api/user-management/reset-data", {
 				method: "POST",
 				headers: getAuthHeaders(),
+				credentials: "include",
 			});
 
 			const raw = await response.text();
@@ -250,6 +254,7 @@ export default function UserManagementPage() {
 			const response = await fetch("/api/user-management/users", {
 				method: "POST",
 				headers,
+				credentials: "include",
 				body: JSON.stringify({ email, phone, department, role, accesses }),
 			});
 

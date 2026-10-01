@@ -69,11 +69,45 @@ const resolveRole = async (role: RoleName) => {
 	return prisma.role.create({ data: { name: role } });
 };
 
-const ensureOrganizationMembership = async (organizationId: string, userId: string): Promise<void> => {
+const ensureOrganizationMembership = async (organizationId: string, userId: string): Promise<string> => {
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		include: {
+			memberships: {
+				include: { role: true },
+			},
+		},
+	});
+
+	const isSuperAdmin = Boolean(
+		user?.isPlatformUser ||
+		user?.memberships.some((m) => m.role?.name === "SUPER_ADMIN")
+	);
+
+	let effectiveOrgId = organizationId;
+	if (isSuperAdmin && (!effectiveOrgId || effectiveOrgId === "platform")) {
+		if (user?.organizationId) {
+			effectiveOrgId = user.organizationId;
+		} else if (user?.memberships?.[0]?.organizationId) {
+			effectiveOrgId = user.memberships[0].organizationId;
+		} else {
+			const fallbackOrg = await prisma.organization.findFirst({
+				orderBy: { createdAt: "asc" },
+			});
+			if (fallbackOrg) {
+				effectiveOrgId = fallbackOrg.id;
+			}
+		}
+	}
+
+	if (isSuperAdmin && effectiveOrgId) {
+		return effectiveOrgId;
+	}
+
 	const membership = await prisma.organizationUser.findUnique({
 		where: {
 			organizationId_userId: {
-				organizationId,
+				organizationId: effectiveOrgId,
 				userId,
 			},
 		},
@@ -83,6 +117,8 @@ const ensureOrganizationMembership = async (organizationId: string, userId: stri
 	if (!membership) {
 		throw new UserManagementError(403, "You are not a member of this organization");
 	}
+
+	return effectiveOrgId;
 };
 
 const randomPassword = (): string => {
@@ -91,7 +127,7 @@ const randomPassword = (): string => {
 };
 
 export const listOrganizationUsers = async (organizationId: string, requesterId: string) => {
-	await ensureOrganizationMembership(organizationId, requesterId);
+	const effectiveOrgId = await ensureOrganizationMembership(organizationId, requesterId);
 	await ensureAccessProfileTable();
 
 	const rows = await prisma.$queryRawUnsafe<Array<{
@@ -124,7 +160,7 @@ export const listOrganizationUsers = async (organizationId: string, requesterId:
 		  AND u."id" <> $2
 		ORDER BY ou."createdAt" ASC
 		`,
-		organizationId,
+		effectiveOrgId,
 		requesterId,
 	);
 
@@ -154,7 +190,7 @@ export const createOrganizationUser = async (
 		accesses?: string[];
 	},
 ) => {
-	await ensureOrganizationMembership(organizationId, requesterId);
+	const effectiveOrgId = await ensureOrganizationMembership(organizationId, requesterId);
 	await ensureAccessProfileTable();
 
 
@@ -186,7 +222,7 @@ export const createOrganizationUser = async (
 			data: {
 				email,
 				passwordHash,
-				organizationId,
+				organizationId: effectiveOrgId,
 			},
 			select: {
 				id: true,
@@ -197,7 +233,7 @@ export const createOrganizationUser = async (
 
 		await tx.organizationUser.create({
 			data: {
-				organizationId,
+				organizationId: effectiveOrgId,
 				userId: user.id,
 				roleId: roleRecord.id,
 			},
@@ -209,7 +245,7 @@ export const createOrganizationUser = async (
 			VALUES ($1, $2, $3, $4, $5::TEXT[], $6, NOW(), NOW())
 			`,
 			user.id,
-			organizationId,
+			effectiveOrgId,
 			input.phone?.trim() || null,
 			input.department?.trim() || null,
 			accesses,
@@ -244,13 +280,13 @@ export const updateOrganizationUserAccess = async (
 		accesses?: string[];
 	},
 ) => {
-	await ensureOrganizationMembership(organizationId, requesterId);
+	const effectiveOrgId = await ensureOrganizationMembership(organizationId, requesterId);
 	await ensureAccessProfileTable();
 
 	const membership = await prisma.organizationUser.findUnique({
 		where: {
 			organizationId_userId: {
-				organizationId,
+				organizationId: effectiveOrgId,
 				userId,
 			},
 		},
@@ -269,7 +305,7 @@ export const updateOrganizationUserAccess = async (
 		await prisma.organizationUser.update({
 			where: {
 				organizationId_userId: {
-					organizationId,
+					organizationId: effectiveOrgId,
 					userId,
 				},
 			},
@@ -289,7 +325,7 @@ export const updateOrganizationUserAccess = async (
 			"updatedAt" = NOW()
 		`,
 		userId,
-		organizationId,
+		effectiveOrgId,
 		phone,
 		department,
 		accesses,
@@ -301,21 +337,32 @@ export const updateOrganizationUserAccess = async (
 
 export const getMyAccess = async (organizationId: string, userId: string) => {
 	await ensureAccessProfileTable();
-	const rows = await prisma.$queryRawUnsafe<Array<{ phone: string | null; accesses: string[] | null }>>(
-		`SELECT "phone", "accesses" FROM "UserAccessProfile" WHERE "organizationId" = $1 AND "userId" = $2 LIMIT 1`,
-		organizationId,
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		select: { organizationId: true, isPlatformUser: true },
+	});
+
+	let effectiveOrgId = organizationId;
+	if (effectiveOrgId === "platform" || !effectiveOrgId) {
+		effectiveOrgId = user?.organizationId || "";
+	}
+
+	const rows = await prisma.$queryRawUnsafe<Array<{ phone: string | null; department: string | null; accesses: string[] | null }>>(
+		`SELECT "phone", "department", "accesses" FROM "UserAccessProfile" WHERE ("organizationId" = $1 OR "userId" = $2) AND "userId" = $2 LIMIT 1`,
+		effectiveOrgId,
 		userId,
 	);
 
 	const row = rows[0];
 	return {
 		phone: row?.phone ?? null,
+		department: row?.department ?? null,
 		accesses: normalizeAccesses(row?.accesses || []),
 	};
 };
 
 export const deactivateOrganizationUser = async (organizationId: string, requesterId: string, userId: string) => {
-	await ensureOrganizationMembership(organizationId, requesterId);
+	const effectiveOrgId = await ensureOrganizationMembership(organizationId, requesterId);
 	await ensureAccessProfileTable();
 
 	if (requesterId === userId) {
@@ -325,7 +372,7 @@ export const deactivateOrganizationUser = async (organizationId: string, request
 	const membership = await prisma.organizationUser.findUnique({
 		where: {
 			organizationId_userId: {
-				organizationId,
+				organizationId: effectiveOrgId,
 				userId,
 			},
 		},
@@ -340,7 +387,7 @@ export const deactivateOrganizationUser = async (organizationId: string, request
 		await tx.organizationUser.delete({
 			where: {
 				organizationId_userId: {
-					organizationId,
+					organizationId: effectiveOrgId,
 					userId,
 				},
 			},
@@ -348,7 +395,7 @@ export const deactivateOrganizationUser = async (organizationId: string, request
 
 		await tx.$executeRawUnsafe(
 			`DELETE FROM "UserAccessProfile" WHERE "organizationId" = $1 AND "userId" = $2`,
-			organizationId,
+			effectiveOrgId,
 			userId,
 		);
 
@@ -365,11 +412,11 @@ export const deactivateOrganizationUser = async (organizationId: string, request
 };
 
 export const resetOrganizationUserManagementAndCrmData = async (organizationId: string, requesterId: string) => {
-	await ensureOrganizationMembership(organizationId, requesterId);
+	const effectiveOrgId = await ensureOrganizationMembership(organizationId, requesterId);
 	await ensureAccessProfileTable();
 
 	const allOrgMembers = await prisma.organizationUser.findMany({
-		where: { organizationId },
+		where: { organizationId: effectiveOrgId },
 		select: { userId: true },
 	});
 
@@ -381,8 +428,8 @@ export const resetOrganizationUserManagementAndCrmData = async (organizationId: 
 			await tx.activity.deleteMany({
 				where: {
 					OR: [
-						{ lead: { organizationId } },
-						{ deal: { organizationId } },
+						{ lead: { organizationId: effectiveOrgId } },
+						{ deal: { organizationId: effectiveOrgId } },
 						{ createdBy: { in: allOrgUserIds } },
 					],
 				},
@@ -390,27 +437,27 @@ export const resetOrganizationUserManagementAndCrmData = async (organizationId: 
 		} else {
 			await tx.activity.deleteMany({
 				where: {
-					OR: [{ lead: { organizationId } }, { deal: { organizationId } }],
+					OR: [{ lead: { organizationId: effectiveOrgId } }, { deal: { organizationId: effectiveOrgId } }],
 				},
 			});
 		}
 
-		await tx.dealStageHistory.deleteMany({ where: { deal: { organizationId } } });
-		await tx.deal.deleteMany({ where: { organizationId } });
-		await tx.lead.deleteMany({ where: { organizationId } });
-		await tx.stage.deleteMany({ where: { pipeline: { organizationId } } });
-		await tx.pipeline.deleteMany({ where: { organizationId } });
+		await tx.dealStageHistory.deleteMany({ where: { deal: { organizationId: effectiveOrgId } } });
+		await tx.deal.deleteMany({ where: { organizationId: effectiveOrgId } });
+		await tx.lead.deleteMany({ where: { organizationId: effectiveOrgId } });
+		await tx.stage.deleteMany({ where: { pipeline: { organizationId: effectiveOrgId } } });
+		await tx.pipeline.deleteMany({ where: { organizationId: effectiveOrgId } });
 
 		if (managedUserIds.length > 0) {
 			await tx.$executeRawUnsafe(
 				`DELETE FROM "UserAccessProfile" WHERE "organizationId" = $1 AND "userId" = ANY($2::TEXT[])`,
-				organizationId,
+				effectiveOrgId,
 				managedUserIds,
 			);
 
 			await tx.organizationUser.deleteMany({
 				where: {
-					organizationId,
+					organizationId: effectiveOrgId,
 					userId: { in: managedUserIds },
 				},
 			});
