@@ -79,18 +79,30 @@ const ensureOrganizationMembership = async (organizationId: string, userId: stri
 		},
 	});
 
+	if (!user) {
+		throw new UserManagementError(401, "User not found");
+	}
+
 	const isSuperAdmin = Boolean(
-		user?.isPlatformUser ||
-		user?.memberships.some((m) => m.role?.name === "SUPER_ADMIN")
+		user.isPlatformUser ||
+		user.memberships.some((m) => m.role?.name === "SUPER_ADMIN")
+	);
+
+	// Get user's actual database organization (or first membership org)
+	const primaryOrgId = user.organizationId || user.memberships[0]?.organizationId;
+
+	// Check if user has active membership in the requested organizationId
+	const hasMembershipInRequestedOrg = user.memberships.some(
+		(m) => m.organizationId === organizationId
 	);
 
 	let effectiveOrgId = organizationId;
-	if (isSuperAdmin && (!effectiveOrgId || effectiveOrgId === "platform")) {
-		if (user?.organizationId) {
-			effectiveOrgId = user.organizationId;
-		} else if (user?.memberships?.[0]?.organizationId) {
-			effectiveOrgId = user.memberships[0].organizationId;
-		} else {
+
+	// If incoming organizationId is "platform", invalid, or not in user's memberships, resolve to user's real organization!
+	if (!hasMembershipInRequestedOrg || effectiveOrgId === "platform" || !effectiveOrgId) {
+		if (primaryOrgId) {
+			effectiveOrgId = primaryOrgId;
+		} else if (isSuperAdmin) {
 			const fallbackOrg = await prisma.organization.findFirst({
 				orderBy: { createdAt: "asc" },
 			});
@@ -100,10 +112,15 @@ const ensureOrganizationMembership = async (organizationId: string, userId: stri
 		}
 	}
 
-	if (isSuperAdmin && effectiveOrgId) {
+	if (!effectiveOrgId) {
+		throw new UserManagementError(403, "User is not linked to any organization");
+	}
+
+	if (isSuperAdmin) {
 		return effectiveOrgId;
 	}
 
+	// Double-check membership in effectiveOrgId
 	const membership = await prisma.organizationUser.findUnique({
 		where: {
 			organizationId_userId: {
@@ -115,6 +132,9 @@ const ensureOrganizationMembership = async (organizationId: string, userId: stri
 	});
 
 	if (!membership) {
+		if (user.organizationId === effectiveOrgId) {
+			return effectiveOrgId;
+		}
 		throw new UserManagementError(403, "You are not a member of this organization");
 	}
 

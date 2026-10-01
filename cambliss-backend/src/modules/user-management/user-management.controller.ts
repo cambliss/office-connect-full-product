@@ -10,6 +10,7 @@ import {
 } from "./user-management.service";
 
 const handleError = (res: Response, error: unknown): void => {
+	console.error("[USER-MGMT ERROR]", error);
 	if (error instanceof UserManagementError) {
 		res.status(error.statusCode).json({ message: error.message });
 		return;
