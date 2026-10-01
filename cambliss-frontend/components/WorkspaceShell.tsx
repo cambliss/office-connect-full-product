@@ -468,12 +468,11 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 		};
 	}, [pathname]);
 
-	const isAdminRole = authRole === "SUPER_ADMIN" || authRole === "ADMIN";
 	const isSuperAdminRole = authRole === "SUPER_ADMIN";
 	const rawMenuItems = isSuperAdminRole ? adminMenuItems : clientMenuItems;
-	const hasManagedAccessRules = !isAdminRole;
 	const filteredMenuItems = rawMenuItems.filter((item) => {
-		if (!hasManagedAccessRules) {
+		// Super Admin sees all admin menus
+		if (isSuperAdminRole) {
 			return true;
 		}
 
@@ -481,8 +480,54 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 			return false;
 		}
 
-		// Project Managers, Admins, and Super Admins always have access to Projects & Tasks
-		if (item.label === "Projects & Tasks" && (authRole === "PROJECT_MANAGER" || authRole === "ADMIN" || authRole === "SUPER_ADMIN")) {
+		// 1. STRICT EMPLOYEE BOUNDARIES:
+		if (authRole === "EMPLOYEE") {
+			// Restricted business owner tools that an employee should NEVER see:
+			if (["Accountech ERP", "Marketplace", "Tools Suite", "Profile Completion"].includes(item.label)) {
+				return false;
+			}
+			if (item.label === "Your Store" && !authAccesses.includes("STORE")) {
+				return false;
+			}
+			if (item.label === "User Management" && !authAccesses.includes("USER_MANAGEMENT")) {
+				return false;
+			}
+			if (item.accessKey) {
+				return authAccesses.includes(item.accessKey);
+			}
+			// General employee collaboration tools:
+			return ["Office Connect Central", "Spaces", "Knowledge & SOPs", "People Directory"].includes(item.label);
+		}
+
+		// 2. STRICT PROJECT_MANAGER BOUNDARIES:
+		if (authRole === "PROJECT_MANAGER") {
+			// PMs always have access to Projects & Tasks
+			if (item.label === "Projects & Tasks") {
+				return true;
+			}
+			// Restricted owner tools a PM should NOT see:
+			if (["Accountech ERP", "Marketplace", "Tools Suite", "Profile Completion"].includes(item.label)) {
+				return false;
+			}
+			if (item.label === "Your Store" && !authAccesses.includes("STORE")) {
+				return false;
+			}
+			if (item.label === "User Management" && !authAccesses.includes("USER_MANAGEMENT")) {
+				return false;
+			}
+			if (item.accessKey) {
+				return authAccesses.includes(item.accessKey);
+			}
+			return ["Office Connect Central", "Spaces", "Knowledge & SOPs", "People Directory"].includes(item.label);
+		}
+
+		// 3. CLIENT & ORG ADMIN (e.g. bhaskeradv1@gmail.com):
+		if (authRole === "CLIENT" || authRole === "ADMIN") {
+			// Clients and Org Admins have access to the business management suite
+			// but must NEVER see the platform super admin dashboard
+			if (item.label === "Admin Dashboard") {
+				return false;
+			}
 			return true;
 		}
 

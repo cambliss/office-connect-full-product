@@ -71,6 +71,7 @@ export const AdminSaasDomain = ({
 	const [loading, setLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [roleFilter, setRoleFilter] = useState("ALL");
+	const [categoryFilter, setCategoryFilter] = useState<"ALL" | "CLIENTS" | "WORKERS">("ALL");
 	const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
 	const getAuthHeaders = (): Headers => {
@@ -141,6 +142,9 @@ export const AdminSaasDomain = ({
 		}
 	};
 
+	const clientCount = useMemo(() => users.filter((u) => u.role === "CLIENT" || u.isPlatformUser).length, [users]);
+	const workerCount = useMemo(() => users.filter((u) => u.role === "EMPLOYEE" || u.role === "PROJECT_MANAGER").length, [users]);
+
 	const filteredUsers = useMemo(() => {
 		return users.filter((u) => {
 			const matchesSearch =
@@ -148,9 +152,15 @@ export const AdminSaasDomain = ({
 				u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				u.organizationName.toLowerCase().includes(searchQuery.toLowerCase());
 			const matchesRole = roleFilter === "ALL" || u.role === roleFilter;
-			return matchesSearch && matchesRole;
+			const matchesCategory =
+				categoryFilter === "ALL"
+					? true
+					: categoryFilter === "CLIENTS"
+						? u.role === "CLIENT" || u.isPlatformUser
+						: u.role === "EMPLOYEE" || u.role === "PROJECT_MANAGER";
+			return matchesSearch && matchesRole && matchesCategory;
 		});
-	}, [users, searchQuery, roleFilter]);
+	}, [users, searchQuery, roleFilter, categoryFilter]);
 
 	return (
 		<div className="space-y-6">
@@ -228,20 +238,50 @@ export const AdminSaasDomain = ({
 			{subView === "saas-clients" && (
 				<div className="space-y-4">
 					{/* Search & Filter Bar */}
-					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-						<div className="relative flex-1 max-w-md">
-							<Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-							<input
-								type="text"
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								placeholder="Search clients by name, email, or organization..."
-								className="w-full rounded-lg border border-slate-800 bg-slate-950 py-2 pl-9 pr-4 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
-							/>
+					<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+						<div className="flex flex-wrap items-center gap-2">
+							<div className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-950 p-1">
+								<button
+									type="button"
+									onClick={() => setCategoryFilter("ALL")}
+									className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+										categoryFilter === "ALL" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+									}`}
+								>
+									All ({users.length})
+								</button>
+								<button
+									type="button"
+									onClick={() => setCategoryFilter("CLIENTS")}
+									className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+										categoryFilter === "CLIENTS" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+									}`}
+								>
+									🏢 Clients / Tenants ({clientCount})
+								</button>
+								<button
+									type="button"
+									onClick={() => setCategoryFilter("WORKERS")}
+									className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+										categoryFilter === "WORKERS" ? "bg-purple-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+									}`}
+								>
+									👷 Workers & Staff ({workerCount})
+								</button>
+							</div>
 						</div>
 
-						<div className="flex items-center gap-2">
-							<span className="text-xs text-slate-400">Role:</span>
+						<div className="flex flex-wrap items-center gap-2">
+							<div className="relative min-w-[220px]">
+								<Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+								<input
+									type="text"
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									placeholder="Search name, email, org..."
+									className="w-full rounded-lg border border-slate-800 bg-slate-950 py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+								/>
+							</div>
 							<select
 								value={roleFilter}
 								onChange={(e) => setRoleFilter(e.target.value)}
@@ -262,11 +302,11 @@ export const AdminSaasDomain = ({
 						<table className="min-w-full divide-y divide-slate-800 text-left text-xs">
 							<thead className="bg-slate-900/80 font-bold uppercase tracking-wider text-slate-400">
 								<tr>
-									<th className="px-4 py-3">Client / User</th>
-									<th className="px-4 py-3">System Role</th>
+									<th className="px-4 py-3">Account</th>
+									<th className="px-4 py-3">Type</th>
+									<th className="px-4 py-3">Role</th>
 									<th className="px-4 py-3">Tenant Organization</th>
 									<th className="px-4 py-3">Registered Date</th>
-									<th className="px-4 py-3 text-right">Status</th>
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-slate-800/60 font-medium text-slate-300">
@@ -285,6 +325,25 @@ export const AdminSaasDomain = ({
 													</div>
 												</div>
 											</div>
+										</td>
+										<td className="px-4 py-3.5">
+											{user.role === "CLIENT" ? (
+												<span className="inline-flex items-center gap-1 rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+													🏢 SaaS Client
+												</span>
+											) : user.role === "PROJECT_MANAGER" ? (
+												<span className="inline-flex items-center gap-1 rounded bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold text-purple-400 border border-purple-500/30">
+													👷 Worker (PM)
+												</span>
+											) : user.role === "EMPLOYEE" ? (
+												<span className="inline-flex items-center gap-1 rounded bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-400 border border-blue-500/30">
+													👷 Worker (Staff)
+												</span>
+											) : (
+												<span className="inline-flex items-center gap-1 rounded bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+													👑 Platform Super Admin
+												</span>
+											)}
 										</td>
 										<td className="px-4 py-3.5">
 											<span
