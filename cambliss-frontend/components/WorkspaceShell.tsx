@@ -71,7 +71,7 @@ type SidebarItem = {
 	label: string;
 	href?: string;
 	badge?: string;
-	accessKey?: "CRM" | "HRM" | "INVENTORY" | "FILE_SHARING" | "USER_MANAGEMENT";
+	accessKey?: "CRM" | "HRM" | "INVENTORY" | "FILE_SHARING" | "USER_MANAGEMENT" | "STORE" | "VIDEO_CONNECT";
 	isSso?: boolean;
 	ssoAppUrl?: string;
 	subItems?: SidebarItem[];
@@ -112,6 +112,7 @@ const clientMenuItems: SidebarItem[] = [
 		label: "Your Store",
 		badge: "Seller",
 		href: "/vendor-dashboard",
+		accessKey: "STORE",
 		subItems: [
 			{ label: "Overview & Analytics", href: "/vendor-dashboard" },
 			{ label: "Products & Catalog", href: "/vendor-dashboard?view=catalog-products" },
@@ -136,7 +137,7 @@ const clientMenuItems: SidebarItem[] = [
 	},
 	{ label: "Accountech ERP", href: "/akaunting" },
 	{ label: "File Sharing", href: "/file-sharing", accessKey: "FILE_SHARING" },
-	{ label: "Video Connect", href: "/video-connect" },
+	{ label: "Video Connect", href: "/video-connect", accessKey: "VIDEO_CONNECT" },
 	{
 		label: "Marketplace",
 		href: "/storefront",
@@ -444,7 +445,7 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 	const isAdminRole = authRole === "SUPER_ADMIN" || authRole === "ADMIN";
 	const isSuperAdminRole = authRole === "SUPER_ADMIN";
 	const rawMenuItems = isSuperAdminRole ? adminMenuItems : clientMenuItems;
-	const hasManagedAccessRules = !isAdminRole && authAccesses.length > 0;
+	const hasManagedAccessRules = !isAdminRole;
 	const filteredMenuItems = rawMenuItems.filter((item) => {
 		if (!hasManagedAccessRules) {
 			return true;
