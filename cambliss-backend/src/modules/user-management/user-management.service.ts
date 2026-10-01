@@ -70,6 +70,7 @@ const resolveRole = async (role: RoleName) => {
 };
 
 const ensureOrganizationMembership = async (organizationId: string, userId: string): Promise<string> => {
+	console.log(`[USER-MGMT ENSURE-START] incoming orgId: ${organizationId}, userId: ${userId}`);
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
 		include: {
@@ -80,6 +81,7 @@ const ensureOrganizationMembership = async (organizationId: string, userId: stri
 	});
 
 	if (!user) {
+		console.log(`[USER-MGMT ENSURE-FAIL] User not found: ${userId}`);
 		throw new UserManagementError(401, "User not found");
 	}
 
@@ -112,7 +114,10 @@ const ensureOrganizationMembership = async (organizationId: string, userId: stri
 		}
 	}
 
+	console.log(`[USER-MGMT ENSURE-RESOLVED] effectiveOrgId: ${effectiveOrgId}, primaryOrgId: ${primaryOrgId}, isSuperAdmin: ${isSuperAdmin}, hasMembershipInRequestedOrg: ${hasMembershipInRequestedOrg}`);
+
 	if (!effectiveOrgId) {
+		console.log(`[USER-MGMT ENSURE-FAIL] User is not linked to any organization`);
 		throw new UserManagementError(403, "User is not linked to any organization");
 	}
 
@@ -135,6 +140,7 @@ const ensureOrganizationMembership = async (organizationId: string, userId: stri
 		if (user.organizationId === effectiveOrgId) {
 			return effectiveOrgId;
 		}
+		console.log(`[USER-MGMT ENSURE-FAIL] You are not a member of this organization: ${effectiveOrgId}`);
 		throw new UserManagementError(403, "You are not a member of this organization");
 	}
 
