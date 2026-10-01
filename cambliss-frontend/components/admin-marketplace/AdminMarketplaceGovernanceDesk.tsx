@@ -105,6 +105,23 @@ export const AdminMarketplaceGovernanceDesk = ({
   const [selectedDossier, setSelectedDossier] = useState<any>(kycDossiers[0]);
   const [reviewerNotes, setReviewerNotes] = useState("");
 
+  // Load real KYC queue from API on mount (merge with seeded demo)
+  useEffect(() => {
+    fetch("/api/marketplace/kyc/queue")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.dossiers?.length) {
+          setKycDossiers((prev) => {
+            const existingIds = new Set(prev.map((d: any) => d.sellerId));
+            const fresh = data.dossiers.filter((d: any) => !existingIds.has(d.sellerId));
+            const merged = [...prev, ...fresh];
+            return merged;
+          });
+        }
+      })
+      .catch(() => { /* silently ignore if API is down */ });
+  }, []);
+
   // Orders State (Multi-Seller Splits)
   const [masterOrders, setMasterOrders] = useState<any[]>([
     {
@@ -263,38 +280,71 @@ export const AdminMarketplaceGovernanceDesk = ({
     }, 1200);
   };
 
-  // 2. Action: Manual Support Decision
-  const handleKycDecision = (decision: "VERIFIED_ACTIVE" | "REJECTED" | "RESUBMISSION_REQUIRED") => {
+  // 2. Action: Manual Support Decision — calls real API so status persists
+  const handleKycDecision = async (decision: "VERIFIED_ACTIVE" | "REJECTED" | "RESUBMISSION_REQUIRED") => {
     if (!selectedDossier) return;
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch(`/api/marketplace/kyc/${selectedDossier.sellerId}/decision`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          decision,
+          reviewerName: "Current Admin (Cambliss Support)",
+          notes: reviewerNotes || undefined,
+        }),
+      });
+
+      // Regardless of API success/failure, always sync local state so UI updates immediately
+      const updatedAt = new Date().toISOString();
+
       setSelectedDossier((prev: any) => ({
         ...prev,
         kycStatus: decision,
         reviewerName: "Current Admin (Cambliss Support)",
-        reviewedAt: new Date().toISOString(),
+        reviewedAt: updatedAt,
       }));
 
-      setKycDossiers((prev) =>
+      setKycDossiers((prev: any[]) =>
         prev.map((d) =>
           d.sellerId === selectedDossier.sellerId
             ? {
                 ...d,
                 kycStatus: decision,
                 reviewerName: "Current Admin (Cambliss Support)",
-                reviewedAt: new Date().toISOString(),
+                reviewedAt: updatedAt,
               }
             : d
         )
       );
 
-      setIsLoading(false);
-      showToast(
-        decision === "VERIFIED_ACTIVE"
-          ? `Seller ${selectedDossier.sellerCode} approved! Dedicated Razorpay Virtual Account provisioned.`
-          : `Seller status updated to ${decision}.`
+      if (!res.ok) {
+        // API call failed (e.g. dossier not in backend store) — status still saved in UI
+        showToast(
+          decision === "VERIFIED_ACTIVE"
+            ? `Seller ${selectedDossier.sellerCode} marked VERIFIED (UI updated). Note: backend sync failed — restart may reset.`
+            : `Seller status set to ${decision} in UI. Note: backend sync failed.`
+        );
+      } else {
+        showToast(
+          decision === "VERIFIED_ACTIVE"
+            ? `Seller ${selectedDossier.sellerCode} approved! Razorpay Virtual Account provisioned & saved to backend.`
+            : `Seller status updated to ${decision} and saved to backend.`
+        );
+      }
+
+      setReviewerNotes("");
+    } catch {
+      // Network error — still update local state
+      const updatedAt = new Date().toISOString();
+      setSelectedDossier((prev: any) => ({ ...prev, kycStatus: decision, reviewedAt: updatedAt }));
+      setKycDossiers((prev: any[]) =>
+        prev.map((d) => d.sellerId === selectedDossier.sellerId ? { ...d, kycStatus: decision } : d)
       );
-    }, 1000);
+      showToast(`Status set to ${decision} (offline mode — backend unreachable).`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // 3. Action: Process Amazon-Style Refund
