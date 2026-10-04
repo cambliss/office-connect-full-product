@@ -888,164 +888,296 @@ export default function DashboardPage() {
 
 	// ----------------------------------------------------
 	// 3. CLIENT / ADMIN DASHBOARD (bhaskeradv1@gmail.com)
+	//    Full business suite — ALL tools, pastel brand colors only
 	// ----------------------------------------------------
-	const renderClientDashboard = () => (
-		<div className="space-y-6 text-[#111827]">
-			<div className="flex flex-wrap items-center justify-between gap-4">
-				<div>
-					<div className="inline-flex items-center gap-2 rounded-full border border-[#6678c1]/20 bg-[#6678c1]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#404d85]">
-						<span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-						Client Business Control Center
-					</div>
-					<h1 className="mt-2 text-4xl font-semibold tracking-tight text-[#404d85]">
-						Hello, {userName}
-					</h1>
-					<p className="mt-2 max-w-2xl text-sm leading-6 text-[#5b6472]">
-						Welcome to your unified business hub. Manage customer relations, projects, inventory, staff, and online storefronts.
-					</p>
-				</div>
-				<div className="flex items-center gap-3">
-					<div
-						className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
-							trialSummary.isExpired
-								? "bg-red-50 text-red-600 border border-red-200"
-								: "bg-[#eef2fa] text-[#404d85] border border-[#d9e2ef]"
-						}`}
-					>
-						<Clock className="h-3.5 w-3.5" />
-						{trialSummary.isExpired ? "Trial Expired" : `${trialSummary.daysLeft} days left`}
-					</div>
-					<Link
-						href="/user-management"
-						className="inline-flex items-center gap-2 rounded-xl bg-[#404d85] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#323d6b]"
-					>
-						<Users className="h-4 w-4" />
-						<span>User Management</span>
-					</Link>
-					<Link
-						href="/projects"
-						className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-					>
-						<Folder className="h-4 w-4" />
-						<span>Projects & Tasks</span>
-					</Link>
-				</div>
-			</div>
+	const renderClientDashboard = () => {
+		const allTools = [
+			{
+				href: "/crm",
+				emoji: "📈",
+				label: "CRM & Sales",
+				desc: "Leads, deals pipeline, and customer 360",
+				bg: "bg-blue-50",
+				border: "border-blue-100",
+				hover: "hover:border-blue-300 hover:bg-blue-50",
+				badge: "CRM",
+				badgeBg: "bg-blue-100 text-blue-700",
+			},
+			{
+				href: "/hrm",
+				emoji: "🏢",
+				label: "HR Management",
+				desc: "Employees, payslips, attendance & leaves",
+				bg: "bg-violet-50",
+				border: "border-violet-100",
+				hover: "hover:border-violet-300 hover:bg-violet-50",
+				badge: "HRM",
+				badgeBg: "bg-violet-100 text-violet-700",
+			},
+			{
+				href: "/projects",
+				emoji: "📁",
+				label: "Projects & Tasks",
+				desc: "Assign tasks, track milestones, Kanban board",
+				bg: "bg-indigo-50",
+				border: "border-indigo-100",
+				hover: "hover:border-[#6678c1] hover:bg-indigo-50",
+				badge: "PM",
+				badgeBg: "bg-[#eef2fa] text-[#404d85]",
+			},
+			{
+				href: "/inventory",
+				emoji: "📦",
+				label: "Inventory & Supply",
+				desc: "Warehouses, purchase orders, stock control",
+				bg: "bg-amber-50",
+				border: "border-amber-100",
+				hover: "hover:border-amber-300 hover:bg-amber-50",
+				badge: "ERP",
+				badgeBg: "bg-amber-100 text-amber-700",
+			},
+			{
+				href: "/file-sharing",
+				emoji: "📂",
+				label: "File Sharing",
+				desc: "Shared drives, upload & collaborate on docs",
+				bg: "bg-teal-50",
+				border: "border-teal-100",
+				hover: "hover:border-teal-300 hover:bg-teal-50",
+				badge: "Files",
+				badgeBg: "bg-teal-100 text-teal-700",
+			},
+			{
+				href: "/video-connect",
+				emoji: "🎥",
+				label: "Video Connect",
+				desc: "HD meetings, rooms & screen sharing",
+				bg: "bg-rose-50",
+				border: "border-rose-100",
+				hover: "hover:border-rose-300 hover:bg-rose-50",
+				badge: "Video",
+				badgeBg: "bg-rose-100 text-rose-700",
+			},
+			{
+				href: "/knowledge",
+				emoji: "📚",
+				label: "Knowledge Base",
+				desc: "SOPs, wikis, and team documentation",
+				bg: "bg-lime-50",
+				border: "border-lime-100",
+				hover: "hover:border-lime-300 hover:bg-lime-50",
+				badge: "Docs",
+				badgeBg: "bg-lime-100 text-lime-700",
+			},
+			{
+				href: "/spaces",
+				emoji: "💬",
+				label: "Spaces & Chat",
+				desc: "Team channels, announcements & threads",
+				bg: "bg-sky-50",
+				border: "border-sky-100",
+				hover: "hover:border-sky-300 hover:bg-sky-50",
+				badge: "Collab",
+				badgeBg: "bg-sky-100 text-sky-700",
+			},
+			{
+				href: "/accountech",
+				emoji: "🧾",
+				label: "Accountech ERP",
+				desc: "GST invoicing, journal entries, P&L reports",
+				bg: "bg-orange-50",
+				border: "border-orange-100",
+				hover: "hover:border-orange-300 hover:bg-orange-50",
+				badge: "Finance",
+				badgeBg: "bg-orange-100 text-orange-700",
+			},
+			{
+				href: "/directory",
+				emoji: "👥",
+				label: "Team Directory",
+				desc: "Staff roster, departments & org chart",
+				bg: "bg-fuchsia-50",
+				border: "border-fuchsia-100",
+				hover: "hover:border-fuchsia-300 hover:bg-fuchsia-50",
+				badge: "People",
+				badgeBg: "bg-fuchsia-100 text-fuchsia-700",
+			},
+			{
+				href: "/user-management",
+				emoji: "🛡️",
+				label: "User Management",
+				desc: "Add workers, assign roles & module access",
+				bg: "bg-emerald-50",
+				border: "border-emerald-100",
+				hover: "hover:border-emerald-300 hover:bg-emerald-50",
+				badge: "RBAC",
+				badgeBg: "bg-emerald-100 text-emerald-700",
+			},
+			{
+				href: "/vendor-dashboard",
+				emoji: "🏬",
+				label: "Your Store",
+				desc: "Product catalog, orders & seller dashboard",
+				bg: "bg-pink-50",
+				border: "border-pink-100",
+				hover: "hover:border-pink-300 hover:bg-pink-50",
+				badge: "Ecommerce",
+				badgeBg: "bg-pink-100 text-pink-700",
+			},
+		];
 
-			{/* QUICK ACCESS PILLARS */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-				<Link
-					href="/central"
-					className="group rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-white to-[#f8faff] p-4 shadow-sm transition hover:border-[#6678c1] hover:shadow-md"
-				>
-					<div className="flex items-center justify-between">
-						<span className="text-xl">💬</span>
-						<span className="rounded-full bg-[#eef2fa] px-2 py-0.5 text-[10px] font-bold text-[#404d85]">Live Hub</span>
-					</div>
-					<h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-[#404d85]">Central Stream</h3>
-					<p className="mt-0.5 text-[11px] text-slate-500">Company announcements & leadership broadcasts</p>
-				</Link>
+		return (
+			<div className="space-y-7">
 
-				<Link
-					href="/crm"
-					className="group rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-white to-[#f8faff] p-4 shadow-sm transition hover:border-[#6678c1] hover:shadow-md"
-				>
-					<div className="flex items-center justify-between">
-						<span className="text-xl">📈</span>
-						<span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">CRM Engine</span>
-					</div>
-					<h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-[#404d85]">Sales & Leads</h3>
-					<p className="mt-0.5 text-[11px] text-slate-500">Deals pipelines, contact stages, and customer 360</p>
-				</Link>
-
-				<Link
-					href="/projects"
-					className="group rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-white to-[#f8faff] p-4 shadow-sm transition hover:border-[#6678c1] hover:shadow-md"
-				>
-					<div className="flex items-center justify-between">
-						<span className="text-xl">📁</span>
-						<span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">Delivery</span>
-					</div>
-					<h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-[#404d85]">Projects & Work</h3>
-					<p className="mt-0.5 text-[11px] text-slate-500">Assign tasks to workers and track milestones</p>
-				</Link>
-
-				<Link
-					href="/user-management"
-					className="group rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-white to-[#f8faff] p-4 shadow-sm transition hover:border-[#6678c1] hover:shadow-md"
-				>
-					<div className="flex items-center justify-between">
-						<span className="text-xl">👥</span>
-						<span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">Team RBAC</span>
-					</div>
-					<h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-[#404d85]">User Management</h3>
-					<p className="mt-0.5 text-[11px] text-slate-500">Add employees, project managers, and assign roles</p>
-				</Link>
-			</div>
-
-			{/* STORE & MARKETPLACE OVERVIEW */}
-			<div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-					<div>
-						<div className="flex items-center gap-2">
-							<h2 className="text-xl font-extrabold text-slate-900">Your Store & Marketplace Operations</h2>
-							<span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase tracking-wider">
-								Tenant Commerce Hub
-							</span>
+				{/* ── WELCOME HERO — Pastel brand gradient, no dark colors ── */}
+				<div className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#eef2fa] via-white to-[#f0f4ff] p-7 shadow-sm">
+					<div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+						<div>
+							<div className="inline-flex items-center gap-2 rounded-full border border-[#6678c1]/25 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[#404d85] shadow-sm">
+								<span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+								Business Control Center
+							</div>
+							<h1 className="mt-3 text-3xl font-bold tracking-tight text-[#404d85] sm:text-4xl">
+								Welcome back, {userName} 👋
+							</h1>
+							<p className="mt-2 max-w-xl text-sm leading-6 text-[#5b6472]">
+								Your unified business hub — CRM, HR, Projects, Finance, Inventory, Video, and your online store, all in one place.
+							</p>
 						</div>
-						<p className="text-xs text-slate-500 mt-1">
-							Manage your online product catalog, fulfill merchant orders, and coordinate supply chains.
-						</p>
+
+						<div className="flex flex-col items-start gap-2 sm:items-end">
+							<div
+								className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${
+									trialSummary.isExpired
+										? "border-red-200 bg-red-50 text-red-600"
+										: "border-[#d9e2ef] bg-white text-[#404d85]"
+								}`}
+							>
+								<Clock className="h-3.5 w-3.5" />
+								{trialSummary.isExpired
+									? "Trial Expired — Upgrade to continue"
+									: `Free Trial: ${trialSummary.daysLeft} days remaining`}
+							</div>
+							<div className="flex items-center gap-2">
+								<Link
+									href="/user-management"
+									className="inline-flex items-center gap-2 rounded-xl border border-[#d9e2ef] bg-white px-4 py-2 text-sm font-semibold text-[#404d85] shadow-sm transition hover:border-[#6678c1] hover:bg-[#eef2fa]"
+								>
+									<Users className="h-4 w-4" />
+									Manage Team
+								</Link>
+								<Link
+									href="/projects"
+									className="inline-flex items-center gap-2 rounded-xl bg-[#404d85] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#323d6b] active:scale-95"
+								>
+									<Folder className="h-4 w-4" />
+									Projects & Tasks
+								</Link>
+							</div>
+						</div>
 					</div>
-					<Link
-						href="/vendor-dashboard"
-						className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#404d85] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#2b345e] transition"
-					>
-						<span>Open Store Dashboard</span>
-						<span>→</span>
-					</Link>
+
+					{/* Summary stat pills */}
+					<div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+						{[
+							{ label: "Active Projects", value: projects.length, color: "text-[#404d85]", bgColor: "bg-[#eef2fa]", emoji: "📁" },
+							{ label: "Open Tasks", value: tasks.filter(t => t.status !== "DONE").length, color: "text-amber-700", bgColor: "bg-amber-50", emoji: "⏳" },
+							{ label: "Completed Tasks", value: tasks.filter(t => t.status === "DONE").length, color: "text-emerald-700", bgColor: "bg-emerald-50", emoji: "✅" },
+							{ label: "Trial Days Left", value: trialSummary.daysLeft, color: "text-violet-700", bgColor: "bg-violet-50", emoji: "⏱️" },
+						].map(stat => (
+							<div
+								key={stat.label}
+								className={`flex items-center gap-3 rounded-xl border border-white/80 ${stat.bgColor} px-4 py-3 shadow-sm`}
+							>
+								<span className="text-xl">{stat.emoji}</span>
+								<div>
+									<div className={`text-lg font-bold ${stat.color}`}>{stat.value}</div>
+									<div className="text-[10px] font-medium text-slate-500">{stat.label}</div>
+								</div>
+							</div>
+						))}
+					</div>
 				</div>
 
-				<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-					<Link
-						href="/vendor-dashboard?view=catalog-products"
-						className="flex flex-col p-4 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-[#6678c1] transition"
-					>
-						<span className="text-2xl mb-1">📦</span>
-						<h3 className="text-xs font-bold text-slate-900">Products & Catalog</h3>
-						<span className="text-[10px] text-slate-500 mt-0.5">Manage stock & prices</span>
-					</Link>
+				{/* ── ALL BUSINESS TOOLS GRID ── */}
+				<div>
+					<div className="mb-4 flex items-center gap-3">
+						<div className="h-px flex-1 bg-[#e8edf5]" />
+						<span className="text-[11px] font-bold uppercase tracking-widest text-[#6678c1]">
+							Your Business Suite — All Tools
+						</span>
+						<div className="h-px flex-1 bg-[#e8edf5]" />
+					</div>
 
-					<Link
-						href="/vendor-dashboard?view=orders-new"
-						className="flex flex-col p-4 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-[#6678c1] transition"
-					>
-						<span className="text-2xl mb-1">📋</span>
-						<h3 className="text-xs font-bold text-slate-900">Orders & Fulfillment</h3>
-						<span className="text-[10px] text-slate-500 mt-0.5">Track shipment delivery</span>
-					</Link>
+					<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+						{allTools.map(tool => (
+							<Link
+								key={tool.href}
+								href={tool.href}
+								className={`group flex flex-col rounded-2xl border ${tool.border} ${tool.bg} p-4 shadow-sm transition-all duration-200 ${tool.hover} hover:shadow-md`}
+							>
+								<div className="flex items-start justify-between">
+									<span className="text-2xl">{tool.emoji}</span>
+									<span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${tool.badgeBg}`}>
+										{tool.badge}
+									</span>
+								</div>
+								<h3 className="mt-3 text-sm font-bold text-slate-800 group-hover:text-[#404d85]">
+									{tool.label}
+								</h3>
+								<p className="mt-1 text-[11px] leading-4 text-slate-500">{tool.desc}</p>
+								<div className="mt-3 flex items-center gap-1 text-[11px] font-semibold text-[#6678c1] opacity-0 transition group-hover:opacity-100">
+									Open <ArrowRight className="h-3 w-3" />
+								</div>
+							</Link>
+						))}
+					</div>
+				</div>
 
-					<Link
-						href="/inventory"
-						className="flex flex-col p-4 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-[#6678c1] transition"
-					>
-						<span className="text-2xl mb-1">🏭</span>
-						<h3 className="text-xs font-bold text-slate-900">Inventory & POs</h3>
-						<span className="text-[10px] text-slate-500 mt-0.5">Supply chain control</span>
-					</Link>
+				{/* ── ECOMMERCE QUICK ACTIONS ── */}
+				<div className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-white to-[#f8faff] p-6 shadow-sm">
+					<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<div className="flex items-center gap-2">
+								<h2 className="text-base font-extrabold text-slate-900">🏬 Store & Marketplace Operations</h2>
+								<span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+									Commerce Hub
+								</span>
+							</div>
+							<p className="mt-1 text-xs text-slate-500">
+								Manage your product catalog, fulfill orders, and track your marketplace performance.
+							</p>
+						</div>
+						<Link
+							href="/vendor-dashboard"
+							className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#404d85] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#323d6b] active:scale-95"
+						>
+							Open Store Dashboard →
+						</Link>
+					</div>
 
-					<Link
-						href="/storefront"
-						className="flex flex-col p-4 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-[#6678c1] transition"
-					>
-						<span className="text-2xl mb-1">🏬</span>
-						<h3 className="text-xs font-bold text-slate-900">Live Marketplace</h3>
-						<span className="text-[10px] text-slate-500 mt-0.5">Explore 3P catalog</span>
-					</Link>
+					<div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+						{[
+							{ href: "/vendor-dashboard?view=catalog-products", emoji: "📦", label: "Products & Catalog", desc: "Manage stock & prices" },
+							{ href: "/vendor-dashboard?view=orders-new", emoji: "📋", label: "Orders & Fulfillment", desc: "Track shipment delivery" },
+							{ href: "/inventory", emoji: "🏭", label: "Inventory & POs", desc: "Supply chain control" },
+							{ href: "/storefront", emoji: "🛒", label: "Live Marketplace", desc: "Explore 3P catalog" },
+						].map(item => (
+							<Link
+								key={item.href}
+								href={item.href}
+								className="flex flex-col rounded-xl border border-[#e8edf5] bg-white p-4 transition hover:border-[#6678c1] hover:shadow-sm"
+							>
+								<span className="text-2xl">{item.emoji}</span>
+								<h4 className="mt-2 text-xs font-bold text-slate-800">{item.label}</h4>
+								<span className="mt-0.5 text-[10px] text-slate-500">{item.desc}</span>
+							</Link>
+						))}
+					</div>
 				</div>
 			</div>
-		</div>
-	);
+		);
+	};
 
 	return (
 		<WorkspaceShell>
