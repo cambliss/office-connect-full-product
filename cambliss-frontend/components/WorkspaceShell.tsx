@@ -84,6 +84,7 @@ function ChevronRightIcon({ className = "" }: { className?: string }) {
 
 
 const clientMenuItems: SidebarItem[] = [
+	{ label: "Dashboard", href: "/dashboard" },
 	{ label: "Office Connect Central", href: "/central", badge: "Hub" },
 	{
 		label: "Spaces",
@@ -306,6 +307,7 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 	const [isMounted, setIsMounted] = useState(false);
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [authRole, setAuthRole] = useState<string | null>(null);
+	const [authEmail, setAuthEmail] = useState<string | null>(null);
 	const [authAccesses, setAuthAccesses] = useState<string[]>([]);
 	const [currentHash, setCurrentHash] = useState("");
 	const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({ Marketplace: true });
@@ -333,6 +335,7 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 
 		if (!token) {
 			setAuthRole(null);
+			setAuthEmail(null);
 			setAuthAccesses([]);
 			return;
 		}
@@ -340,20 +343,43 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 		const rawUser = localStorage.getItem("authUser");
 		if (!rawUser) {
 			setAuthRole(null);
+			setAuthEmail(null);
 			setAuthAccesses([]);
 			return;
 		}
 
 		try {
-			const parsed = JSON.parse(rawUser) as { role?: string; accesses?: string[] };
+			const parsed = JSON.parse(rawUser) as { email?: string; role?: string; accesses?: string[] };
+			if (parsed.email) setAuthEmail(parsed.email);
 			setAuthRole(parsed.role ?? getRoleFromToken(token));
 			setAuthAccesses(Array.isArray(parsed.accesses) ? parsed.accesses : []);
 		} catch {
 			setAuthRole(getRoleFromToken(token));
+			setAuthEmail(null);
 			setAuthAccesses([]);
 		}
 
-		// Dynamically sync real-time role-based access permissions from backend
+		// Dynamically sync real-time role-based access permissions and user profile from backend
+		fetch("/api/auth/me", {
+			headers: {
+				Authorization: token && token !== "cookie-session" ? `Bearer ${token}` : "",
+			},
+			credentials: "include",
+		})
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data) => {
+				if (data?.user) {
+					if (data.user.email) setAuthEmail(data.user.email);
+					if (data.user.role) setAuthRole(data.user.role);
+					if (Array.isArray(data.user.accesses)) setAuthAccesses(data.user.accesses);
+					try {
+						const current = JSON.parse(localStorage.getItem("authUser") || "{}");
+						localStorage.setItem("authUser", JSON.stringify({ ...current, ...data.user }));
+					} catch {}
+				}
+			})
+			.catch(() => {});
+
 		fetch("/api/user-management/my-access", {
 			headers: {
 				Authorization: token && token !== "cookie-session" ? `Bearer ${token}` : "",
@@ -480,6 +506,11 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 			return false;
 		}
 
+		// Dashboard is the universal entry point for all signed-in users
+		if (item.label === "Dashboard") {
+			return true;
+		}
+
 		// 1. STRICT EMPLOYEE BOUNDARIES:
 		if (authRole === "EMPLOYEE") {
 			// Restricted business owner tools that an employee should NEVER see:
@@ -496,13 +527,13 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 				return authAccesses.includes(item.accessKey);
 			}
 			// General employee collaboration tools:
-			return ["Office Connect Central", "Spaces", "Knowledge & SOPs", "People Directory"].includes(item.label);
+			return ["Dashboard", "Office Connect Central", "Spaces", "Knowledge & SOPs", "People Directory"].includes(item.label);
 		}
 
 		// 2. STRICT PROJECT_MANAGER BOUNDARIES:
 		if (authRole === "PROJECT_MANAGER") {
-			// PMs always have access to Projects & Tasks
-			if (item.label === "Projects & Tasks") {
+			// PMs always have access to Projects & Tasks and Dashboard
+			if (item.label === "Projects & Tasks" || item.label === "Dashboard") {
 				return true;
 			}
 			// Restricted owner tools a PM should NOT see:
@@ -518,7 +549,7 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 			if (item.accessKey) {
 				return authAccesses.includes(item.accessKey);
 			}
-			return ["Office Connect Central", "Spaces", "Knowledge & SOPs", "People Directory"].includes(item.label);
+			return ["Dashboard", "Office Connect Central", "Spaces", "Knowledge & SOPs", "People Directory"].includes(item.label);
 		}
 
 		// 3. CLIENT & ORG ADMIN (e.g. bhaskeradv1@gmail.com):
@@ -556,16 +587,20 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 		<div className="flex h-screen overflow-hidden bg-[#eef2fa] text-[#1f2430]">
 			<aside className={`flex flex-col flex-shrink-0 h-full overflow-y-auto border-r border-[#d9e2ef] bg-[#f8faff] transition-all duration-300 ${sidebarCollapsed ? "w-20" : "w-64"}`}>
 					<div className="flex-shrink-0 flex h-24 items-center justify-between border-b border-[#d9e2ef] px-4">
-						<div className="flex items-center">
+						<Link
+							href={isSuperAdminRole ? "/admin-dashboard" : "/dashboard"}
+							className="flex items-center transition hover:opacity-85"
+							title="Go to Dashboard"
+						>
 							<Image
 								src="/officeconnectlogo.png"
 								alt="Office Connect"
 								width={sidebarCollapsed ? 70 : 320}
 								height={86}
 								priority
-								className={sidebarCollapsed ? "h-12 w-12 rounded-md object-contain" : "h-16 w-auto object-contain"}
+								className={sidebarCollapsed ? "h-12 w-12 rounded-md object-contain" : "h-16 w-auto object-contain cursor-pointer"}
 							/>
-						</div>
+						</Link>
 						<button
 							onClick={() => setSidebarCollapsed((prev) => !prev)}
 							className="rounded-lg border border-[#d9e2ef] p-2 text-[#404d85] hover:bg-[#eef2fa]"
@@ -688,22 +723,41 @@ function WorkspaceShellContent({ children }: { children: ReactNode }) {
 									<span className="text-sm font-medium">Search...</span>
 								</div>
 							</div>
-							<button
-								onClick={async () => {
-									try {
-										await fetch("/api/auth/logout", { method: "POST" });
-									} catch {
-										// ignore network error; still clear client state below
-									}
-									localStorage.removeItem("authToken");
-									localStorage.removeItem("authUser");
-									router.push("/login");
-								}}
-								className="group inline-flex items-center gap-2 rounded-xl border border-[#6678c1] bg-[#6678c1] px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_-16px_rgba(102,120,193,0.45)] transition hover:-translate-y-0.5 hover:bg-[#404d85]"
-							>
-								<LogOut className="h-4 w-4 text-white/95" />
-								Logout
-							</button>
+							<div className="flex items-center gap-2.5">
+								<Link
+									href={isSuperAdminRole ? "/admin-dashboard" : "/dashboard"}
+									className="inline-flex items-center gap-2 rounded-xl border border-[#6678c1]/35 bg-white px-3.5 py-2 text-xs font-bold text-[#404d85] shadow-sm transition hover:border-[#6678c1] hover:bg-[#eef2fa] active:scale-95"
+									title="Open Main Dashboard"
+								>
+									<LayoutDashboard className="h-4 w-4 text-[#6678c1]" />
+									<span>Dashboard</span>
+								</Link>
+								{authEmail && (
+									<span className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#d9e2ef] bg-white/90 px-3 py-2 text-xs font-medium text-[#5b6472] shadow-sm">
+										<span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+										<span className="max-w-[130px] truncate">{authEmail}</span>
+										<span className="rounded bg-[#eef2fa] px-1.5 py-0.5 text-[10px] font-bold text-[#404d85] uppercase">
+											{authRole || "CLIENT"}
+										</span>
+									</span>
+								)}
+								<button
+									onClick={async () => {
+										try {
+											await fetch("/api/auth/logout", { method: "POST" });
+										} catch {
+											// ignore network error; still clear client state below
+										}
+										localStorage.removeItem("authToken");
+										localStorage.removeItem("authUser");
+										router.push("/login");
+									}}
+									className="group inline-flex items-center gap-2 rounded-xl border border-[#6678c1] bg-[#6678c1] px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_-16px_rgba(102,120,193,0.45)] transition hover:-translate-y-0.5 hover:bg-[#404d85]"
+								>
+									<LogOut className="h-4 w-4 text-white/95" />
+									Logout
+								</button>
+							</div>
 						</div>
 					</div>
 
