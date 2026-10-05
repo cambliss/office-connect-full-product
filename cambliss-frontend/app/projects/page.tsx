@@ -24,6 +24,12 @@ import {
 	CheckSquare,
 	ArrowUpRight,
 	Send,
+	Play,
+	RotateCcw,
+	ArrowLeft,
+	ArrowRight,
+	UserCheck,
+	AlertTriangle,
 } from "lucide-react";
 
 type ProjectMember = {
@@ -429,18 +435,18 @@ export default function ProjectsPage() {
 	return (
 		<WorkspaceShell>
 			<div className="mx-auto max-w-7xl space-y-6 pb-16">
-				{/* Top Hero Banner — Pastel Brand Gradient, Zero Dark Colors */}
-				<div className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#eef2fa] via-white to-[#f0f4ff] p-7 shadow-sm">
+				{/* Top Hero Banner — Cambliss Brand Palette */}
+				<div className="rounded-2xl border border-[#404d85] bg-gradient-to-r from-[#404d85] to-[#6678c1] p-7 text-white shadow-md">
 					<div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
 						<div>
-							<div className="inline-flex items-center gap-2 rounded-full border border-[#6678c1]/25 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[#404d85] shadow-sm">
-								<span className="h-2 w-2 rounded-full bg-emerald-400" />
+							<div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white backdrop-blur-sm shadow-sm">
+								<Shield className="h-3 w-3 text-white" />
 								ROLE: {userRole} • Project Management Hub
 							</div>
-							<h1 className="mt-3 text-2xl font-bold tracking-tight text-[#404d85] sm:text-3xl">
+							<h1 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
 								Project Management Workspace
 							</h1>
-							<p className="mt-1 text-sm text-[#5b6472]">
+							<p className="mt-1 text-sm text-white/85">
 								Lead milestones, allocate cross-functional talent, monitor task velocity, and report deliverables.
 							</p>
 						</div>
@@ -450,17 +456,17 @@ export default function ProjectsPage() {
 								<>
 									<button
 										onClick={() => setIsCreateProjectOpen(true)}
-										className="inline-flex items-center gap-2 rounded-xl bg-[#404d85] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#323d6b] active:scale-95"
+										className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#404d85] shadow-sm transition hover:bg-white/90 active:scale-95"
 									>
-										<Plus className="h-4 w-4" />
+										<Plus className="h-4 w-4 text-[#404d85]" />
 										New Project
 									</button>
 									{currentProject && (
 										<button
 											onClick={() => setIsCreateTaskOpen(true)}
-											className="inline-flex items-center gap-2 rounded-xl border border-[#6678c1]/35 bg-white px-4 py-2.5 text-sm font-bold text-[#404d85] shadow-sm transition hover:bg-[#eef2fa] active:scale-95"
+											className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/15 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-white/25 active:scale-95"
 										>
-											<CheckSquare className="h-4 w-4 text-[#6678c1]" />
+											<CheckSquare className="h-4 w-4 text-white" />
 											New Task
 										</button>
 									)}
@@ -470,52 +476,52 @@ export default function ProjectsPage() {
 					</div>
 				</div>
 
-				{/* Summary Metrics — Clean Pastel White Cards */}
+				{/* Summary Metrics — Clean Brand Cards */}
 				<div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-					<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm transition hover:border-[#6678c1]/40">
+					<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm transition hover:border-[#6678c1]">
 						<div className="flex items-center gap-2.5">
-							<span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-[#6678c1]">
+							<span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#6678c1]/10 text-[#6678c1]">
 								<Folder className="h-4 w-4" />
 							</span>
 							<span className="text-xs font-semibold text-[#5b6472]">Total Projects</span>
 						</div>
-						<div className="mt-3 text-2xl font-bold text-[#404d85]">
+						<div className="mt-3 text-2xl font-bold text-[#1f2430]">
 							{projects.length}
 						</div>
 					</div>
 
-					<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm transition hover:border-[#6678c1]/40">
+					<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm transition hover:border-[#6678c1]">
 						<div className="flex items-center gap-2.5">
 							<span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
 								<Clock className="h-4 w-4" />
 							</span>
 							<span className="text-xs font-semibold text-[#5b6472]">Active Tasks</span>
 						</div>
-						<div className="mt-3 text-2xl font-bold text-[#404d85]">
+						<div className="mt-3 text-2xl font-bold text-[#1f2430]">
 							{currentProject?.tasks.filter((t) => t.status !== "DONE").length ?? 0}
 						</div>
 					</div>
 
-					<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm transition hover:border-[#6678c1]/40">
+					<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm transition hover:border-[#6678c1]">
 						<div className="flex items-center gap-2.5">
 							<span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
 								<CheckCircle2 className="h-4 w-4" />
 							</span>
 							<span className="text-xs font-semibold text-[#5b6472]">Done Tasks</span>
 						</div>
-						<div className="mt-3 text-2xl font-bold text-[#404d85]">
+						<div className="mt-3 text-2xl font-bold text-[#1f2430]">
 							{currentProject?.tasks.filter((t) => t.status === "DONE").length ?? 0}
 						</div>
 					</div>
 
-					<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm transition hover:border-[#6678c1]/40">
+					<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm transition hover:border-[#6678c1]">
 						<div className="flex items-center gap-2.5">
-							<span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+							<span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#6678c1]/10 text-[#6678c1]">
 								<Users className="h-4 w-4" />
 							</span>
 							<span className="text-xs font-semibold text-[#5b6472]">Team Assigned</span>
 						</div>
-						<div className="mt-3 text-2xl font-bold text-[#404d85]">
+						<div className="mt-3 text-2xl font-bold text-[#1f2430]">
 							{currentProject?.members.length ?? 0}
 						</div>
 					</div>
@@ -524,28 +530,28 @@ export default function ProjectsPage() {
 						onClick={() => setOnlyMyWork((prev) => !prev)}
 						className={`rounded-2xl border p-4 shadow-sm cursor-pointer transition ${
 							onlyMyWork 
-								? "border-[#404d85] bg-[#eef2fa] ring-2 ring-[#6678c1]/30" 
-								: "border-[#d9e2ef] bg-white hover:border-[#6678c1]/40"
+								? "border-[#6678c1] bg-[#6678c1]/5 ring-2 ring-[#6678c1]/30" 
+								: "border-[#d9e2ef] bg-white hover:border-[#6678c1]"
 						}`}
 					>
 						<div className="flex items-center justify-between text-xs font-semibold text-[#5b6472]">
 							<div className="flex items-center gap-2">
-								<span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#404d85]">
-									<CheckSquare className="h-4 w-4" />
+								<span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#6678c1]/10 text-[#6678c1]">
+									<UserCheck className="h-4 w-4" />
 								</span>
 								<span>My Work</span>
 							</div>
 							{onlyMyWork && (
-								<span className="rounded bg-[#404d85] px-1.5 py-0.5 text-[9px] font-bold text-white">ACTIVE</span>
+								<span className="rounded bg-[#6678c1] px-1.5 py-0.5 text-[9px] font-bold text-white">ACTIVE</span>
 							)}
 						</div>
-						<div className="mt-3 text-2xl font-bold text-[#404d85]">
+						<div className="mt-3 text-2xl font-bold text-[#1f2430]">
 							{myTasksCount} <span className="text-xs font-normal text-[#5b6472]">({myPendingTasksCount} active)</span>
 						</div>
 					</div>
 				</div>
 
-				{/* Project Selector Bar — Clean Pastel White Card */}
+				{/* Project Selector Bar */}
 				{projects.length > 0 ? (
 					<div className="flex flex-col gap-4 rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
 						<div className="flex flex-wrap items-center gap-3">
@@ -562,7 +568,7 @@ export default function ProjectsPage() {
 								))}
 							</select>
 							{currentProject?.status && (
-								<span className="rounded-full border border-[#d9e2ef] bg-[#eef2fa] px-3 py-1 text-xs font-bold text-[#404d85]">
+								<span className="rounded-full bg-[#6678c1] px-3 py-1 text-xs font-bold text-white shadow-sm">
 									{currentProject.status}
 								</span>
 							)}
@@ -574,14 +580,14 @@ export default function ProjectsPage() {
 								<>
 									<button
 										onClick={() => setIsStatusUpdateOpen(true)}
-										className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9e2ef] bg-white px-3.5 py-2 text-xs font-semibold text-[#404d85] shadow-sm transition hover:bg-[#eef2fa]"
+										className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9e2ef] bg-white px-3.5 py-2 text-xs font-semibold text-[#404d85] shadow-sm transition hover:bg-[#6678c1]/10"
 									>
-										<Activity className="h-3.5 w-3.5 text-emerald-600" />
+										<Activity className="h-3.5 w-3.5 text-[#6678c1]" />
 										Post Progress Report
 									</button>
 									<button
 										onClick={() => setIsAddMemberOpen(true)}
-										className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9e2ef] bg-white px-3.5 py-2 text-xs font-semibold text-[#404d85] shadow-sm transition hover:bg-[#eef2fa]"
+										className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9e2ef] bg-white px-3.5 py-2 text-xs font-semibold text-[#404d85] shadow-sm transition hover:bg-[#6678c1]/10"
 									>
 										<UserPlus className="h-3.5 w-3.5 text-[#6678c1]" />
 										Assign Member
@@ -609,7 +615,7 @@ export default function ProjectsPage() {
 						{isPMOrAdmin && (
 							<button
 								onClick={() => setIsCreateProjectOpen(true)}
-								className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#404d85] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#323d6b]"
+								className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#6678c1] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#5567b0] transition"
 							>
 								<Plus className="h-4 w-4" />
 								Create Project
@@ -627,8 +633,8 @@ export default function ProjectsPage() {
 									onClick={() => setActiveTab("kanban")}
 									className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition ${
 										activeTab === "kanban"
-											? "bg-[#404d85] text-white shadow-sm"
-											: "text-[#5b6472] hover:bg-[#eef2fa] hover:text-[#404d85]"
+											? "bg-[#6678c1] text-white shadow-sm"
+											: "text-[#5b6472] hover:bg-[#6678c1]/10 hover:text-[#404d85]"
 									}`}
 								>
 									<Kanban className="h-4 w-4" />
@@ -638,8 +644,8 @@ export default function ProjectsPage() {
 									onClick={() => setActiveTab("list")}
 									className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition ${
 										activeTab === "list"
-											? "bg-[#404d85] text-white shadow-sm"
-											: "text-[#5b6472] hover:bg-[#eef2fa] hover:text-[#404d85]"
+											? "bg-[#6678c1] text-white shadow-sm"
+											: "text-[#5b6472] hover:bg-[#6678c1]/10 hover:text-[#404d85]"
 									}`}
 								>
 									<ListIcon className="h-4 w-4" />
@@ -649,8 +655,8 @@ export default function ProjectsPage() {
 									onClick={() => setActiveTab("team")}
 									className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition ${
 										activeTab === "team"
-											? "bg-[#404d85] text-white shadow-sm"
-											: "text-[#5b6472] hover:bg-[#eef2fa] hover:text-[#404d85]"
+											? "bg-[#6678c1] text-white shadow-sm"
+											: "text-[#5b6472] hover:bg-[#6678c1]/10 hover:text-[#404d85]"
 									}`}
 								>
 									<Users className="h-4 w-4" />
@@ -660,8 +666,8 @@ export default function ProjectsPage() {
 									onClick={() => setActiveTab("updates")}
 									className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition ${
 										activeTab === "updates"
-											? "bg-[#404d85] text-white shadow-sm"
-											: "text-[#5b6472] hover:bg-[#eef2fa] hover:text-[#404d85]"
+											? "bg-[#6678c1] text-white shadow-sm"
+											: "text-[#5b6472] hover:bg-[#6678c1]/10 hover:text-[#404d85]"
 									}`}
 								>
 									<Activity className="h-4 w-4" />
@@ -676,11 +682,11 @@ export default function ProjectsPage() {
 									onClick={() => setOnlyMyWork((prev) => !prev)}
 									className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
 										onlyMyWork
-											? "border-[#404d85] bg-[#404d85] text-white shadow-sm"
-											: "border-[#d9e2ef] bg-white text-[#404d85] hover:bg-[#eef2fa]"
+											? "border-[#6678c1] bg-[#6678c1] text-white shadow-sm"
+											: "border-[#d9e2ef] bg-white text-[#404d85] hover:bg-[#6678c1]/10"
 									}`}
 								>
-									<CheckSquare className={`h-3.5 w-3.5 ${onlyMyWork ? "text-white" : "text-[#404d85]"}`} />
+									<UserCheck className={`h-3.5 w-3.5 ${onlyMyWork ? "text-white" : "text-[#6678c1]"}`} />
 									Assigned to Me ({myTasksCount})
 								</button>
 								<div className="relative">
@@ -690,13 +696,13 @@ export default function ProjectsPage() {
 										value={searchQuery}
 										onChange={(e) => setSearchQuery(e.target.value)}
 										placeholder="Search tasks..."
-										className="rounded-xl border border-[#d9e2ef] bg-white py-1.5 pl-9 pr-3 text-sm text-[#2d3748] placeholder-[#a0aec0] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+										className="rounded-xl border border-[#d9e2ef] bg-white py-1.5 pl-9 pr-3 text-sm text-[#1f2430] placeholder-[#a0aec0] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 									/>
 								</div>
 								<select
 									value={priorityFilter}
 									onChange={(e) => setPriorityFilter(e.target.value)}
-									className="rounded-xl border border-[#d9e2ef] bg-white px-3 py-1.5 text-sm text-[#2d3748] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+									className="rounded-xl border border-[#d9e2ef] bg-white px-3 py-1.5 text-sm text-[#1f2430] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 								>
 									<option value="ALL">All Priorities</option>
 									<option value="LOW">Low</option>
@@ -717,7 +723,7 @@ export default function ProjectsPage() {
 											<span className="h-2.5 w-2.5 rounded-full bg-[#6678c1]" />
 											<h4 className="text-sm font-bold text-[#404d85]">To Do</h4>
 										</div>
-										<span className="rounded-full bg-[#eef2fa] px-2.5 py-0.5 text-xs font-bold text-[#404d85] border border-[#d9e2ef]">
+										<span className="rounded-full bg-[#6678c1]/15 px-2.5 py-0.5 text-xs font-bold text-[#404d85]">
 											{todoTasks.length}
 										</span>
 									</div>
@@ -730,18 +736,22 @@ export default function ProjectsPage() {
 												<div className="flex items-start justify-between gap-2">
 													<div className="flex flex-wrap items-center gap-1.5">
 														<span
-															className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+															className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
 																task.priority === "URGENT"
 																	? "bg-rose-50 text-rose-700 border border-rose-200"
 																	: task.priority === "HIGH"
 																		? "bg-amber-50 text-amber-700 border border-amber-200"
-																		: "bg-[#eef2fa] text-[#404d85] border border-[#d9e2ef]"
+																		: "bg-[#6678c1]/10 text-[#404d85] border border-[#d9e2ef]"
 															}`}
 														>
+															{task.priority === "URGENT" && <AlertCircle className="h-3 w-3 text-rose-600" />}
+															{task.priority === "HIGH" && <AlertTriangle className="h-3 w-3 text-amber-600" />}
+															{(task.priority === "MEDIUM" || task.priority === "LOW" || !task.priority) && <Clock className="h-3 w-3 text-[#6678c1]" />}
 															{task.priority || "NORMAL"}
 														</span>
 														{task.assignedTo === currentUserId && (
-															<span className="rounded-md bg-[#eef2fa] px-2 py-0.5 text-[10px] font-bold text-[#404d85] border border-[#6678c1]/30">
+															<span className="inline-flex items-center gap-1 rounded-md bg-[#6678c1]/15 px-2 py-0.5 text-[10px] font-bold text-[#404d85] border border-[#6678c1]/30">
+																<UserCheck className="h-3 w-3 text-[#6678c1]" />
 																Assigned to You
 															</span>
 														)}
@@ -768,14 +778,15 @@ export default function ProjectsPage() {
 													<div className="flex items-center gap-1.5">
 														<span className="font-medium">{task.assignee?.email?.split("@")[0] || "Unassigned"}</span>
 														{task.assignedTo === currentUserId && (
-															<span className="text-[10px] font-bold text-[#404d85]">(You)</span>
+															<span className="text-[10px] font-bold text-[#6678c1]">(You)</span>
 														)}
 													</div>
 													<button
 														onClick={() => handleUpdateTaskStatus(task.id, "IN_PROGRESS")}
-														className="rounded-lg bg-[#eef2fa] px-2.5 py-1 text-xs font-semibold text-[#404d85] hover:bg-[#404d85] hover:text-white transition"
+														className="inline-flex items-center gap-1 rounded-lg bg-[#6678c1] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#5567b0] shadow-sm transition"
 													>
-														Start Work →
+														<Play className="h-3 w-3" />
+														Start Work
 													</button>
 												</div>
 											</div>
@@ -806,18 +817,22 @@ export default function ProjectsPage() {
 												<div className="flex items-start justify-between gap-2">
 													<div className="flex flex-wrap items-center gap-1.5">
 														<span
-															className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+															className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
 																task.priority === "URGENT"
 																	? "bg-rose-50 text-rose-700 border border-rose-200"
 																	: task.priority === "HIGH"
 																		? "bg-amber-50 text-amber-700 border border-amber-200"
-																		: "bg-[#eef2fa] text-[#404d85] border border-[#d9e2ef]"
+																		: "bg-[#6678c1]/10 text-[#404d85] border border-[#d9e2ef]"
 															}`}
 														>
+															{task.priority === "URGENT" && <AlertCircle className="h-3 w-3 text-rose-600" />}
+															{task.priority === "HIGH" && <AlertTriangle className="h-3 w-3 text-amber-600" />}
+															{(task.priority === "MEDIUM" || task.priority === "LOW" || !task.priority) && <Clock className="h-3 w-3 text-[#6678c1]" />}
 															{task.priority || "NORMAL"}
 														</span>
 														{task.assignedTo === currentUserId && (
-															<span className="rounded-md bg-[#eef2fa] px-2 py-0.5 text-[10px] font-bold text-[#404d85] border border-[#6678c1]/30">
+															<span className="inline-flex items-center gap-1 rounded-md bg-[#6678c1]/15 px-2 py-0.5 text-[10px] font-bold text-[#404d85] border border-[#6678c1]/30">
+																<UserCheck className="h-3 w-3 text-[#6678c1]" />
 																Assigned to You
 															</span>
 														)}
@@ -844,22 +859,24 @@ export default function ProjectsPage() {
 													<div className="flex items-center gap-1.5">
 														<span className="font-medium">{task.assignee?.email?.split("@")[0] || "Unassigned"}</span>
 														{task.assignedTo === currentUserId && (
-															<span className="text-[10px] font-bold text-[#404d85]">(You)</span>
+															<span className="text-[10px] font-bold text-[#6678c1]">(You)</span>
 														)}
 													</div>
 													<div className="flex items-center gap-1.5">
 														<button
 															onClick={() => handleUpdateTaskStatus(task.id, "TODO")}
-															className="rounded-lg px-2.5 py-1 text-xs text-[#5b6472] hover:bg-[#eef2fa] hover:text-[#404d85] transition"
+															className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-[#5b6472] hover:bg-[#6678c1]/10 hover:text-[#404d85] transition"
 															title="Move back to To Do"
 														>
-															← To Do
+															<ArrowLeft className="h-3 w-3" />
+															To Do
 														</button>
 														<button
 															onClick={() => handleUpdateTaskStatus(task.id, "DONE")}
-															className="rounded-lg bg-[#404d85] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#323d6b] shadow-sm transition"
+															className="inline-flex items-center gap-1 rounded-lg bg-[#6678c1] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#5567b0] shadow-sm transition"
 														>
-															Complete ✓
+															<CheckCircle2 className="h-3 w-3" />
+															Complete
 														</button>
 													</div>
 												</div>
@@ -889,7 +906,8 @@ export default function ProjectsPage() {
 												className="group rounded-xl border border-[#d9e2ef] bg-white/80 p-4 opacity-90 shadow-sm transition hover:opacity-100 hover:border-[#6678c1]"
 											>
 												<div className="flex items-start justify-between gap-2">
-													<span className="rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+													<span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+														<CheckCircle2 className="h-3 w-3 text-emerald-600" />
 														DONE
 													</span>
 													{isPMOrAdmin && (
@@ -909,9 +927,10 @@ export default function ProjectsPage() {
 													<span>{task.assignee?.email?.split("@")[0] || "Completed"}</span>
 													<button
 														onClick={() => handleUpdateTaskStatus(task.id, "IN_PROGRESS")}
-														className="text-xs font-semibold text-[#6678c1] hover:text-[#404d85]"
+														className="inline-flex items-center gap-1 text-xs font-semibold text-[#6678c1] hover:text-[#404d85]"
 													>
-														Reopen ↩
+														<RotateCcw className="h-3 w-3" />
+														Reopen
 													</button>
 												</div>
 											</div>
@@ -940,12 +959,13 @@ export default function ProjectsPage() {
 									</thead>
 									<tbody className="divide-y divide-[#d9e2ef]">
 										{filteredTasks.map((t) => (
-											<tr key={t.id} className={`hover:bg-[#f8faff] transition ${t.assignedTo === currentUserId ? "bg-[#eef2fa]/50" : ""}`}>
+											<tr key={t.id} className={`hover:bg-[#f8faff] transition ${t.assignedTo === currentUserId ? "bg-[#6678c1]/5" : ""}`}>
 												<td className="px-4 py-3 text-sm font-semibold text-[#1e2540]">
 													<div className="flex items-center gap-2">
 														<span>{t.title}</span>
 														{t.assignedTo === currentUserId && (
-															<span className="rounded-md bg-[#eef2fa] px-1.5 py-0.5 text-[10px] font-bold text-[#404d85] border border-[#6678c1]/30">
+															<span className="inline-flex items-center gap-1 rounded-md bg-[#6678c1]/15 px-1.5 py-0.5 text-[10px] font-bold text-[#404d85] border border-[#6678c1]/30">
+																<UserCheck className="h-3 w-3 text-[#6678c1]" />
 																You
 															</span>
 														)}
@@ -955,7 +975,7 @@ export default function ProjectsPage() {
 													<select
 														value={t.status}
 														onChange={(e) => handleUpdateTaskStatus(t.id, e.target.value)}
-														className="rounded-lg border border-[#d9e2ef] bg-white px-2 py-1 text-xs font-medium text-[#404d85] focus:border-[#404d85] focus:outline-none"
+														className="rounded-lg border border-[#d9e2ef] bg-white px-2 py-1 text-xs font-medium text-[#404d85] focus:border-[#6678c1] focus:outline-none"
 													>
 														<option value="TODO">To Do</option>
 														<option value="IN_PROGRESS">In Progress</option>
@@ -964,14 +984,17 @@ export default function ProjectsPage() {
 												</td>
 												<td className="px-4 py-3 text-xs font-semibold">
 													<span
-														className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+														className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
 															t.priority === "URGENT"
 																? "bg-rose-50 text-rose-700 border border-rose-200"
 																: t.priority === "HIGH"
 																	? "bg-amber-50 text-amber-700 border border-amber-200"
-																	: "bg-[#eef2fa] text-[#404d85] border border-[#d9e2ef]"
+																	: "bg-[#6678c1]/10 text-[#404d85] border border-[#d9e2ef]"
 														}`}
 													>
+														{t.priority === "URGENT" && <AlertCircle className="h-3 w-3 text-rose-600" />}
+														{t.priority === "HIGH" && <AlertTriangle className="h-3 w-3 text-amber-600" />}
+														{(t.priority === "MEDIUM" || t.priority === "LOW" || !t.priority) && <Clock className="h-3 w-3 text-[#6678c1]" />}
 														{t.priority}
 													</span>
 												</td>
@@ -1009,7 +1032,7 @@ export default function ProjectsPage() {
 									{isPMOrAdmin && (
 										<button
 											onClick={() => setIsAddMemberOpen(true)}
-											className="inline-flex items-center gap-1.5 rounded-xl bg-[#404d85] px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#323d6b] transition"
+											className="inline-flex items-center gap-1.5 rounded-xl bg-[#6678c1] px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#5567b0] transition"
 										>
 											<UserPlus className="h-3.5 w-3.5" />
 											Add Project Member
@@ -1024,7 +1047,7 @@ export default function ProjectsPage() {
 											className="flex items-center justify-between rounded-xl border border-[#d9e2ef] bg-white p-4 shadow-sm hover:border-[#6678c1] transition"
 										>
 											<div className="flex items-center gap-3">
-												<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef2fa] text-sm font-bold text-[#404d85] border border-[#d9e2ef]">
+												<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6678c1]/15 text-sm font-bold text-[#404d85] border border-[#d9e2ef]">
 													{member.user?.email?.[0]?.toUpperCase() || "U"}
 												</div>
 												<div>
@@ -1061,7 +1084,7 @@ export default function ProjectsPage() {
 									{isPMOrAdmin && (
 										<button
 											onClick={() => setIsStatusUpdateOpen(true)}
-											className="inline-flex items-center gap-1.5 rounded-xl bg-[#404d85] px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#323d6b] transition"
+											className="inline-flex items-center gap-1.5 rounded-xl bg-[#6678c1] px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#5567b0] transition"
 										>
 											<Send className="h-3.5 w-3.5" />
 											Post New Report
@@ -1117,7 +1140,7 @@ export default function ProjectsPage() {
 										value={newProjectName}
 										onChange={(e) => setNewProjectName(e.target.value)}
 										placeholder="e.g. Q4 Platform Optimization"
-										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#2d3748] placeholder-[#a0aec0] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#1f2430] placeholder-[#a0aec0] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 									/>
 								</div>
 								<div>
@@ -1127,20 +1150,20 @@ export default function ProjectsPage() {
 										value={newProjectDesc}
 										onChange={(e) => setNewProjectDesc(e.target.value)}
 										placeholder="Project objectives, scope, and deliverables..."
-										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#2d3748] placeholder-[#a0aec0] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#1f2430] placeholder-[#a0aec0] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 									/>
 								</div>
 								<div className="flex justify-end gap-2 pt-2">
 									<button
 										type="button"
 										onClick={() => setIsCreateProjectOpen(false)}
-										className="rounded-xl px-4 py-2 text-sm font-medium text-[#5b6472] hover:bg-[#eef2fa] hover:text-[#404d85] transition"
+										className="rounded-xl px-4 py-2 text-sm font-medium text-[#5b6472] hover:bg-[#6678c1]/10 hover:text-[#404d85] transition"
 									>
 										Cancel
 									</button>
 									<button
 										type="submit"
-										className="rounded-xl bg-[#404d85] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#323d6b] transition"
+										className="rounded-xl bg-[#6678c1] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#5567b0] transition"
 									>
 										Create Project
 									</button>
@@ -1165,7 +1188,7 @@ export default function ProjectsPage() {
 										value={taskTitle}
 										onChange={(e) => setTaskTitle(e.target.value)}
 										placeholder="e.g. Implement OAuth Flow"
-										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#2d3748] placeholder-[#a0aec0] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#1f2430] placeholder-[#a0aec0] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 									/>
 								</div>
 								<div>
@@ -1175,7 +1198,7 @@ export default function ProjectsPage() {
 										value={taskDescription}
 										onChange={(e) => setTaskDescription(e.target.value)}
 										placeholder="Details and acceptance criteria..."
-										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#2d3748] placeholder-[#a0aec0] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#1f2430] placeholder-[#a0aec0] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 									/>
 								</div>
 								<div className="grid grid-cols-2 gap-3">
@@ -1184,7 +1207,7 @@ export default function ProjectsPage() {
 										<select
 											value={taskPriority}
 											onChange={(e) => setTaskPriority(e.target.value)}
-											className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2 text-sm text-[#2d3748] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+											className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2 text-sm text-[#1f2430] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 										>
 											<option value="LOW">Low</option>
 											<option value="MEDIUM">Medium</option>
@@ -1198,7 +1221,7 @@ export default function ProjectsPage() {
 											type="date"
 											value={taskDueDate}
 											onChange={(e) => setTaskDueDate(e.target.value)}
-											className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2 text-sm text-[#2d3748] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+											className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2 text-sm text-[#1f2430] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 										/>
 									</div>
 								</div>
@@ -1207,7 +1230,7 @@ export default function ProjectsPage() {
 									<select
 										value={taskAssignee}
 										onChange={(e) => setTaskAssignee(e.target.value)}
-										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2 text-sm text-[#2d3748] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2 text-sm text-[#1f2430] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 									>
 										<option value="">-- Unassigned --</option>
 										{currentProject?.members.map((m) => (
@@ -1221,13 +1244,13 @@ export default function ProjectsPage() {
 									<button
 										type="button"
 										onClick={() => setIsCreateTaskOpen(false)}
-										className="rounded-xl px-4 py-2 text-sm font-medium text-[#5b6472] hover:bg-[#eef2fa] hover:text-[#404d85] transition"
+										className="rounded-xl px-4 py-2 text-sm font-medium text-[#5b6472] hover:bg-[#6678c1]/10 hover:text-[#404d85] transition"
 									>
 										Cancel
 									</button>
 									<button
 										type="submit"
-										className="rounded-xl bg-[#404d85] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#323d6b] transition"
+										className="rounded-xl bg-[#6678c1] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#5567b0] transition"
 									>
 										Save Task
 									</button>
@@ -1249,12 +1272,12 @@ export default function ProjectsPage() {
 									<select
 										value={updateStatus}
 										onChange={(e) => setUpdateStatus(e.target.value)}
-										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#2d3748] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#1f2430] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 									>
-										<option value="ON_TRACK">🟢 On Track - All Deliverables Normal</option>
-										<option value="AT_RISK">🟡 At Risk - Attention Needed</option>
-										<option value="DELAYED">🔴 Delayed - Critical Path Blockers</option>
-										<option value="COMPLETED">✅ Completed - Milestone Signed Off</option>
+										<option value="ON_TRACK">On Track - All Deliverables Normal</option>
+										<option value="AT_RISK">At Risk - Attention Needed</option>
+										<option value="DELAYED">Delayed - Critical Path Blockers</option>
+										<option value="COMPLETED">Completed - Milestone Signed Off</option>
 									</select>
 								</div>
 								<div>
@@ -1264,20 +1287,20 @@ export default function ProjectsPage() {
 										value={updateNote}
 										onChange={(e) => setUpdateNote(e.target.value)}
 										placeholder="Summary of completed items, upcoming deadlines, blockers..."
-										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#2d3748] placeholder-[#a0aec0] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#1f2430] placeholder-[#a0aec0] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 									/>
 								</div>
 								<div className="flex justify-end gap-2 pt-2">
 									<button
 										type="button"
 										onClick={() => setIsStatusUpdateOpen(false)}
-										className="rounded-xl px-4 py-2 text-sm font-medium text-[#5b6472] hover:bg-[#eef2fa] hover:text-[#404d85] transition"
+										className="rounded-xl px-4 py-2 text-sm font-medium text-[#5b6472] hover:bg-[#6678c1]/10 hover:text-[#404d85] transition"
 									>
 										Cancel
 									</button>
 									<button
 										type="submit"
-										className="rounded-xl bg-[#404d85] px-4 py-2 text-sm font-bold text-white hover:bg-[#323d6b] shadow-sm transition"
+										className="rounded-xl bg-[#6678c1] px-4 py-2 text-sm font-bold text-white hover:bg-[#5567b0] shadow-sm transition"
 									>
 										Publish Report
 									</button>
@@ -1300,7 +1323,7 @@ export default function ProjectsPage() {
 										required
 										value={selectedMemberUserId}
 										onChange={(e) => setSelectedMemberUserId(e.target.value)}
-										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#2d3748] focus:border-[#404d85] focus:outline-none focus:ring-1 focus:ring-[#404d85]"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-sm text-[#1f2430] focus:border-[#6678c1] focus:outline-none focus:ring-1 focus:ring-[#6678c1]"
 									>
 										<option value="">-- Choose User --</option>
 										{orgUsers
@@ -1316,13 +1339,13 @@ export default function ProjectsPage() {
 									<button
 										type="button"
 										onClick={() => setIsAddMemberOpen(false)}
-										className="rounded-xl px-4 py-2 text-sm font-medium text-[#5b6472] hover:bg-[#eef2fa] hover:text-[#404d85] transition"
+										className="rounded-xl px-4 py-2 text-sm font-medium text-[#5b6472] hover:bg-[#6678c1]/10 hover:text-[#404d85] transition"
 									>
 										Cancel
 									</button>
 									<button
 										type="submit"
-										className="rounded-xl bg-[#404d85] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#323d6b] transition"
+										className="rounded-xl bg-[#6678c1] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#5567b0] transition"
 									>
 										Add to Project
 									</button>
