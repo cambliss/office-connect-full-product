@@ -309,7 +309,7 @@ export default function DashboardPage() {
 		if (trialSnapshot) {
 			const trialEndsAt = new Date(trialSnapshot.trialEndsAt);
 			const msLeft = Math.max(0, trialEndsAt.getTime() - now.getTime());
-			const daysLeft = msLeft <= 0 ? 0 : Math.ceil(msLeft / (24 * 60 * 60 * 1000));
+			const daysLeft = msLeft <= 0 ? 0 : Math.min(TRIAL_DAYS, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
 			return {
 				expiresAt: trialEndsAt,
 				timeLeftLabel: formatDuration(msLeft),
@@ -450,7 +450,7 @@ export default function DashboardPage() {
 					<div>
 						<div className="flex items-center gap-2">
 							<h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-								⭐ My Assigned Work & Tasks
+								My Assigned Work & Tasks
 							</h2>
 							<span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
 								{myActiveTasks.length} Active

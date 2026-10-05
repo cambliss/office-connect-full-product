@@ -484,7 +484,9 @@ export const getOrganizationTrialReminderSnapshot = async (organizationId: strin
 	const trialStartsAt = activeSubscription?.currentPeriodStart ?? organization.createdAt;
 	const trialEndsAt = activeSubscription?.currentPeriodEnd ?? addDays(trialStartsAt, TRIAL_TOTAL_DAYS);
 	const timeLeftMs = trialEndsAt.getTime() - Date.now();
-	const daysLeft = Math.max(0, Math.ceil(timeLeftMs / DAY_MS));
+	const daysLeft = activeSubscription?.status === "ACTIVE"
+		? Math.max(0, Math.ceil(timeLeftMs / DAY_MS))
+		: Math.min(TRIAL_TOTAL_DAYS, Math.max(0, Math.ceil(timeLeftMs / DAY_MS)));
 
 	const status: TrialReminderSnapshot["status"] =
 		activeSubscription?.status === "ACTIVE"
