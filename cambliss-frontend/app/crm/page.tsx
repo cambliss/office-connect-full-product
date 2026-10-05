@@ -63,6 +63,13 @@ import {
 	History,
 	ExternalLink,
 	Calendar,
+	Percent,
+	Trophy,
+	Handshake,
+	Radio,
+	Signal,
+	Compass,
+	ShieldAlert,
 } from "lucide-react";
 
 type CrmDashboard = {
@@ -125,12 +132,61 @@ type SuiteTab =
 	| "cpq"
 	| "contracts"
 	| "cadences"
+	| "partners"
 	| "service"
 	| "marketing"
 	| "revenue"
 	| "analytics"
 	| "automation"
 	| "governance";
+
+type PartnerTier = "PLATINUM" | "GOLD" | "AUTHORIZED_RESELLER";
+
+type PartnerDealRegistration = {
+	id: string;
+	partnerName: string;
+	partnerTier: PartnerTier;
+	leadName: string;
+	companyName: string;
+	dealValue: number;
+	marginPct: number;
+	registrationStatus: "APPROVED_PROTECTED" | "UNDER_REVIEW" | "REJECTED";
+	exclusivityExpiry: string;
+	certifiedIntegrator: boolean;
+};
+
+type RepCommissionRecord = {
+	id: string;
+	repName: string;
+	role: string;
+	quarterlyQuota: number;
+	closedRevenue: number;
+	attainmentPct: number;
+	baseCommission: number;
+	acceleratorCommission: number;
+	totalPayout: number;
+	status: "APPROVED_FOR_PAYROLL" | "PENDING_RECONCILIATION";
+};
+
+type DatacenterNode = {
+	regionId: string;
+	regionName: string;
+	datacenterCity: string;
+	latencyMs: number;
+	complianceFrameworks: string[];
+	regionalArr: number;
+	status: "OPERATIONAL" | "REPLICATING";
+};
+
+type DealHealthAnalysis = {
+	dealId: string;
+	riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+	healthScore: number;
+	primaryRiskFactor: string;
+	daysInactive: number;
+	competitorPresence: string | null;
+	recommendedAction: string;
+};
 
 type SavedEnterpriseQuote = {
 	id: string;
@@ -699,6 +755,187 @@ export default function CrmPage() {
 	const [newProspectName, setNewProspectName] = useState("");
 	const [newProspectCompany, setNewProspectCompany] = useState("");
 	const [newProspectPersona, setNewProspectPersona] = useState("Economic Buyer");
+
+	// 1. Predictive Deal Health & AI Win/Loss Risk State
+	const [dealHealthMap, setDealHealthMap] = useState<Record<string, DealHealthAnalysis>>({
+		"sample-deal-1": {
+			dealId: "sample-deal-1",
+			riskLevel: "LOW",
+			healthScore: 92,
+			primaryRiskFactor: "Healthy cadence engagement; executive champion attending architectural review",
+			daysInactive: 2,
+			competitorPresence: null,
+			recommendedAction: "Deliver Master Services Agreement (MSA) and lock pricing before end of quarter.",
+		},
+		"sample-deal-2": {
+			dealId: "sample-deal-2",
+			riskLevel: "HIGH",
+			healthScore: 41,
+			primaryRiskFactor: "14 days inactive without response; legacy incumbent vendor offering aggressive discount",
+			daysInactive: 14,
+			competitorPresence: "Legacy Incumbent",
+			recommendedAction: "Schedule emergency executive-to-executive alignment call with Cambliss CTO.",
+		},
+		"sample-deal-3": {
+			dealId: "sample-deal-3",
+			riskLevel: "MEDIUM",
+			healthScore: 68,
+			primaryRiskFactor: "Legal redlines pending on data jurisdiction clause (EU GDPR vs US Safe Harbor)",
+			daysInactive: 5,
+			competitorPresence: null,
+			recommendedAction: "Engage Cambliss Legal Ops to issue pre-approved Frankfurt EU Data Annex.",
+		},
+	});
+	const [selectedRiskFilter, setSelectedRiskFilter] = useState<"ALL" | "CRITICAL" | "HIGH" | "MEDIUM" | "LOW">("ALL");
+
+	// 2. Enterprise Commission & Incentive Compensation (ICM) State
+	const [commissionSubView, setCommissionSubView] = useState<"metrics" | "icm_commissions">("metrics");
+	const [commissionReps, setCommissionReps] = useState<RepCommissionRecord[]>([
+		{
+			id: "rep-1",
+			repName: "Marcus Sterling",
+			role: "Strategic Enterprise AE (North America)",
+			quarterlyQuota: 250000,
+			closedRevenue: 312000,
+			attainmentPct: 124.8,
+			baseCommission: 25000,
+			acceleratorCommission: 8680,
+			totalPayout: 33680,
+			status: "APPROVED_FOR_PAYROLL",
+		},
+		{
+			id: "rep-2",
+			repName: "Sarah Al-Mansoor",
+			role: "Enterprise Director (EMEA & GCC)",
+			quarterlyQuota: 200000,
+			closedRevenue: 184000,
+			attainmentPct: 92.0,
+			baseCommission: 18400,
+			acceleratorCommission: 0,
+			totalPayout: 18400,
+			status: "PENDING_RECONCILIATION",
+		},
+		{
+			id: "rep-3",
+			repName: "Kenji Sato",
+			role: "Senior Enterprise AE (APAC)",
+			quarterlyQuota: 180000,
+			closedRevenue: 205000,
+			attainmentPct: 113.8,
+			baseCommission: 18000,
+			acceleratorCommission: 3500,
+			totalPayout: 21500,
+			status: "APPROVED_FOR_PAYROLL",
+		},
+	]);
+
+	// 3. Partner & Channel Reseller Management (PRM) State
+	const [partnerDeals, setPartnerDeals] = useState<PartnerDealRegistration[]>([
+		{
+			id: "PRM-2026-101",
+			partnerName: "Accenture Cloud First",
+			partnerTier: "PLATINUM",
+			leadName: "Nordic Bank Group Core Modernization",
+			companyName: "Nordic Bank Group ASA",
+			dealValue: 145000,
+			marginPct: 25,
+			registrationStatus: "APPROVED_PROTECTED",
+			exclusivityExpiry: "2026-12-15 (71 days remaining)",
+			certifiedIntegrator: true,
+		},
+		{
+			id: "PRM-2026-102",
+			partnerName: "Deloitte Digital Transformation",
+			partnerTier: "PLATINUM",
+			leadName: "Emirates Retail Omni-Channel CRM",
+			companyName: "Emirates Holding PJSC",
+			dealValue: 220000,
+			marginPct: 25,
+			registrationStatus: "APPROVED_PROTECTED",
+			exclusivityExpiry: "2026-11-28 (54 days remaining)",
+			certifiedIntegrator: true,
+		},
+		{
+			id: "PRM-2026-103",
+			partnerName: "Cognizant Technology Solutions",
+			partnerTier: "GOLD",
+			leadName: "FinTech Payments Core Migration",
+			companyName: "Apex FinTech Labs",
+			dealValue: 85000,
+			marginPct: 20,
+			registrationStatus: "UNDER_REVIEW",
+			exclusivityExpiry: "Pending Verification",
+			certifiedIntegrator: true,
+		},
+		{
+			id: "PRM-2026-104",
+			partnerName: "Apex Cloud Advisory",
+			partnerTier: "AUTHORIZED_RESELLER",
+			leadName: "Mid-Market Hospitality PMS",
+			companyName: "Grand Luxe Hotels Ltd",
+			dealValue: 38000,
+			marginPct: 15,
+			registrationStatus: "APPROVED_PROTECTED",
+			exclusivityExpiry: "2026-12-30 (86 days remaining)",
+			certifiedIntegrator: false,
+		},
+	]);
+	const [registerPartnerModalOpen, setRegisterPartnerModalOpen] = useState(false);
+	const [newPartnerName, setNewPartnerName] = useState("");
+	const [newPartnerTier, setNewPartnerTier] = useState<PartnerTier>("GOLD");
+	const [newPartnerClient, setNewPartnerClient] = useState("");
+	const [newPartnerDealVal, setNewPartnerDealVal] = useState<number>(50000);
+	const [newPartnerMargin, setNewPartnerMargin] = useState<number>(20);
+
+	// 4. Global Territory & Datacenter Node Map State
+	const [datacenterNodes, setDatacenterNodes] = useState<DatacenterNode[]>([
+		{
+			regionId: "us-east-1",
+			regionName: "Americas Primary (US East)",
+			datacenterCity: "Ashburn, VA (United States)",
+			latencyMs: 24,
+			complianceFrameworks: ["SOC2 Type II", "HIPAA", "CCPA", "ISO 27001"],
+			regionalArr: 420000,
+			status: "OPERATIONAL",
+		},
+		{
+			regionId: "eu-central-1",
+			regionName: "EMEA Sovereign (EU Central)",
+			datacenterCity: "Frankfurt (Germany)",
+			latencyMs: 31,
+			complianceFrameworks: ["EU GDPR", "BSI C5", "ISO 27001", "SOC2 Type II"],
+			regionalArr: 315000,
+			status: "OPERATIONAL",
+		},
+		{
+			regionId: "ap-south-1",
+			regionName: "APAC South Core",
+			datacenterCity: "Mumbai (India)",
+			latencyMs: 18,
+			complianceFrameworks: ["DPDP Act 2023", "RBI Guidelines", "ISO 27001", "SOC2 Type II"],
+			regionalArr: 195000,
+			status: "OPERATIONAL",
+		},
+		{
+			regionId: "me-central-1",
+			regionName: "MENA Enterprise Hub",
+			datacenterCity: "Dubai DIFC (United Arab Emirates)",
+			latencyMs: 26,
+			complianceFrameworks: ["DIFC Data Protection Law", "UAE PDPL", "ISO 27001"],
+			regionalArr: 140000,
+			status: "OPERATIONAL",
+		},
+		{
+			regionId: "ap-northeast-1",
+			regionName: "APAC North Hub",
+			datacenterCity: "Tokyo (Japan)",
+			latencyMs: 39,
+			complianceFrameworks: ["APPI Compliance", "FISC Guidelines", "ISO 27001"],
+			regionalArr: 110000,
+			status: "REPLICATING",
+		},
+	]);
+	const [selectedNodeRegion, setSelectedNodeRegion] = useState<string>("us-east-1");
 
 	// Import Wizard State
 	const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -1783,6 +2020,48 @@ export default function CrmPage() {
 		}, 300);
 	};
 
+	const handleRegisterPartnerDeal = (e: FormEvent) => {
+		e.preventDefault();
+		if (!newPartnerName.trim() || !newPartnerClient.trim()) return;
+		const newRegistration: PartnerDealRegistration = {
+			id: `PRM-2026-${Math.floor(100 + Math.random() * 900)}`,
+			partnerName: newPartnerName.trim(),
+			partnerTier: newPartnerTier,
+			leadName: `${newPartnerClient.trim()} Expansion`,
+			companyName: newPartnerClient.trim(),
+			dealValue: Number(newPartnerDealVal) || 50000,
+			marginPct: Number(newPartnerMargin) || 20,
+			registrationStatus: "APPROVED_PROTECTED",
+			exclusivityExpiry: "90 Days Active Exclusivity Lock",
+			certifiedIntegrator: true,
+		};
+		setPartnerDeals((prev) => [newRegistration, ...prev]);
+		setRegisterPartnerModalOpen(false);
+		setNewPartnerName("");
+		setNewPartnerClient("");
+		setNotice(`Partner deal registered & protected under 90-day anti-conflict lock for ${newRegistration.partnerName}.`);
+	};
+
+	const handleToggleCommissionPayroll = (repId: string) => {
+		setCommissionReps((prev) =>
+			prev.map((rep) => {
+				if (rep.id === repId) {
+					const nextStatus = rep.status === "APPROVED_FOR_PAYROLL" ? "PENDING_RECONCILIATION" : "APPROVED_FOR_PAYROLL";
+					return { ...rep, status: nextStatus };
+				}
+				return rep;
+			})
+		);
+		setNotice("Commission record payroll status updated.");
+	};
+
+	const handleApprovePartnerDeal = (dealId: string) => {
+		setPartnerDeals((prev) =>
+			prev.map((d) => (d.id === dealId ? { ...d, registrationStatus: "APPROVED_PROTECTED", exclusivityExpiry: "90 Days Active Exclusivity Lock" } : d))
+		);
+		setNotice("Partner deal exclusivity lock approved for 90 days.");
+	};
+
 	const tabButtonClass = (tab: SuiteTab) =>
 		`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition ${
 			activeTab === tab
@@ -2060,6 +2339,10 @@ export default function CrmPage() {
 						<Workflow className="h-3.5 w-3.5" />
 						Sales Cadences
 					</button>
+					<button type="button" onClick={() => setActiveTab("partners")} className={tabButtonClass("partners")}>
+						<Handshake className="h-3.5 w-3.5" />
+						Partner Ecosystem (PRM)
+					</button>
 					<button type="button" onClick={() => setActiveTab("service")} className={tabButtonClass("service")}>
 						<Headphones className="h-3.5 w-3.5" />
 						Mission-Critical SLA
@@ -2247,6 +2530,21 @@ export default function CrmPage() {
 							</div>
 
 							<div
+								onClick={() => setActiveTab("partners")}
+								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-4 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
+							>
+								<div className="flex items-center gap-3">
+									<span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#6678c1] text-white shrink-0">
+										<Handshake className="h-4 w-4" />
+									</span>
+									<div>
+										<h4 className="font-bold text-[#404d85] text-xs">Partner Ecosystem</h4>
+										<p className="text-[11px] text-[#5b6472]">PRM deal protection & 90d locks.</p>
+									</div>
+								</div>
+							</div>
+
+							<div
 								onClick={() => setActiveTab("customer360")}
 								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-4 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
 							>
@@ -2394,6 +2692,109 @@ export default function CrmPage() {
 									</div>
 								</div>
 							</div>
+						</div>
+
+						{/* GLOBAL TERRITORY & DATACENTER NODE MAP CONSOLE */}
+						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm space-y-4">
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#d9e2ef] pb-4 gap-3">
+								<div>
+									<div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6678c1] uppercase tracking-wider">
+										<Radio className="h-4 w-4" />
+										Global Multi-Region Telemetry & Data Residency
+									</div>
+									<h4 className="font-bold text-[#404d85] text-lg mt-0.5">Active Enterprise Datacenter Nodes & Sovereign Tenancy</h4>
+									<p className="text-xs text-[#5b6472]">Sub-50ms active-active data replication with strict jurisdictional data privacy isolation.</p>
+								</div>
+								<div className="flex items-center gap-2">
+									<span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
+										<span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+										5 Regions Active (99.999% SLA)
+									</span>
+								</div>
+							</div>
+
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
+								{datacenterNodes.map((node) => {
+									const isSelected = selectedNodeRegion === node.regionId;
+									return (
+										<div
+											key={node.regionId}
+											onClick={() => setSelectedNodeRegion(node.regionId)}
+											className={`rounded-xl border p-4 cursor-pointer transition flex flex-col justify-between ${
+												isSelected
+													? "border-[#404d85] bg-[#f8faff] shadow-sm ring-2 ring-[#6678c1]/20"
+													: "border-[#d9e2ef] bg-white hover:border-[#6678c1]"
+											}`}
+										>
+											<div className="space-y-2">
+												<div className="flex items-center justify-between">
+													<span className="text-[10px] font-bold text-[#6678c1] uppercase">{node.regionId}</span>
+													<span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${
+														node.status === "OPERATIONAL" ? "bg-emerald-100 text-emerald-800" : "bg-blue-100 text-blue-800"
+													}`}>
+														{node.status}
+													</span>
+												</div>
+												<h5 className="font-bold text-xs text-[#1f2430]">{node.datacenterCity}</h5>
+												<p className="text-[11px] text-[#5b6472]">{node.regionName}</p>
+											</div>
+
+											<div className="mt-3 pt-3 border-t border-[#d9e2ef] space-y-1.5">
+												<div className="flex items-center justify-between text-[11px]">
+													<span className="text-[#5b6472] flex items-center gap-1">
+														<Signal className="h-3 w-3 text-[#6678c1]" /> Latency
+													</span>
+													<span className="font-bold text-emerald-700">{node.latencyMs} ms</span>
+												</div>
+												<div className="flex items-center justify-between text-[11px]">
+													<span className="text-[#5b6472]">Regional ARR</span>
+													<span className="font-bold text-[#404d85]">{formatMoney(node.regionalArr)}</span>
+												</div>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+
+							{/* Selected Datacenter Node Compliance & Telemetry Details */}
+							{(() => {
+								const currentNode = datacenterNodes.find((n) => n.regionId === selectedNodeRegion) || datacenterNodes[0];
+								return (
+									<div className="rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+										<div>
+											<div className="flex items-center gap-2">
+												<Compass className="h-4 w-4 text-[#404d85]" />
+												<h5 className="text-xs font-bold text-[#404d85]">
+													Active Node: {currentNode.regionName} ({currentNode.datacenterCity})
+												</h5>
+											</div>
+											<p className="text-[11px] text-[#5b6472] mt-1">
+												Certified compliance coverage & legal data residency guarantees:
+											</p>
+											<div className="mt-2 flex flex-wrap gap-1.5">
+												{currentNode.complianceFrameworks.map((fw) => (
+													<span key={fw} className="rounded-md bg-white border border-[#d9e2ef] px-2 py-0.5 text-[10px] font-bold text-[#404d85]">
+														{fw}
+													</span>
+												))}
+											</div>
+										</div>
+										<div className="flex items-center gap-3 shrink-0">
+											<div className="text-right">
+												<p className="text-[10px] uppercase font-bold text-[#5b6472]">Sovereign Backup</p>
+												<p className="text-xs font-bold text-emerald-700">Encrypted Hot-Standby</p>
+											</div>
+											<button
+												type="button"
+												onClick={() => setNotice(`Re-pinged ${currentNode.datacenterCity} node: latency verified at ${currentNode.latencyMs}ms.`)}
+												className="rounded-xl border border-[#d9e2ef] bg-white px-3 py-1.5 text-xs font-bold text-[#404d85] hover:bg-[#eef2fa] transition"
+											>
+												Ping Node
+											</button>
+										</div>
+									</div>
+								);
+							})()}
 						</div>
 					</div>
 				)}
@@ -2967,6 +3368,34 @@ export default function CrmPage() {
 																			{deal.probability}% win
 																		</span>
 																	</div>
+
+																	{/* Predictive AI Health & Risk Analyzer Badge */}
+																	{(() => {
+																		const health = dealHealthMap[deal.id] || {
+																			dealId: deal.id,
+																			riskLevel: (deal.probability || 50) >= 70 ? "LOW" : (deal.probability || 50) >= 40 ? "MEDIUM" : "HIGH",
+																			healthScore: deal.probability || 65,
+																			primaryRiskFactor: (deal.probability || 50) < 40 ? "Cadence idle >10d" : "Normal velocity",
+																			daysInactive: (deal.probability || 50) < 40 ? 12 : 3,
+																			competitorPresence: null,
+																			recommendedAction: (deal.probability || 50) < 40 ? "Trigger executive alignment call" : "Proceed with proposal",
+																		};
+																		const riskStyles = {
+																			LOW: "bg-emerald-50 text-emerald-700 border-emerald-200",
+																			MEDIUM: "bg-amber-50 text-amber-700 border-amber-200",
+																			HIGH: "bg-rose-50 text-rose-700 border-rose-200",
+																			CRITICAL: "bg-purple-50 text-purple-700 border-purple-200",
+																		};
+																		return (
+																			<div className={`rounded-lg border px-2 py-1 text-[10px] flex items-center justify-between ${riskStyles[health.riskLevel as keyof typeof riskStyles]}`}>
+																				<span className="flex items-center gap-1 font-bold">
+																					<ShieldAlert className="h-3 w-3" />
+																					{health.riskLevel} Risk ({health.healthScore}/100)
+																				</span>
+																				<span className="text-[9px] opacity-75">{health.daysInactive}d idle</span>
+																			</div>
+																		);
+																	})()}
 
 																	<div className="flex items-center justify-between text-[10px] text-[#5b6472] border-t border-[#f0f4f9] pt-2">
 																		<span className="flex items-center gap-1">
@@ -3564,6 +3993,239 @@ export default function CrmPage() {
 					</div>
 				)}
 
+				{/* TAB: PARTNER & CHANNEL RESELLER MANAGEMENT (PRM) */}
+				{activeTab === "partners" && (
+					<div className="space-y-6">
+						{/* Top PRM Executive Header */}
+						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#d9e2ef] pb-4 gap-4">
+								<div>
+									<div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6678c1] uppercase tracking-wider">
+										<Handshake className="h-4 w-4" />
+										Global Alliances & Channel Ecosystem
+									</div>
+									<h3 className="text-xl font-bold text-[#404d85] mt-1">Partner Relationship Management (PRM)</h3>
+									<p className="text-xs text-[#5b6472] mt-0.5">
+										Enterprise deal registration protection, 90-day anti-conflict exclusivity locks, and co-selling margin governance.
+									</p>
+								</div>
+
+								<div className="flex items-center gap-2">
+									<button
+										type="button"
+										onClick={() => setRegisterPartnerModalOpen(true)}
+										className="flex items-center gap-1.5 rounded-xl bg-[#404d85] px-4 py-2 text-xs font-bold text-white hover:bg-[#323d6b] transition shadow-xs"
+									>
+										<Plus className="h-3.5 w-3.5" />
+										Register Partner Deal
+									</button>
+								</div>
+							</div>
+
+							{/* PRM KPI Metric Summary Cards */}
+							<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+								<div className="rounded-2xl border border-[#d9e2ef] bg-[#f8faff] p-4">
+									<div className="flex items-center justify-between">
+										<span className="text-xs font-bold text-[#5b6472]">Partner Pipeline Value</span>
+										<span className="rounded-full bg-[#6678c1]/10 p-1.5 text-[#6678c1]">
+											<DollarSign className="h-4 w-4" />
+										</span>
+									</div>
+									<div className="mt-2 text-xl font-extrabold text-[#404d85]">
+										{formatMoney(partnerDeals.reduce((sum, d) => sum + d.dealValue, 0))}
+									</div>
+									<p className="text-[11px] text-[#5b6472] mt-0.5">Across {partnerDeals.length} active registered opportunities</p>
+								</div>
+
+								<div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
+									<div className="flex items-center justify-between">
+										<span className="text-xs font-bold text-emerald-800">90-Day Exclusivity Locks</span>
+										<span className="rounded-full bg-emerald-100 p-1.5 text-emerald-700">
+											<ShieldCheck className="h-4 w-4" />
+										</span>
+									</div>
+									<div className="mt-2 text-xl font-extrabold text-emerald-900">
+										{partnerDeals.filter((d) => d.registrationStatus === "APPROVED_PROTECTED").length} Protected
+									</div>
+									<p className="text-[11px] text-emerald-700 mt-0.5">Zero direct-sales channel conflict</p>
+								</div>
+
+								<div className="rounded-2xl border border-[#d9e2ef] bg-[#f8faff] p-4">
+									<div className="flex items-center justify-between">
+										<span className="text-xs font-bold text-[#5b6472]">Certified GSI Integrators</span>
+										<span className="rounded-full bg-[#6678c1]/10 p-1.5 text-[#6678c1]">
+											<Award className="h-4 w-4" />
+										</span>
+									</div>
+									<div className="mt-2 text-xl font-extrabold text-[#1f2430]">
+										{partnerDeals.filter((d) => d.certifiedIntegrator).length} Enterprise Partners
+									</div>
+									<p className="text-[11px] text-[#5b6472] mt-0.5">Accredited solution implementation architects</p>
+								</div>
+
+								<div className="rounded-2xl border border-[#d9e2ef] bg-[#f8faff] p-4">
+									<div className="flex items-center justify-between">
+										<span className="text-xs font-bold text-[#5b6472]">Blended Partner Margin</span>
+										<span className="rounded-full bg-[#6678c1]/10 p-1.5 text-[#6678c1]">
+											<Percent className="h-4 w-4" />
+										</span>
+									</div>
+									<div className="mt-2 text-xl font-extrabold text-[#404d85]">
+										{Math.round(partnerDeals.reduce((sum, d) => sum + d.marginPct, 0) / (partnerDeals.length || 1))}%
+									</div>
+									<p className="text-[11px] text-[#5b6472] mt-0.5">Average channel reseller discount margin</p>
+								</div>
+							</div>
+						</div>
+
+						{/* Exclusivity Policy Callout */}
+						<div className="rounded-2xl border border-[#6678c1]/30 bg-gradient-to-r from-[#f8faff] to-[#eef2fa] p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+							<div className="space-y-1">
+								<div className="flex items-center gap-2">
+									<ShieldAlert className="h-4 w-4 text-[#404d85]" />
+									<h4 className="font-bold text-[#404d85] text-sm">Cambliss 90-Day Anti-Conflict Deal Protection Policy</h4>
+								</div>
+								<p className="text-xs text-[#5b6472]">
+									Once a partner deal registration is approved, direct Cambliss enterprise sales representatives and other channel resellers are locked out of the registered account opportunity for 90 calendar days.
+								</p>
+							</div>
+							<div className="flex items-center gap-2 shrink-0">
+								<span className="rounded-lg bg-white border border-[#d9e2ef] px-3 py-1.5 text-xs font-bold text-[#404d85] shadow-2xs">
+									Automated Deal Desk SLA: &le; 24h
+								</span>
+							</div>
+						</div>
+
+						{/* Registered Partner Deals Table */}
+						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm space-y-4">
+							<div className="flex items-center justify-between border-b border-[#d9e2ef] pb-4">
+								<div>
+									<h4 className="font-bold text-[#404d85] text-base">Registered Partner Pipeline & Exclusivity Ledger</h4>
+									<p className="text-xs text-[#5b6472]">Multi-currency deal values with automated partner margin distribution ({selectedCurrency}).</p>
+								</div>
+							</div>
+
+							<div className="overflow-x-auto">
+								<table className="w-full text-left text-xs">
+									<thead className="bg-[#f8faff] border-b border-[#d9e2ef] text-[#404d85] font-bold">
+										<tr>
+											<th className="px-4 py-3">Partner Entity</th>
+											<th className="px-4 py-3">Partner Tier</th>
+											<th className="px-4 py-3">End-Customer Account & Lead</th>
+											<th className="px-4 py-3">Deal Value</th>
+											<th className="px-4 py-3">Partner Margin</th>
+											<th className="px-4 py-3">Exclusivity Protection</th>
+											<th className="px-4 py-3">Registration Status</th>
+											<th className="px-4 py-3 text-right">Deal Desk</th>
+										</tr>
+									</thead>
+									<tbody className="divide-y divide-[#d9e2ef]">
+										{partnerDeals.map((deal) => {
+											const partnerTierStyle = {
+												PLATINUM: "bg-[#404d85] text-white",
+												GOLD: "bg-[#6678c1] text-white",
+												AUTHORIZED_RESELLER: "border border-[#d9e2ef] bg-white text-[#404d85]",
+											}[deal.partnerTier];
+
+											const statusBadge = {
+												APPROVED_PROTECTED: "bg-emerald-100 text-emerald-800 border-emerald-200",
+												UNDER_REVIEW: "bg-amber-100 text-amber-800 border-amber-200",
+												REJECTED: "bg-rose-100 text-rose-800 border-rose-200",
+											}[deal.registrationStatus];
+
+											const partnerMarginAmt = (deal.dealValue * deal.marginPct) / 100;
+
+											return (
+												<tr key={deal.id} className="hover:bg-[#f8faff] transition">
+													<td className="px-4 py-3">
+														<p className="font-bold text-[#1f2430]">{deal.partnerName}</p>
+														<p className="text-[11px] text-[#5b6472]">
+															{deal.certifiedIntegrator ? "Certified Systems Integrator" : "Authorized Channel Member"}
+														</p>
+													</td>
+													<td className="px-4 py-3">
+														<span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${partnerTierStyle}`}>
+															{deal.partnerTier.replace("_", " ")}
+														</span>
+													</td>
+													<td className="px-4 py-3">
+														<p className="font-bold text-[#1f2430]">{deal.companyName}</p>
+														<p className="text-[11px] text-[#5b6472]">{deal.leadName}</p>
+													</td>
+													<td className="px-4 py-3 font-bold text-[#404d85]">
+														{formatMoney(deal.dealValue)}
+													</td>
+													<td className="px-4 py-3">
+														<span className="font-bold text-[#1f2430]">{deal.marginPct}%</span>
+														<p className="text-[11px] text-emerald-700 font-semibold">{formatMoney(partnerMarginAmt)} share</p>
+													</td>
+													<td className="px-4 py-3">
+														<span className="text-[11px] text-[#5b6472] font-medium">{deal.exclusivityExpiry}</span>
+													</td>
+													<td className="px-4 py-3">
+														<span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${statusBadge}`}>
+															<ShieldCheck className="h-3 w-3" />
+															{deal.registrationStatus.replace("_", " ")}
+														</span>
+													</td>
+													<td className="px-4 py-3 text-right">
+														{deal.registrationStatus === "UNDER_REVIEW" ? (
+															<button
+																type="button"
+																onClick={() => handleApprovePartnerDeal(deal.id)}
+																className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition shadow-xs"
+															>
+																Approve 90d Lock
+															</button>
+														) : (
+															<span className="text-[11px] text-emerald-700 font-bold">Lock Active</span>
+														)}
+													</td>
+												</tr>
+											);
+										})}
+									</tbody>
+								</table>
+							</div>
+						</div>
+
+						{/* Tiered Margin Schedule Reference */}
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+							<div className="rounded-2xl border border-[#404d85] bg-gradient-to-br from-[#404d85] to-[#323d6b] p-5 text-white shadow-sm space-y-3">
+								<div className="flex items-center justify-between">
+									<h5 className="font-bold text-sm">Platinum GSI Alliance</h5>
+									<span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-extrabold">25% Margin</span>
+								</div>
+								<p className="text-xs text-white/80">
+									For global tier-1 consulting firms (Accenture, Deloitte, PwC). Includes dedicated Partner Architect and joint RFP war room.
+								</p>
+							</div>
+
+							<div className="rounded-2xl border border-[#6678c1] bg-gradient-to-br from-[#6678c1] to-[#5567b0] p-5 text-white shadow-sm space-y-3">
+								<div className="flex items-center justify-between">
+									<h5 className="font-bold text-sm">Gold Strategic Reseller</h5>
+									<span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-extrabold">20% Margin</span>
+								</div>
+								<p className="text-xs text-white/80">
+									For regional systems integrators and boutique consultancies with certified Cambliss deployment architects.
+								</p>
+							</div>
+
+							<div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm space-y-3">
+								<div className="flex items-center justify-between">
+									<h5 className="font-bold text-sm text-[#404d85]">Authorized Reseller</h5>
+									<span className="rounded-full bg-[#f8faff] border border-[#d9e2ef] px-2.5 py-0.5 text-xs font-extrabold text-[#404d85]">
+										15% Margin
+									</span>
+								</div>
+								<p className="text-xs text-[#5b6472]">
+									Standard entry tier for cloud advisory firms, referral brokers, and value-added resellers.
+								</p>
+							</div>
+						</div>
+					</div>
+				)}
+
 				{/* TAB 5: MISSION-CRITICAL SERVICE & SUPPORT SLA ENGINE */}
 				{activeTab === "service" && (
 					<div className="space-y-6">
@@ -3658,63 +4320,282 @@ export default function CrmPage() {
 				{/* TAB 6: FISCAL QUOTA & REVOPS */}
 				{activeTab === "revenue" && (
 					<div className="space-y-6">
-						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-							{/* Quota Attainment Dashboard */}
-							<div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm space-y-4">
-								<h4 className="font-bold text-[#404d85] text-base">FY26 Fiscal Quota Attainment</h4>
-								<div className="space-y-2">
-									<div className="flex justify-between text-xs font-bold text-[#1f2430]">
-										<span>Quarterly Quota Target:</span>
-										<span>{formatMoney(500000)}</span>
-									</div>
-									<div className="w-full bg-[#eef2fa] h-3 rounded-full overflow-hidden">
-										<div className="bg-[#6678c1] h-full rounded-full" style={{ width: "78%" }} />
-									</div>
-									<div className="flex justify-between text-[11px] text-[#5b6472]">
-										<span>Attained: {formatMoney(dashboard?.wonDealsValue ?? 0)} (78%)</span>
-										<span>Remaining to Commit: {formatMoney(110000)}</span>
-									</div>
+						{/* Sub-view Switcher Bar */}
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#d9e2ef] pb-4 gap-3">
+							<div>
+								<div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6678c1] uppercase tracking-wider">
+									<Trophy className="h-4 w-4" />
+									Fiscal Operations & Compensation Cloud
 								</div>
-
-								<div className="grid grid-cols-3 gap-3 pt-3 border-t border-[#d9e2ef] text-center">
-									<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
-										<p className="text-[10px] font-bold uppercase text-[#5b6472]">Closed Won</p>
-										<p className="text-sm font-bold text-[#404d85] mt-1">{formatMoney(dashboard?.wonDealsValue ?? 0)}</p>
-									</div>
-									<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
-										<p className="text-[10px] font-bold uppercase text-[#5b6472]">Commit (80%+)</p>
-										<p className="text-sm font-bold text-[#6678c1] mt-1">{formatMoney(145000)}</p>
-									</div>
-									<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
-										<p className="text-[10px] font-bold uppercase text-[#5b6472]">Best Case</p>
-										<p className="text-sm font-bold text-amber-700 mt-1">{formatMoney(95000)}</p>
-									</div>
-								</div>
+								<h3 className="text-xl font-bold text-[#404d85] mt-1">Enterprise Revenue & Incentive Compensation</h3>
 							</div>
 
-							{/* Global Territory Distribution */}
-							<div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm space-y-4">
-								<h4 className="font-bold text-[#404d85] text-base">Global Territory Quota Breakdown</h4>
-								<div className="space-y-3">
-									{[
-										{ region: "North America (US & CA)", target: 250000, actual: 210000, pct: "84%" },
-										{ region: "EMEA (UK, DE, FR, UAE)", target: 150000, actual: 125000, pct: "83%" },
-										{ region: "APAC & SAARC (IN, SG, JP, AU)", target: 100000, actual: 78000, pct: "78%" },
-									].map((territory) => (
-										<div key={territory.region} className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
-											<div className="flex justify-between text-xs font-bold text-[#1f2430]">
-												<span>{territory.region}</span>
-												<span>{territory.pct} Attained</span>
-											</div>
-											<div className="mt-1 text-[11px] text-[#5b6472] flex justify-between">
-												<span>Actual: {formatMoney(territory.actual)}</span>
-												<span>Target: {formatMoney(territory.target)}</span>
-											</div>
-										</div>
-									))}
-								</div>
+							<div className="flex items-center rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-1">
+								<button
+									type="button"
+									onClick={() => setCommissionSubView("metrics")}
+									className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+										commissionSubView === "metrics"
+											? "bg-[#404d85] text-white shadow-xs"
+											: "text-[#5b6472] hover:text-[#404d85]"
+									}`}
+								>
+									ARR & Territory Quotas
+								</button>
+								<button
+									type="button"
+									onClick={() => setCommissionSubView("icm_commissions")}
+									className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
+										commissionSubView === "icm_commissions"
+											? "bg-[#404d85] text-white shadow-xs"
+											: "text-[#5b6472] hover:text-[#404d85]"
+									}`}
+								>
+									<Percent className="h-3.5 w-3.5" />
+									Incentive Compensation (ICM)
+								</button>
 							</div>
 						</div>
+
+						{commissionSubView === "metrics" ? (
+							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+								{/* Quota Attainment Dashboard */}
+								<div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm space-y-4">
+									<h4 className="font-bold text-[#404d85] text-base">FY26 Fiscal Quota Attainment</h4>
+									<div className="space-y-2">
+										<div className="flex justify-between text-xs font-bold text-[#1f2430]">
+											<span>Quarterly Quota Target:</span>
+											<span>{formatMoney(500000)}</span>
+										</div>
+										<div className="w-full bg-[#eef2fa] h-3 rounded-full overflow-hidden">
+											<div className="bg-[#6678c1] h-full rounded-full" style={{ width: "78%" }} />
+										</div>
+										<div className="flex justify-between text-[11px] text-[#5b6472]">
+											<span>Attained: {formatMoney(dashboard?.wonDealsValue ?? 0)} (78%)</span>
+											<span>Remaining to Commit: {formatMoney(110000)}</span>
+										</div>
+									</div>
+
+									<div className="grid grid-cols-3 gap-3 pt-3 border-t border-[#d9e2ef] text-center">
+										<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
+											<p className="text-[10px] font-bold uppercase text-[#5b6472]">Closed Won</p>
+											<p className="text-sm font-bold text-[#404d85] mt-1">{formatMoney(dashboard?.wonDealsValue ?? 0)}</p>
+										</div>
+										<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
+											<p className="text-[10px] font-bold uppercase text-[#5b6472]">Commit (80%+)</p>
+											<p className="text-sm font-bold text-[#6678c1] mt-1">{formatMoney(145000)}</p>
+										</div>
+										<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
+											<p className="text-[10px] font-bold uppercase text-[#5b6472]">Best Case</p>
+											<p className="text-sm font-bold text-amber-700 mt-1">{formatMoney(95000)}</p>
+										</div>
+									</div>
+								</div>
+
+								{/* Global Territory Distribution */}
+								<div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm space-y-4">
+									<h4 className="font-bold text-[#404d85] text-base">Global Territory Quota Breakdown</h4>
+									<div className="space-y-3">
+										{[
+											{ region: "North America (US & CA)", target: 250000, actual: 210000, pct: "84%" },
+											{ region: "EMEA (UK, DE, FR, UAE)", target: 150000, actual: 125000, pct: "83%" },
+											{ region: "APAC & SAARC (IN, SG, JP, AU)", target: 100000, actual: 78000, pct: "78%" },
+										].map((territory) => (
+											<div key={territory.region} className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
+												<div className="flex justify-between text-xs font-bold text-[#1f2430]">
+													<span>{territory.region}</span>
+													<span>{territory.pct} Attained</span>
+												</div>
+												<div className="mt-1 text-[11px] text-[#5b6472] flex justify-between">
+													<span>Actual: {formatMoney(territory.actual)}</span>
+													<span>Target: {formatMoney(territory.target)}</span>
+												</div>
+											</div>
+										))}
+									</div>
+								</div>
+							</div>
+						) : (
+							/* INCENTIVE COMPENSATION MANAGEMENT (ICM) SUB-VIEW */
+							<div className="space-y-6">
+								{/* ICM Executive KPI Cards */}
+								<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+									<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm">
+										<div className="flex items-center justify-between">
+											<span className="text-xs font-bold text-[#5b6472]">Total Commission Accrued</span>
+											<span className="rounded-full bg-[#6678c1]/10 p-1.5 text-[#6678c1]">
+												<DollarSign className="h-4 w-4" />
+											</span>
+										</div>
+										<div className="mt-2 text-xl font-extrabold text-[#404d85]">
+											{formatMoney(commissionReps.reduce((sum, r) => sum + r.totalPayout, 0))}
+										</div>
+										<p className="text-[11px] text-[#5b6472] mt-0.5">Calculated across 3 enterprise reps</p>
+									</div>
+
+									<div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 shadow-sm">
+										<div className="flex items-center justify-between">
+											<span className="text-xs font-bold text-emerald-800">Accelerator Over-Achievement</span>
+											<span className="rounded-full bg-emerald-100 p-1.5 text-emerald-700">
+												<Trophy className="h-4 w-4" />
+											</span>
+										</div>
+										<div className="mt-2 text-xl font-extrabold text-emerald-900">
+											{formatMoney(commissionReps.reduce((sum, r) => sum + r.acceleratorCommission, 0))}
+										</div>
+										<p className="text-[11px] text-emerald-700 mt-0.5">14% tier bonus on &gt;100% quota</p>
+									</div>
+
+									<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm">
+										<div className="flex items-center justify-between">
+											<span className="text-xs font-bold text-[#5b6472]">Presidents Club Qualified</span>
+											<span className="rounded-full bg-amber-50 p-1.5 text-amber-600">
+												<Award className="h-4 w-4" />
+											</span>
+										</div>
+										<div className="mt-2 text-xl font-extrabold text-[#1f2430]">
+											{commissionReps.filter((r) => r.attainmentPct >= 100).length} / {commissionReps.length} Reps
+										</div>
+										<p className="text-[11px] text-[#5b6472] mt-0.5">Exceeded 100% quarterly commit</p>
+									</div>
+
+									<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm">
+										<div className="flex items-center justify-between">
+											<span className="text-xs font-bold text-[#5b6472]">Payroll Reconciliation</span>
+											<span className="rounded-full bg-emerald-50 p-1.5 text-emerald-600">
+												<CheckCircle2 className="h-4 w-4" />
+											</span>
+										</div>
+										<div className="mt-2 text-xl font-extrabold text-emerald-700">
+											{commissionReps.filter((r) => r.status === "APPROVED_FOR_PAYROLL").length} Approved
+										</div>
+										<p className="text-[11px] text-[#5b6472] mt-0.5">Ready for automated payroll batch</p>
+									</div>
+								</div>
+
+								{/* Commission Accelerator Tier Reference Rule Card */}
+								<div className="rounded-2xl border border-[#6678c1]/30 bg-gradient-to-r from-[#f8faff] to-[#eef2fa] p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+									<div className="space-y-1">
+										<div className="flex items-center gap-2">
+											<Percent className="h-4 w-4 text-[#404d85]" />
+											<h4 className="font-bold text-[#404d85] text-sm">Cambliss Incentive Accelerator Tier Policy (FY26)</h4>
+										</div>
+										<p className="text-xs text-[#5b6472]">
+											Automated marginal commission tiering calculated in real-time from closed-won opportunity velocity.
+										</p>
+									</div>
+									<div className="flex flex-wrap gap-2 text-xs">
+										<span className="rounded-lg bg-white border border-[#d9e2ef] px-3 py-1 text-[#5b6472] font-semibold">
+											&lt;80% Quota: <strong className="text-[#404d85]">8%</strong>
+										</span>
+										<span className="rounded-lg bg-white border border-[#d9e2ef] px-3 py-1 text-[#5b6472] font-semibold">
+											81% - 100% Quota: <strong className="text-[#404d85]">10% Base</strong>
+										</span>
+										<span className="rounded-lg bg-[#6678c1] text-white px-3 py-1 font-bold shadow-xs">
+											&gt;100% Accelerator: <strong>14% Super-Bonus</strong>
+										</span>
+									</div>
+								</div>
+
+								{/* Rep Commission Ledger Table */}
+								<div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm space-y-4">
+									<div className="flex items-center justify-between border-b border-[#d9e2ef] pb-4">
+										<div>
+											<h4 className="font-bold text-[#404d85] text-base">Quarterly Rep Commission & Payout Schedule</h4>
+											<p className="text-xs text-[#5b6472]">Audited payout values converted to active display currency ({selectedCurrency}).</p>
+										</div>
+										<button
+											type="button"
+											onClick={() => setNotice("Exported audited commission payroll batch to CSV/XLSX for finance disbursement.")}
+											className="flex items-center gap-1.5 rounded-xl border border-[#6678c1] bg-[#6678c1] px-4 py-2 text-xs font-bold text-white hover:bg-[#5567b0] transition shadow-xs"
+										>
+											<Download className="h-3.5 w-3.5" />
+											Export Payroll Batch
+										</button>
+									</div>
+
+									<div className="overflow-x-auto">
+										<table className="w-full text-left text-xs">
+											<thead className="bg-[#f8faff] border-b border-[#d9e2ef] text-[#404d85] font-bold">
+												<tr>
+													<th className="px-4 py-3">Account Executive</th>
+													<th className="px-4 py-3">Quarterly Quota</th>
+													<th className="px-4 py-3">Closed Revenue</th>
+													<th className="px-4 py-3">Attainment %</th>
+													<th className="px-4 py-3">Base Commission</th>
+													<th className="px-4 py-3">Accelerator Bonus</th>
+													<th className="px-4 py-3">Total Payout</th>
+													<th className="px-4 py-3">Payroll Status</th>
+													<th className="px-4 py-3 text-right">Approval</th>
+												</tr>
+											</thead>
+											<tbody className="divide-y divide-[#d9e2ef]">
+												{commissionReps.map((rep) => (
+													<tr key={rep.id} className="hover:bg-[#f8faff] transition">
+														<td className="px-4 py-3">
+															<p className="font-bold text-[#1f2430]">{rep.repName}</p>
+															<p className="text-[11px] text-[#5b6472]">{rep.role}</p>
+														</td>
+														<td className="px-4 py-3 font-medium text-[#5b6472]">
+															{formatMoney(rep.quarterlyQuota)}
+														</td>
+														<td className="px-4 py-3 font-bold text-[#1f2430]">
+															{formatMoney(rep.closedRevenue)}
+														</td>
+														<td className="px-4 py-3">
+															<div className="flex items-center gap-2">
+																<div className="w-16 bg-[#eef2fa] h-2 rounded-full overflow-hidden">
+																	<div
+																		className={`h-full rounded-full ${
+																			rep.attainmentPct >= 100 ? "bg-emerald-500" : "bg-[#6678c1]"
+																		}`}
+																		style={{ width: `${Math.min(rep.attainmentPct, 100)}%` }}
+																	/>
+																</div>
+																<span className="font-bold text-[11px] text-[#404d85]">{rep.attainmentPct}%</span>
+															</div>
+														</td>
+														<td className="px-4 py-3 text-[#5b6472]">
+															{formatMoney(rep.baseCommission)}
+														</td>
+														<td className="px-4 py-3 font-semibold text-emerald-700">
+															{rep.acceleratorCommission > 0 ? `+${formatMoney(rep.acceleratorCommission)}` : "—"}
+														</td>
+														<td className="px-4 py-3 font-extrabold text-base text-[#404d85]">
+															{formatMoney(rep.totalPayout)}
+														</td>
+														<td className="px-4 py-3">
+															<span
+																className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+																	rep.status === "APPROVED_FOR_PAYROLL"
+																		? "bg-emerald-100 text-emerald-800"
+																		: "bg-amber-100 text-amber-800"
+																}`}
+															>
+																{rep.status === "APPROVED_FOR_PAYROLL" ? "Approved" : "Under Review"}
+															</span>
+														</td>
+														<td className="px-4 py-3 text-right">
+															<button
+																type="button"
+																onClick={() => handleToggleCommissionPayroll(rep.id)}
+																className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+																	rep.status === "APPROVED_FOR_PAYROLL"
+																		? "border border-[#d9e2ef] bg-white text-[#5b6472] hover:bg-[#eef2fa]"
+																		: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
+																}`}
+															>
+																{rep.status === "APPROVED_FOR_PAYROLL" ? "Revoke" : "Approve"}
+															</button>
+														</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						)}
 					</div>
 				)}
 
@@ -3762,32 +4643,203 @@ export default function CrmPage() {
 
 				{/* TAB 8: INTELLIGENCE & ANALYTICS */}
 				{activeTab === "analytics" && (
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm space-y-3">
-							<h4 className="font-bold text-[#404d85] text-sm">Predictive Deal Velocity Signals</h4>
-							<div className="space-y-2 text-xs">
-								<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
-									<p className="font-bold text-[#1f2430]">High Probability Closes</p>
-									<p className="text-[11px] text-[#5b6472]">3 enterprise deals exceed 80% win probability with active RFP submissions.</p>
+					<div className="space-y-6">
+						{/* Top Velocity & Metric Summary Cards */}
+						<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+							<div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 shadow-sm">
+								<div className="flex items-center justify-between">
+									<span className="text-xs font-bold text-emerald-800">Low Risk • High Velocity</span>
+									<span className="rounded-full bg-emerald-100 p-1.5 text-emerald-700">
+										<ShieldCheck className="h-4 w-4" />
+									</span>
 								</div>
-								<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
-									<p className="font-bold text-[#1f2430]">Contract Stagnation Alert</p>
-									<p className="text-[11px] text-amber-700">Deals in &ldquo;Legal Review&rdquo; averaging 14 days without procurement response.</p>
+								<div className="mt-2 text-xl font-extrabold text-emerald-900">{formatMoney(415000)}</div>
+								<p className="text-[11px] text-emerald-700 mt-0.5">88% projected conversion within Q4</p>
+							</div>
+
+							<div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 shadow-sm">
+								<div className="flex items-center justify-between">
+									<span className="text-xs font-bold text-amber-800">Medium Risk • Review Needed</span>
+									<span className="rounded-full bg-amber-100 p-1.5 text-amber-700">
+										<AlertTriangle className="h-4 w-4" />
+									</span>
 								</div>
+								<div className="mt-2 text-xl font-extrabold text-amber-900">{formatMoney(190000)}</div>
+								<p className="text-[11px] text-amber-700 mt-0.5">Pending legal redlines or SLA review</p>
+							</div>
+
+							<div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-4 shadow-sm">
+								<div className="flex items-center justify-between">
+									<span className="text-xs font-bold text-rose-800">High Risk • Action Required</span>
+									<span className="rounded-full bg-rose-100 p-1.5 text-rose-700">
+										<ShieldAlert className="h-4 w-4" />
+									</span>
+								</div>
+								<div className="mt-2 text-xl font-extrabold text-rose-900">{formatMoney(95000)}</div>
+								<p className="text-[11px] text-rose-700 mt-0.5">Inactive &gt;10 days; incumbent vendor discounting</p>
+							</div>
+
+							<div className="rounded-2xl border border-[#d9e2ef] bg-white p-4 shadow-sm">
+								<div className="flex items-center justify-between">
+									<span className="text-xs font-bold text-[#5b6472]">Average Pipeline Health</span>
+									<span className="rounded-full bg-[#6678c1]/10 p-1.5 text-[#6678c1]">
+										<Activity className="h-4 w-4" />
+									</span>
+								</div>
+								<div className="mt-2 text-xl font-extrabold text-[#404d85]">78 / 100</div>
+								<p className="text-[11px] text-[#5b6472] mt-0.5">Healthy weighted probability score</p>
 							</div>
 						</div>
 
-						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm space-y-3">
-							<h4 className="font-bold text-[#404d85] text-sm">Territory Conversion Radar</h4>
-							<div className="grid grid-cols-2 gap-3 text-center">
-								<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
-									<p className="text-[10px] font-bold uppercase text-[#5b6472]">Avg Deal Size</p>
-									<p className="text-base font-bold text-[#404d85] mt-1">{formatMoney(84000)}</p>
+						{/* Predictive Deal Health & AI Risk Analyzer Table */}
+						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm space-y-4">
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#d9e2ef] pb-4 gap-3">
+								<div>
+									<div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6678c1] uppercase tracking-wider">
+										<ShieldAlert className="h-4 w-4" />
+										Predictive Win/Loss Risk Analyzer
+									</div>
+									<h4 className="font-bold text-[#404d85] text-lg mt-0.5">Real-Time Deal Health Scoring & Prescriptive Playbooks</h4>
+									<p className="text-xs text-[#5b6472]">AI-driven churn signals, stakeholder stagnation detection, and competitive threat counters.</p>
 								</div>
-								<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
-									<p className="text-[10px] font-bold uppercase text-[#5b6472]">Pipeline Multiplier</p>
-									<p className="text-base font-bold text-[#6678c1] mt-1">3.8x Quota</p>
+
+								{/* Risk Filter Buttons */}
+								<div className="flex items-center gap-1.5 rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-1">
+									{(["ALL", "LOW", "MEDIUM", "HIGH"] as const).map((lvl) => (
+										<button
+											key={lvl}
+											type="button"
+											onClick={() => setSelectedRiskFilter(lvl)}
+											className={`px-3 py-1 text-xs font-bold rounded-lg transition ${
+												selectedRiskFilter === lvl
+													? "bg-[#404d85] text-white shadow-xs"
+													: "text-[#5b6472] hover:text-[#404d85]"
+											}`}
+										>
+											{lvl}
+										</button>
+									))}
 								</div>
+							</div>
+
+							<div className="overflow-x-auto">
+								<table className="w-full text-left text-xs">
+									<thead className="bg-[#f8faff] border-b border-[#d9e2ef] text-[#404d85] font-bold">
+										<tr>
+											<th className="px-4 py-3">Opportunity & Account</th>
+											<th className="px-4 py-3">Contract Value</th>
+											<th className="px-4 py-3">Health Score</th>
+											<th className="px-4 py-3">Risk Level</th>
+											<th className="px-4 py-3">Identified Risk Factor</th>
+											<th className="px-4 py-3">Prescriptive Action</th>
+											<th className="px-4 py-3 text-right">Intervention</th>
+										</tr>
+									</thead>
+									<tbody className="divide-y divide-[#d9e2ef]">
+										{[
+											{
+												id: "d-101",
+												account: "Acme Global Technologies Inc.",
+												dealName: "Enterprise Core + Multi-Region Cloud Infra",
+												value: 185000,
+												score: 92,
+												level: "LOW" as const,
+												days: 2,
+												riskFactor: "Healthy executive engagement; CTO attending architectural review",
+												action: "Deliver Master Services Agreement (MSA) with pre-approved 10% annual terms.",
+											},
+											{
+												id: "d-102",
+												account: "Apex Financial Geneva",
+												dealName: "Private Wealth Compliance Cloud",
+												value: 240000,
+												score: 41,
+												level: "HIGH" as const,
+												days: 14,
+												riskFactor: "14 days inactive without response; legacy incumbent vendor discounting aggressively",
+												action: "Schedule emergency executive-to-executive alignment call with Cambliss CTO.",
+											},
+											{
+												id: "d-103",
+												account: "Nordic Logistics ASA",
+												dealName: "Fleet Telematics & Billing Modernization",
+												value: 120000,
+												score: 68,
+												level: "MEDIUM" as const,
+												days: 6,
+												riskFactor: "Legal redlines pending on data residency annex (EU GDPR vs US Safe Harbor)",
+												action: "Engage Cambliss Legal Ops to issue pre-approved Frankfurt EU Data Annex.",
+											},
+											{
+												id: "d-104",
+												account: "Sterling & Partners Capital",
+												dealName: "Private Equity Portfolio CRM Unified Migration",
+												value: 95000,
+												score: 75,
+												level: "LOW" as const,
+												days: 3,
+												riskFactor: "Strong sponsor support; waiting on CFO quarterly procurement committee vote",
+												action: "Provide customized ROI calculator demonstrating 38% software licensing cost reduction.",
+											},
+										]
+											.filter((item) => selectedRiskFilter === "ALL" || item.level === selectedRiskFilter)
+											.map((item) => {
+												const riskBadgeClass = {
+													LOW: "bg-emerald-100 text-emerald-800 border-emerald-200",
+													MEDIUM: "bg-amber-100 text-amber-800 border-amber-200",
+													HIGH: "bg-rose-100 text-rose-800 border-rose-200",
+													CRITICAL: "bg-purple-100 text-purple-800 border-purple-200",
+												}[item.level];
+
+												return (
+													<tr key={item.id} className="hover:bg-[#f8faff] transition">
+														<td className="px-4 py-3">
+															<p className="font-bold text-[#1f2430]">{item.account}</p>
+															<p className="text-[11px] text-[#5b6472]">{item.dealName}</p>
+														</td>
+														<td className="px-4 py-3 font-bold text-[#404d85]">
+															{formatMoney(item.value)}
+														</td>
+														<td className="px-4 py-3">
+															<div className="flex items-center gap-2">
+																<div className="w-16 bg-[#eef2fa] h-2 rounded-full overflow-hidden">
+																	<div
+																		className={`h-full rounded-full ${
+																			item.score >= 80 ? "bg-emerald-500" : item.score >= 60 ? "bg-amber-500" : "bg-rose-500"
+																		}`}
+																		style={{ width: `${item.score}%` }}
+																	/>
+																</div>
+																<span className="font-bold text-[11px] text-[#1f2430]">{item.score}/100</span>
+															</div>
+														</td>
+														<td className="px-4 py-3">
+															<span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${riskBadgeClass}`}>
+																<ShieldAlert className="h-3 w-3" />
+																{item.level}
+															</span>
+														</td>
+														<td className="px-4 py-3 max-w-[240px]">
+															<p className="text-[11px] text-[#1f2430]">{item.riskFactor}</p>
+															<p className="text-[10px] text-slate-400 mt-0.5">{item.days} days idle</p>
+														</td>
+														<td className="px-4 py-3 max-w-[280px]">
+															<p className="text-[11px] text-[#404d85] font-semibold">{item.action}</p>
+														</td>
+														<td className="px-4 py-3 text-right">
+															<button
+																type="button"
+																onClick={() => setNotice(`Triggered prescriptive playbook for ${item.account}: "${item.action}".`)}
+																className="rounded-xl border border-[#6678c1] bg-white px-3 py-1.5 text-xs font-bold text-[#6678c1] hover:bg-[#6678c1] hover:text-white transition shadow-2xs"
+															>
+																Execute
+															</button>
+														</td>
+													</tr>
+												);
+											})}
+									</tbody>
+								</table>
 							</div>
 						</div>
 					</div>
@@ -4235,6 +5287,102 @@ export default function CrmPage() {
 								<div className="flex justify-end gap-2 pt-2 border-t border-[#d9e2ef]">
 									<button type="button" onClick={() => setEnrollModalOpen(false)} className="rounded-xl border border-[#d9e2ef] px-3 py-1.5 text-xs font-bold text-[#5b6472]">Cancel</button>
 									<button type="submit" className="rounded-xl bg-[#6678c1] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#5567b0] transition">Enroll in Sequence</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				)}
+
+				{/* REGISTER ENTERPRISE PARTNER DEAL MODAL */}
+				{registerPartnerModalOpen && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1e2540]/60 backdrop-blur-sm p-4">
+						<div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-4 border border-[#d9e2ef]">
+							<div className="flex items-center justify-between border-b border-[#d9e2ef] pb-3">
+								<div>
+									<h3 className="text-base font-bold text-[#404d85]">Register Enterprise Partner Deal</h3>
+									<p className="text-[11px] text-[#5b6472]">Lock account exclusivity for 90 days to prevent channel conflict.</p>
+								</div>
+								<button type="button" onClick={() => setRegisterPartnerModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+							</div>
+
+							<form onSubmit={handleRegisterPartnerDeal} className="space-y-3">
+								<div>
+									<label className="text-xs font-bold text-[#404d85]">Partner Entity / Firm Name</label>
+									<input
+										value={newPartnerName}
+										onChange={(e) => setNewPartnerName(e.target.value)}
+										placeholder="e.g. Accenture Cloud First, Deloitte Digital"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+										required
+									/>
+								</div>
+
+								<div className="grid grid-cols-2 gap-3">
+									<div>
+										<label className="text-xs font-bold text-[#404d85]">Partner Tier</label>
+										<select
+											value={newPartnerTier}
+											onChange={(e) => {
+												const tier = e.target.value as PartnerTier;
+												setNewPartnerTier(tier);
+												if (tier === "PLATINUM") setNewPartnerMargin(25);
+												else if (tier === "GOLD") setNewPartnerMargin(20);
+												else setNewPartnerMargin(15);
+											}}
+											className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+										>
+											<option value="PLATINUM">Platinum GSI (25% Margin)</option>
+											<option value="GOLD">Gold Strategic (20% Margin)</option>
+											<option value="AUTHORIZED_RESELLER">Authorized Reseller (15% Margin)</option>
+										</select>
+									</div>
+
+									<div>
+										<label className="text-xs font-bold text-[#404d85]">Partner Margin Share (%)</label>
+										<input
+											type="number"
+											value={newPartnerMargin}
+											onChange={(e) => setNewPartnerMargin(Number(e.target.value))}
+											className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+											min="5"
+											max="40"
+											required
+										/>
+									</div>
+								</div>
+
+								<div>
+									<label className="text-xs font-bold text-[#404d85]">End-Customer Enterprise Account</label>
+									<input
+										value={newPartnerClient}
+										onChange={(e) => setNewPartnerClient(e.target.value)}
+										placeholder="e.g. Nordic Bank Group, Emirates Holding"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+										required
+									/>
+								</div>
+
+								<div>
+									<label className="text-xs font-bold text-[#404d85]">Estimated Opportunity Value (USD)</label>
+									<input
+										type="number"
+										value={newPartnerDealVal}
+										onChange={(e) => setNewPartnerDealVal(Number(e.target.value))}
+										placeholder="50000"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+										min="1000"
+										step="1000"
+										required
+									/>
+								</div>
+
+								<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef] text-[11px] text-[#5b6472]">
+									<strong>Exclusivity Lock Rule:</strong> Upon submission, deal is submitted to the Deal Desk and locked under a 90-day anti-channel conflict freeze.
+								</div>
+
+								<div className="flex justify-end gap-2 pt-2 border-t border-[#d9e2ef]">
+									<button type="button" onClick={() => setRegisterPartnerModalOpen(false)} className="rounded-xl border border-[#d9e2ef] px-3 py-1.5 text-xs font-bold text-[#5b6472]">Cancel</button>
+									<button type="submit" className="rounded-xl bg-[#404d85] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#323d6b] transition">Submit &amp; Lock Deal (90 Days)</button>
 								</div>
 							</form>
 						</div>
