@@ -215,7 +215,7 @@ const CURRENCIES: Record<SupportedCurrency, { symbol: string; rate: number; labe
 };
 
 // ==========================================
-// 2. ORACLE CPQ PRODUCT CATALOG & LINE ITEMS
+// 2. CAMBLISS CPQ PRODUCT CATALOG & LINE ITEMS
 // ==========================================
 type CpqLineItem = {
 	id: string;
@@ -229,7 +229,7 @@ type CpqLineItem = {
 const ENTERPRISE_CPQ_CATALOG: CpqLineItem[] = [
 	{
 		id: "core_platform",
-		name: "Oracle CX Enterprise Core Platform",
+		name: "Cambliss Enterprise Core Platform",
 		category: "Core Software",
 		unitPrice: 12000,
 		billingPeriod: "MONTHLY",
@@ -1195,7 +1195,7 @@ export default function CrmPage() {
 
 	const downloadSample = () => {
 		const sampleData = {
-			leads: "firstName,lastName,email,phone,companyName,source,status\nJonathan,Vance,jvance@oraclecorp.com,+1-415-555-0192,Oracle Global Inc,Enterprise Direct,QUALIFIED\nElena,Rostova,elena@apexfinancial.ch,+41-22-555-8120,Apex Financial Geneva,Gartner Summit,CONTACTED",
+			leads: "firstName,lastName,email,phone,companyName,source,status\nJonathan,Vance,jvance@enterpriseholding.com,+1-415-555-0192,Enterprise Global Inc,Enterprise Direct,QUALIFIED\nElena,Rostova,elena@apexfinancial.ch,+41-22-555-8120,Apex Financial Geneva,Gartner Summit,CONTACTED",
 			serviceCases: "subject,priority\nSeverity 1: Core API Gateway Intermittent 502,URGENT\nSLA P2: Multi-Region Disaster Recovery Sync Delay,HIGH",
 			campaigns: "name,segment\nFY27 Global Enterprise Cloud Transformation,Email Blast · Fortune 500 CIOs\nQ4 High-Yield Accountech Multi-Tenancy Webinar,Executive Direct · FinTech Founders",
 		};
@@ -1436,7 +1436,7 @@ export default function CrmPage() {
 
 						{importStep === 3 && (
 							<div className="space-y-4">
-								<p className="text-xs text-[#5b6472]">Map CSV headers to Oracle-grade CRM attributes.</p>
+								<p className="text-xs text-[#5b6472]">Map CSV headers to Enterprise CRM attributes.</p>
 								<div className="border border-[#d9e2ef] rounded-xl overflow-hidden max-h-72 overflow-y-auto">
 									<table className="w-full text-left text-xs">
 										<thead className="bg-[#f8faff] border-b border-[#d9e2ef]">
@@ -1509,13 +1509,13 @@ export default function CrmPage() {
 			)}
 
 			<div className="mx-auto max-w-7xl space-y-6 pb-20">
-				{/* TOP HERO BANNER — ORACLE CX ENTERPRISE COMMAND */}
+				{/* TOP HERO BANNER — CAMBLISS ENTERPRISE COMMAND */}
 				<div className="rounded-2xl border border-[#404d85] bg-gradient-to-r from-[#404d85] to-[#6678c1] p-7 text-white shadow-md">
 					<div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
 						<div>
 							<div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white backdrop-blur-sm shadow-sm">
 								<ShieldCheck className="h-3.5 w-3.5 text-white" />
-								Oracle Fusion CX Architecture • Global Multi-Tenancy
+								Cambliss Enterprise CX Architecture • Global Multi-Tenancy
 							</div>
 							<h1 className="mt-3 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
 								International Enterprise CRM & CPQ Suite
@@ -1631,7 +1631,7 @@ export default function CrmPage() {
 					</button>
 					<button type="button" onClick={() => setActiveTab("cpq")} className={tabButtonClass("cpq")}>
 						<Calculator className="h-3.5 w-3.5" />
-						Oracle CPQ Cloud
+						Cambliss CPQ Cloud
 					</button>
 					<button type="button" onClick={() => setActiveTab("service")} className={tabButtonClass("service")}>
 						<Headphones className="h-3.5 w-3.5" />
@@ -1783,7 +1783,7 @@ export default function CrmPage() {
 										<Calculator className="h-5 w-5" />
 									</span>
 									<div>
-										<h4 className="font-bold text-[#404d85]">Oracle CPQ Cloud Engine</h4>
+										<h4 className="font-bold text-[#404d85]">Cambliss CPQ Cloud Engine</h4>
 										<p className="text-xs text-[#5b6472]">Generate multi-tier price quotes with discount approvals.</p>
 									</div>
 								</div>
@@ -1941,7 +1941,7 @@ export default function CrmPage() {
 					</div>
 				)}
 
-				{/* TAB 3: ORACLE CPQ CLOUD (CONFIGURE, PRICE, QUOTE) */}
+				{/* TAB 3: CAMBLISS CPQ CLOUD (CONFIGURE, PRICE, QUOTE) */}
 				{activeTab === "cpq" && (
 					<div className="space-y-6">
 						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
@@ -1949,7 +1949,7 @@ export default function CrmPage() {
 								<div>
 									<div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6678c1] uppercase tracking-wider">
 										<Calculator className="h-4 w-4" />
-										Oracle-Class CPQ Engine • Configure, Price, Quote
+										Enterprise CPQ Engine • Configure, Price, Quote
 									</div>
 									<h3 className="text-xl font-bold text-[#404d85] mt-1">Enterprise Solution Quotation Studio</h3>
 								</div>
@@ -2621,7 +2621,7 @@ export default function CrmPage() {
 								<div>
 									<div className="inline-flex items-center gap-2 rounded-full bg-[#6678c1]/10 px-3 py-1 text-xs font-bold text-[#6678c1]">
 										<Award className="h-3.5 w-3.5" />
-										Official Oracle CPQ Master Proposal
+										Official Cambliss CPQ Master Proposal
 									</div>
 									<h3 className="text-xl font-extrabold text-[#404d85] mt-2">Enterprise Software & Services Quotation</h3>
 									<p className="text-xs text-[#5b6472]">Quote Ref: CPQ-2026-9041 • Valid until {new Date(Date.now() + 30 * 86400000).toLocaleDateString()}</p>
