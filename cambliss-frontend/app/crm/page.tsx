@@ -57,6 +57,12 @@ import {
 	Check,
 	Folder,
 	FileCheck,
+	Columns,
+	LayoutGrid,
+	List,
+	History,
+	ExternalLink,
+	Calendar,
 } from "lucide-react";
 
 type CrmDashboard = {
@@ -117,12 +123,57 @@ type SuiteTab =
 	| "customer360"
 	| "sales"
 	| "cpq"
+	| "contracts"
+	| "cadences"
 	| "service"
 	| "marketing"
 	| "revenue"
 	| "analytics"
 	| "automation"
 	| "governance";
+
+type SavedEnterpriseQuote = {
+	id: string;
+	version: string;
+	accountName: string;
+	contactName: string;
+	totalValue: number;
+	discountPct: number;
+	paymentTerms: string;
+	approvalTier: string;
+	status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "ACCEPTED";
+	createdAt: string;
+	shareToken: string;
+	itemsCount: number;
+};
+
+type CadenceStep = {
+	stepNumber: number;
+	day: number;
+	title: string;
+	channel: "EMAIL" | "CALL" | "DEMO" | "LINKEDIN" | "CONTRACT";
+	description: string;
+};
+
+type CadencePlaybook = {
+	id: string;
+	name: string;
+	targetAudience: string;
+	durationDays: number;
+	steps: CadenceStep[];
+};
+
+type EnrolledProspect = {
+	id: string;
+	prospectName: string;
+	companyName: string;
+	targetPersona: string;
+	cadenceId: string;
+	currentStep: number;
+	lastActionDate: string;
+	nextActionDate: string;
+	status: "ACTIVE" | "COMPLETED" | "PAUSED";
+};
 
 type ServiceCase = {
 	id: string;
@@ -368,6 +419,138 @@ const IMPORT_MODULE_FIELDS = {
 	],
 };
 
+const CADENCE_PLAYBOOKS: CadencePlaybook[] = [
+	{
+		id: "cadence_enterprise_inbound",
+		name: "Global Enterprise C-Suite Inbound Playbook",
+		targetAudience: "Fortune 500 CIOs, CTOs & Chief Procurement Officers",
+		durationDays: 14,
+		steps: [
+			{
+				stepNumber: 1,
+				day: 1,
+				title: "Executive Architecture Whitepaper & Value Prop Intro",
+				channel: "EMAIL",
+				description: "Personalized executive email introducing Cambliss multi-region high-availability architecture and multi-currency capabilities.",
+			},
+			{
+				stepNumber: 2,
+				day: 3,
+				title: "LinkedIn Executive Outreach to Economic Buyer & Champion",
+				channel: "LINKEDIN",
+				description: "Targeted message sharing industry benchmark metrics on CPQ automation and ROI reduction.",
+			},
+			{
+				stepNumber: 3,
+				day: 6,
+				title: "Discovery & Security Compliance Deep Dive",
+				channel: "CALL",
+				description: "30-minute structured discovery call assessing BANT criteria, SOC2/GDPR compliance, and deployment timeline.",
+			},
+			{
+				stepNumber: 4,
+				day: 10,
+				title: "Tailored Multi-Region CPQ Solution Demo",
+				channel: "DEMO",
+				description: "Live solution walkthrough with buying committee showcasing automated quote approvals and custom SLAs.",
+			},
+			{
+				stepNumber: 5,
+				day: 14,
+				title: "Master Services Agreement (MSA) & Proposal Delivery",
+				channel: "CONTRACT",
+				description: "Delivery of official executive proposal with tiered discount governance and digital signature schedule.",
+			},
+		],
+	},
+	{
+		id: "cadence_midmarket_accelerator",
+		name: "Mid-Market Rapid Acceleration Sprint",
+		targetAudience: "High-Growth Scale-Ups & FinTech Founders",
+		durationDays: 7,
+		steps: [
+			{
+				stepNumber: 1,
+				day: 1,
+				title: "Platform Fast-Track Briefing",
+				channel: "EMAIL",
+				description: "Rapid deployment overview and self-serve onboarding roadmap.",
+			},
+			{
+				stepNumber: 2,
+				day: 2,
+				title: "15-Minute Technical Validation Call",
+				channel: "CALL",
+				description: "Review API connectors, ERP data migration, and payment terms.",
+			},
+			{
+				stepNumber: 3,
+				day: 4,
+				title: "Interactive Solution Sandbox Session",
+				channel: "DEMO",
+				description: "Hands-on guided walkthrough in staging workspace.",
+			},
+			{
+				stepNumber: 4,
+				day: 7,
+				title: "Commercial Proposal & Contract Execution",
+				channel: "CONTRACT",
+				description: "Finalize annual prepaid terms and execute digital MSA.",
+			},
+		],
+	},
+	{
+		id: "cadence_outbound_strategic",
+		name: "Cold Strategic Account Multi-Threading",
+		targetAudience: "Enterprise Accounts Replacing Legacy Stacks",
+		durationDays: 21,
+		steps: [
+			{
+				stepNumber: 1,
+				day: 1,
+				title: "Legacy TCO Comparison & Migration Blueprint",
+				channel: "EMAIL",
+				description: "Comprehensive cost analysis comparing legacy ERP/CRM license fees against Cambliss unified model.",
+			},
+			{
+				stepNumber: 2,
+				day: 4,
+				title: "Multi-Threaded Outreach to VP Engineering",
+				channel: "LINKEDIN",
+				description: "Technical briefing on zero-downtime database replication and enterprise SLAs.",
+			},
+			{
+				stepNumber: 3,
+				day: 8,
+				title: "Executive Intro Call with Solution Architect",
+				channel: "CALL",
+				description: "Discuss bespoke enterprise requirements and regional data residency constraints.",
+			},
+			{
+				stepNumber: 4,
+				day: 13,
+				title: "Formal RFP Response & Demo",
+				channel: "DEMO",
+				description: "Live demonstration tailored to requirements matrix.",
+			},
+			{
+				stepNumber: 5,
+				day: 17,
+				title: "Security & Legal Ops Redlining",
+				channel: "CONTRACT",
+				description: "Review GDPR DPA, limitation of liability clauses, and custom SLA schedules.",
+			},
+			{
+				stepNumber: 6,
+				day: 21,
+				title: "Final Executive Committee Sign-Off",
+				channel: "CONTRACT",
+				description: "Countersign Master Proposal with CFO sign-off.",
+			},
+		],
+	},
+];
+
 export default function CrmPage() {
 	const [activeTab, setActiveTab] = useState<SuiteTab>("overview");
 	const [selectedCurrency, setSelectedCurrency] = useState<SupportedCurrency>("USD");
@@ -410,6 +593,112 @@ export default function CrmPage() {
 	const [cpqPaymentTerms, setCpqPaymentTerms] = useState<"NET_30" | "NET_60" | "ANNUAL_PREPAID" | "3YR_ENTERPRISE">("3YR_ENTERPRISE");
 	const [isQuoteGeneratedModalOpen, setIsQuoteGeneratedModalOpen] = useState(false);
 	const [copiedQuote, setCopiedQuote] = useState(false);
+	const [cpqSubView, setCpqSubView] = useState<"configurator" | "quotes_ledger">("configurator");
+	const [savedQuotes, setSavedQuotes] = useState<SavedEnterpriseQuote[]>([
+		{
+			id: "CPQ-2026-9041",
+			version: "v2.0 Approved",
+			accountName: "Acme Global Technologies Inc.",
+			contactName: "Jonathan Vance",
+			totalValue: 24700,
+			discountPct: 10,
+			paymentTerms: "3-Year Multi-Region Enterprise (15% Multi-Year Discount)",
+			approvalTier: "Pre-Approved by Sales Operations (<=15%)",
+			status: "APPROVED",
+			createdAt: "2026-10-03",
+			shareToken: "token_acme_9041_sec",
+			itemsCount: 4,
+		},
+		{
+			id: "CPQ-2026-8812",
+			version: "v1.1",
+			accountName: "Apex Financial Geneva",
+			contactName: "Elena Rostova",
+			totalValue: 39500,
+			discountPct: 20,
+			paymentTerms: "Annual Prepaid (5% Discount)",
+			approvalTier: "Requires Regional VP of Sales Approval (16-25%)",
+			status: "PENDING_APPROVAL",
+			createdAt: "2026-10-02",
+			shareToken: "token_apex_8812_sec",
+			itemsCount: 5,
+		},
+		{
+			id: "CPQ-2026-7510",
+			version: "v1.0",
+			accountName: "Nordic Logistics ASA",
+			contactName: "Henrik Lindqvist",
+			totalValue: 18200,
+			discountPct: 0,
+			paymentTerms: "Net 30 Days Standard",
+			approvalTier: "Pre-Approved by Sales Operations (<=15%)",
+			status: "ACCEPTED",
+			createdAt: "2026-09-28",
+			shareToken: "token_nordic_7510_sec",
+			itemsCount: 3,
+		},
+	]);
+	const [activeProposalPreviewQuote, setActiveProposalPreviewQuote] = useState<SavedEnterpriseQuote | null>(null);
+	const [copiedProposalLink, setCopiedProposalLink] = useState(false);
+	const [clientSignAcceptName, setClientSignAcceptName] = useState("");
+
+	// Deal Execution: Kanban vs Table View State
+	const [dealViewMode, setDealViewMode] = useState<"kanban" | "table">("kanban");
+
+	// Contract & Legal Ops Studio State
+	const [contractDocType, setContractDocType] = useState<"MSA" | "NDA" | "SLA_SCHEDULE" | "DPA">("MSA");
+	const [contractAccountName, setContractAccountName] = useState("Acme Global Technologies Inc.");
+	const [liabilityCap, setLiabilityCap] = useState<"1X_ACV" | "2X_ACV" | "UNCAPPED">("1X_ACV");
+	const [governingLaw, setGoverningLaw] = useState<"DELAWARE" | "UK" | "INDIA" | "DIFC_DUBAI" | "SINGAPORE">("DELAWARE");
+	const [dataPrivacyStandard, setDataPrivacyStandard] = useState<"GDPR_SOC2" | "HIPAA_BAA" | "ISO_27001">("GDPR_SOC2");
+	const [contractTerm, setContractTerm] = useState<"12_MONTHS" | "24_MONTHS" | "36_MONTHS">("36_MONTHS");
+	const [contractStatus, setContractStatus] = useState<"DRAFT" | "LEGAL_REVIEW" | "SENT_FOR_SIGNATURE" | "EXECUTED">("DRAFT");
+	const [signerName, setSignerName] = useState("Elena Rostova");
+	const [signerTitle, setSignerTitle] = useState("Chief Operating Officer");
+	const [signedTimestamp, setSignedTimestamp] = useState<string | null>(null);
+	const [copiedContractText, setCopiedContractText] = useState(false);
+
+	// Enterprise Sales Cadences & Playbooks State
+	const [selectedCadenceId, setSelectedCadenceId] = useState<string>("cadence_enterprise_inbound");
+	const [enrolledProspects, setEnrolledProspects] = useState<EnrolledProspect[]>([
+		{
+			id: "prospect-1",
+			prospectName: "Jonathan Vance",
+			companyName: "Acme Global Technologies Inc.",
+			targetPersona: "Economic Buyer",
+			cadenceId: "cadence_enterprise_inbound",
+			currentStep: 3,
+			lastActionDate: "2026-10-02",
+			nextActionDate: "2026-10-05 (Today)",
+			status: "ACTIVE",
+		},
+		{
+			id: "prospect-2",
+			prospectName: "Elena Rostova",
+			companyName: "Apex Financial Geneva",
+			targetPersona: "Technical Champion",
+			cadenceId: "cadence_enterprise_inbound",
+			currentStep: 2,
+			lastActionDate: "2026-10-03",
+			nextActionDate: "2026-10-06",
+			status: "ACTIVE",
+		},
+		{
+			id: "prospect-3",
+			prospectName: "David Sterling",
+			companyName: "Sterling & Partners Capital",
+			targetPersona: "Procurement Lead",
+			cadenceId: "cadence_midmarket_accelerator",
+			currentStep: 4,
+			lastActionDate: "2026-10-04",
+			nextActionDate: "2026-10-07",
+			status: "ACTIVE",
+		},
+	]);
+	const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+	const [newProspectName, setNewProspectName] = useState("");
+	const [newProspectCompany, setNewProspectCompany] = useState("");
+	const [newProspectPersona, setNewProspectPersona] = useState("Economic Buyer");
 
 	// Import Wizard State
 	const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -527,7 +816,122 @@ export default function CrmPage() {
 
 	useEffect(() => {
 		void loadAll();
+		try {
+			const storedQuotes = localStorage.getItem("cambliss_enterprise_quotes");
+			if (storedQuotes) {
+				const parsed = JSON.parse(storedQuotes);
+				if (Array.isArray(parsed) && parsed.length > 0) setSavedQuotes(parsed);
+			}
+			const storedProspects = localStorage.getItem("cambliss_cadence_prospects");
+			if (storedProspects) {
+				const parsed = JSON.parse(storedProspects);
+				if (Array.isArray(parsed) && parsed.length > 0) setEnrolledProspects(parsed);
+			}
+		} catch {
+			// fallback to default
+		}
 	}, []);
+
+	const handleMoveDealStage = async (dealId: string, targetStageId: string) => {
+		setStageUpdate((prev) => ({ ...prev, [dealId]: targetStageId }));
+		setDeals((prev) =>
+			prev.map((d) => (d.id === dealId ? { ...d, stageId: targetStageId } : d))
+		);
+		try {
+			const authHeaders = getAuthHeaders();
+			authHeaders.set("Content-Type", "application/json");
+			await fetch(`/api/crm/deals/${dealId}/stage`, {
+				method: "PUT",
+				headers: authHeaders,
+				body: JSON.stringify({ stageId: targetStageId }),
+			});
+			void loadAll();
+			setNotice("Deal stage updated in pipeline.");
+		} catch {
+			setNotice("Unable to persist deal stage change.");
+		}
+	};
+
+	const handleSaveQuoteRevision = () => {
+		const nextRevNumber = savedQuotes.length + 1;
+		const quoteId = `CPQ-2026-${9040 + nextRevNumber}`;
+		const newQuote: SavedEnterpriseQuote = {
+			id: quoteId,
+			version: `v${(1 + nextRevNumber * 0.1).toFixed(1)} Draft`,
+			accountName: cpqAccountName,
+			contactName: cpqContactName,
+			totalValue: cpqCalculations.finalNetContractValue,
+			discountPct: cpqDiscountPct,
+			paymentTerms: cpqPaymentTerms,
+			approvalTier: cpqCalculations.approvalTier.text,
+			status: cpqCalculations.approvalTier.text.includes("CFO") ? "PENDING_APPROVAL" : "APPROVED",
+			createdAt: new Date().toISOString().split("T")[0],
+			shareToken: `token_${Math.random().toString(36).slice(2, 10)}`,
+			itemsCount: Object.keys(selectedCpqItems).length,
+		};
+		const updated = [newQuote, ...savedQuotes];
+		setSavedQuotes(updated);
+		try {
+			localStorage.setItem("cambliss_enterprise_quotes", JSON.stringify(updated));
+		} catch {}
+		setNotice(`Saved Quote ${quoteId} to Enterprise Proposal Ledger.`);
+	};
+
+	const handleExecuteContract = () => {
+		const ts = new Date().toISOString();
+		setSignedTimestamp(ts);
+		setContractStatus("EXECUTED");
+		setNotice("Agreement legally executed and sealed with cryptographic verification.");
+	};
+
+	const handleAdvanceProspectStep = (prospectId: string) => {
+		setEnrolledProspects((prev) => {
+			const updated = prev.map((p) => {
+				if (p.id !== prospectId) return p;
+				const currentPlaybook = CADENCE_PLAYBOOKS.find((c) => c.id === p.cadenceId);
+				const maxSteps = currentPlaybook?.steps.length || 5;
+				const nextStep = p.currentStep + 1;
+				const isFinished = nextStep > maxSteps;
+				return {
+					...p,
+					currentStep: isFinished ? maxSteps : nextStep,
+					status: isFinished ? "COMPLETED" : "ACTIVE",
+					lastActionDate: new Date().toISOString().split("T")[0],
+					nextActionDate: isFinished ? "Cadence Complete" : `Day ${currentPlaybook?.steps[nextStep - 1]?.day || nextStep}`,
+				} as EnrolledProspect;
+			});
+			try {
+				localStorage.setItem("cambliss_cadence_prospects", JSON.stringify(updated));
+			} catch {}
+			return updated;
+		});
+		setNotice("Cadence touchpoint completed and logged.");
+	};
+
+	const handleEnrollProspect = (e: FormEvent) => {
+		e.preventDefault();
+		if (!newProspectName.trim()) return;
+		const newProspect: EnrolledProspect = {
+			id: `prospect-${Date.now()}`,
+			prospectName: newProspectName.trim(),
+			companyName: newProspectCompany.trim() || "Global Enterprise",
+			targetPersona: newProspectPersona,
+			cadenceId: selectedCadenceId,
+			currentStep: 1,
+			lastActionDate: new Date().toISOString().split("T")[0],
+			nextActionDate: "Day 1 (Immediate)",
+			status: "ACTIVE",
+		};
+		const updated = [newProspect, ...enrolledProspects];
+		setEnrolledProspects(updated);
+		try {
+			localStorage.setItem("cambliss_cadence_prospects", JSON.stringify(updated));
+		} catch {}
+		setNewProspectName("");
+		setNewProspectCompany("");
+		setEnrollModalOpen(false);
+		setNotice("New prospect enrolled in enterprise sales cadence.");
+	};
 
 	// Handle Lead actions
 	const handleCreateLead = async (event: FormEvent) => {
@@ -1110,6 +1514,21 @@ export default function CrmPage() {
 		[setupOptions.pipelines, dealForm.pipelineId],
 	);
 
+	const kanbanStages = useMemo(() => {
+		const defaultPipeline = setupOptions.pipelines.find((p) => p.id === dealForm.pipelineId) || setupOptions.pipelines[0];
+		if (defaultPipeline?.stages && defaultPipeline.stages.length >= 3) {
+			return defaultPipeline.stages;
+		}
+		return [
+			{ id: "stage_discovery", name: "1. Discovery & Needs", order: 1 },
+			{ id: "stage_qualification", name: "2. Technical Fit", order: 2 },
+			{ id: "stage_proposal", name: "3. CPQ Quote", order: 3 },
+			{ id: "stage_negotiation", name: "4. Executive Review", order: 4 },
+			{ id: "stage_won", name: "5. Closed Won", order: 5 },
+			{ id: "stage_lost", name: "6. Closed Lost", order: 6 },
+		];
+	}, [setupOptions.pipelines, dealForm.pipelineId]);
+
 	const getStagesForPipeline = (pipelineId: string) => {
 		return setupOptions.pipelines.find((pipeline) => pipeline.id === pipelineId)?.stages ?? [];
 	};
@@ -1633,6 +2052,14 @@ export default function CrmPage() {
 						<Calculator className="h-3.5 w-3.5" />
 						Cambliss CPQ Cloud
 					</button>
+					<button type="button" onClick={() => setActiveTab("contracts")} className={tabButtonClass("contracts")}>
+						<FileCheck className="h-3.5 w-3.5" />
+						Contract & Legal Ops
+					</button>
+					<button type="button" onClick={() => setActiveTab("cadences")} className={tabButtonClass("cadences")}>
+						<Workflow className="h-3.5 w-3.5" />
+						Sales Cadences
+					</button>
 					<button type="button" onClick={() => setActiveTab("service")} className={tabButtonClass("service")}>
 						<Headphones className="h-3.5 w-3.5" />
 						Mission-Critical SLA
@@ -1773,48 +2200,78 @@ export default function CrmPage() {
 						</div>
 
 						{/* Quick Executive Shortcuts */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
 							<div
 								onClick={() => setActiveTab("cpq")}
-								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-5 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
+								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-4 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
 							>
 								<div className="flex items-center gap-3">
-									<span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#404d85] text-white">
-										<Calculator className="h-5 w-5" />
+									<span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#404d85] text-white shrink-0">
+										<Calculator className="h-4 w-4" />
 									</span>
 									<div>
-										<h4 className="font-bold text-[#404d85]">Cambliss CPQ Cloud Engine</h4>
-										<p className="text-xs text-[#5b6472]">Generate multi-tier price quotes with discount approvals.</p>
+										<h4 className="font-bold text-[#404d85] text-xs">CPQ Cloud Studio</h4>
+										<p className="text-[11px] text-[#5b6472]">Configure quotes with approval tiers.</p>
+									</div>
+								</div>
+							</div>
+
+							<div
+								onClick={() => setActiveTab("contracts")}
+								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-4 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
+							>
+								<div className="flex items-center gap-3">
+									<span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#6678c1] text-white shrink-0">
+										<FileCheck className="h-4 w-4" />
+									</span>
+									<div>
+										<h4 className="font-bold text-[#404d85] text-xs">Contract & Legal Ops</h4>
+										<p className="text-[11px] text-[#5b6472]">MSAs, NDAs & e-signature audit.</p>
+									</div>
+								</div>
+							</div>
+
+							<div
+								onClick={() => setActiveTab("cadences")}
+								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-4 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
+							>
+								<div className="flex items-center gap-3">
+									<span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#404d85] text-white shrink-0">
+										<Workflow className="h-4 w-4" />
+									</span>
+									<div>
+										<h4 className="font-bold text-[#404d85] text-xs">Sales Cadences</h4>
+										<p className="text-[11px] text-[#5b6472]">Multi-touch outreach sequences.</p>
 									</div>
 								</div>
 							</div>
 
 							<div
 								onClick={() => setActiveTab("customer360")}
-								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-5 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
+								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-4 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
 							>
 								<div className="flex items-center gap-3">
-									<span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#6678c1] text-white">
-										<Building2 className="h-5 w-5" />
+									<span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#6678c1] text-white shrink-0">
+										<Building2 className="h-4 w-4" />
 									</span>
 									<div>
-										<h4 className="font-bold text-[#404d85]">Account 360 & Buying Center</h4>
-										<p className="text-xs text-[#5b6472]">Corporate hierarchies, BANT scoring & stakeholders.</p>
+										<h4 className="font-bold text-[#404d85] text-xs">Customer 360</h4>
+										<p className="text-[11px] text-[#5b6472]">BANT scoring & buying center.</p>
 									</div>
 								</div>
 							</div>
 
 							<div
 								onClick={() => setActiveTab("service")}
-								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-5 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
+								className="rounded-2xl border border-[#d9e2ef] bg-gradient-to-br from-[#f8faff] to-white p-4 shadow-sm cursor-pointer hover:border-[#6678c1] transition"
 							>
 								<div className="flex items-center gap-3">
-									<span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
-										<ShieldCheck className="h-5 w-5" />
+									<span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white shrink-0">
+										<ShieldCheck className="h-4 w-4" />
 									</span>
 									<div>
-										<h4 className="font-bold text-[#404d85]">Mission-Critical Support SLAs</h4>
-										<p className="text-xs text-[#5b6472]">Severity 1 (&lt;1h) and Severity 2 (&lt;4h) escalation matrix.</p>
+										<h4 className="font-bold text-[#404d85] text-xs">Support SLAs</h4>
+										<p className="text-[11px] text-[#5b6472]">Severity 1 & 2 escalation matrix.</p>
 									</div>
 								</div>
 							</div>
@@ -1954,13 +2411,157 @@ export default function CrmPage() {
 									<h3 className="text-xl font-bold text-[#404d85] mt-1">Enterprise Solution Quotation Studio</h3>
 								</div>
 
-								{/* Approval Tier Badge */}
-								<div className={`px-4 py-2 rounded-xl border text-xs font-bold ${cpqCalculations.approvalTier.badgeColor}`}>
-									{cpqCalculations.approvalTier.text}
+								<div className="flex flex-wrap items-center gap-2">
+									<div className="flex items-center rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-1">
+										<button
+											type="button"
+											onClick={() => setCpqSubView("configurator")}
+											className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+												cpqSubView === "configurator"
+													? "bg-[#404d85] text-white shadow-xs"
+													: "text-[#5b6472] hover:text-[#404d85]"
+											}`}
+										>
+											Solution Configurator
+										</button>
+										<button
+											type="button"
+											onClick={() => setCpqSubView("quotes_ledger")}
+											className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
+												cpqSubView === "quotes_ledger"
+													? "bg-[#404d85] text-white shadow-xs"
+													: "text-[#5b6472] hover:text-[#404d85]"
+											}`}
+										>
+											<History className="h-3.5 w-3.5" />
+											Quotes & Revisions ({savedQuotes.length})
+										</button>
+									</div>
+
+									{/* Approval Tier Badge */}
+									<div className={`px-4 py-2 rounded-xl border text-xs font-bold ${cpqCalculations.approvalTier.badgeColor}`}>
+										{cpqCalculations.approvalTier.text}
+									</div>
 								</div>
 							</div>
 
-							<div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+							{cpqSubView === "quotes_ledger" ? (
+								/* SAVED QUOTES & REVISION HISTORY LEDGER */
+								<div className="mt-6 space-y-4">
+									<div className="flex items-center justify-between">
+										<div>
+											<h4 className="font-bold text-[#404d85] text-base">Enterprise Proposal & Revision Ledger</h4>
+											<p className="text-xs text-[#5b6472]">Track quote versions, approval stages, and generate direct client acceptance links.</p>
+										</div>
+										<button
+											type="button"
+											onClick={() => setCpqSubView("configurator")}
+											className="rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-bold text-white hover:bg-[#5567b0] transition shadow-xs flex items-center gap-1.5"
+										>
+											<Plus className="h-3.5 w-3.5" />
+											Configure New Quote
+										</button>
+									</div>
+
+									<div className="overflow-x-auto rounded-2xl border border-[#d9e2ef]">
+										<table className="w-full text-left text-xs">
+											<thead className="bg-[#f8faff] border-b border-[#d9e2ef]">
+												<tr>
+													<th className="px-4 py-3 font-bold text-[#404d85]">Quote Ref & Version</th>
+													<th className="px-4 py-3 font-bold text-[#404d85]">Account & Signer</th>
+													<th className="px-4 py-3 font-bold text-[#404d85]">Net Contract Value ({selectedCurrency})</th>
+													<th className="px-4 py-3 font-bold text-[#404d85]">Terms & Discount</th>
+													<th className="px-4 py-3 font-bold text-[#404d85]">Approval Governance</th>
+													<th className="px-4 py-3 font-bold text-[#404d85]">Status</th>
+													<th className="px-4 py-3 text-right font-bold text-[#404d85]">Actions</th>
+												</tr>
+											</thead>
+											<tbody className="divide-y divide-[#d9e2ef] bg-white">
+												{savedQuotes.map((q) => (
+													<tr key={q.id} className="hover:bg-[#f8faff] transition">
+														<td className="px-4 py-3">
+															<span className="font-extrabold text-[#404d85]">{q.id}</span>
+															<span className="ml-2 inline-block rounded-md bg-[#6678c1]/10 px-2 py-0.5 text-[10px] font-bold text-[#6678c1]">
+																{q.version}
+															</span>
+															<p className="text-[10px] text-[#5b6472] mt-0.5">{q.createdAt} · {q.itemsCount} Items</p>
+														</td>
+														<td className="px-4 py-3 font-semibold text-[#1f2430]">
+															<p className="font-bold">{q.accountName}</p>
+															<p className="text-[11px] text-[#5b6472]">{q.contactName}</p>
+														</td>
+														<td className="px-4 py-3 font-bold text-[#404d85]">
+															{formatMoney(q.totalValue)}
+														</td>
+														<td className="px-4 py-3 text-[#5b6472]">
+															<p className="text-[11px] font-semibold text-[#1f2430]">{q.paymentTerms.split(" (")[0]}</p>
+															<p className="text-[10px] text-emerald-700">{q.discountPct}% Discount Applied</p>
+														</td>
+														<td className="px-4 py-3">
+															<span className="inline-block rounded-md bg-[#eef2fa] px-2 py-0.5 text-[10px] font-bold text-[#404d85]">
+																{q.approvalTier.split(" (")[0]}
+															</span>
+														</td>
+														<td className="px-4 py-3">
+															<span
+																className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${
+																	q.status === "ACCEPTED"
+																		? "bg-emerald-100 text-emerald-800"
+																		: q.status === "APPROVED"
+																		? "bg-blue-100 text-blue-800"
+																		: q.status === "PENDING_APPROVAL"
+																		? "bg-amber-100 text-amber-800"
+																		: "bg-slate-100 text-slate-700"
+																}`}
+															>
+																{q.status}
+															</span>
+														</td>
+														<td className="px-4 py-3 text-right">
+															<div className="flex items-center justify-end gap-2">
+																<button
+																	type="button"
+																	onClick={() => setActiveProposalPreviewQuote(q)}
+																	className="rounded-lg bg-[#6678c1] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#5567b0] transition flex items-center gap-1 shadow-xs"
+																>
+																	<ExternalLink className="h-3 w-3" />
+																	Client Proposal Link
+																</button>
+																{q.status !== "ACCEPTED" && (
+																	<button
+																		type="button"
+																		onClick={() => {
+																			setSavedQuotes((prev) =>
+																				prev.map((item) => (item.id === q.id ? { ...item, status: "ACCEPTED" } : item))
+																			);
+																			setNotice(`Quote ${q.id} marked as Accepted by Client.`);
+																		}}
+																		className="rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100 transition"
+																	>
+																		Accept
+																	</button>
+																)}
+																<button
+																	type="button"
+																	onClick={() => {
+																		if (window.confirm("Remove this quote revision?")) {
+																			setSavedQuotes((prev) => prev.filter((item) => item.id !== q.id));
+																		}
+																	}}
+																	className="p-1 text-slate-400 hover:text-rose-600"
+																>
+																	<Trash2 className="h-3.5 w-3.5" />
+																</button>
+															</div>
+														</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									</div>
+								</div>
+							) : (
+								<div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
 								{/* Left 2 Cols: Catalog Item Selector */}
 								<div className="lg:col-span-2 space-y-4">
 									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2141,18 +2742,29 @@ export default function CrmPage() {
 										</div>
 									</div>
 
-									<button
-										onClick={() => setIsQuoteGeneratedModalOpen(true)}
-										className="w-full rounded-xl bg-[#6678c1] py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#5567b0] transition flex items-center justify-center gap-2"
-									>
-										<FileCheck className="h-4 w-4" />
-										Generate Official Enterprise Quote
-									</button>
+									<div className="space-y-2 pt-2">
+										<button
+											onClick={() => setIsQuoteGeneratedModalOpen(true)}
+											className="w-full rounded-xl bg-[#6678c1] py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#5567b0] transition flex items-center justify-center gap-2"
+										>
+											<FileCheck className="h-4 w-4" />
+											Generate Official Enterprise Quote
+										</button>
+										<button
+											type="button"
+											onClick={handleSaveQuoteRevision}
+											className="w-full rounded-xl border border-[#6678c1] bg-white py-2 text-xs font-bold text-[#6678c1] shadow-xs hover:bg-[#6678c1]/10 transition flex items-center justify-center gap-2"
+										>
+											<History className="h-4 w-4" />
+											Save Quote Draft & Create Revision
+										</button>
+									</div>
 								</div>
 							</div>
-						</div>
+						)}
 					</div>
-				)}
+				</div>
+			)}
 
 				{/* TAB 4: SALES & PIPELINE EXECUTION */}
 				{activeTab === "sales" && (
@@ -2247,111 +2859,707 @@ export default function CrmPage() {
 							</form>
 						</div>
 
-						{/* Deals Table with Currency Conversion */}
-						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm">
-							<div className="flex items-center justify-between mb-4">
-								<h4 className="font-bold text-[#404d85] text-base">Active Opportunities & Deals</h4>
-								<span className="text-xs text-[#5b6472]">Amounts converted to {selectedCurrency}</span>
+						{/* Deals Execution: Interactive Kanban vs Data Grid */}
+						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-5 shadow-sm space-y-4">
+							<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#d9e2ef] pb-4">
+								<div>
+									<h4 className="font-bold text-[#404d85] text-base">Active Opportunities & Deal Velocity</h4>
+									<p className="text-xs text-[#5b6472]">Real-time pipeline progression, probability weighting & currency conversion ({selectedCurrency}).</p>
+								</div>
+								<div className="flex items-center gap-2">
+									<div className="flex items-center rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-1">
+										<button
+											type="button"
+											onClick={() => setDealViewMode("kanban")}
+											className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+												dealViewMode === "kanban"
+													? "bg-[#404d85] text-white shadow-xs"
+													: "text-[#5b6472] hover:text-[#404d85]"
+											}`}
+										>
+											<Columns className="h-3.5 w-3.5" />
+											Kanban Board
+										</button>
+										<button
+											type="button"
+											onClick={() => setDealViewMode("table")}
+											className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+												dealViewMode === "table"
+													? "bg-[#404d85] text-white shadow-xs"
+													: "text-[#5b6472] hover:text-[#404d85]"
+											}`}
+										>
+											<List className="h-3.5 w-3.5" />
+											Data Grid
+										</button>
+									</div>
+								</div>
 							</div>
 
-							<div className="overflow-x-auto">
-								<table className="w-full text-left text-xs">
-									<thead className="bg-[#f8faff] border-b border-[#d9e2ef]">
-										<tr>
-											<th className="px-4 py-3 font-bold text-[#404d85]">Account / Contact</th>
-											<th className="px-4 py-3 font-bold text-[#404d85]">Contract Value ({selectedCurrency})</th>
-											<th className="px-4 py-3 font-bold text-[#404d85]">Probability</th>
-											<th className="px-4 py-3 font-bold text-[#404d85]">Pipeline & Stage</th>
-											<th className="px-4 py-3 font-bold text-[#404d85]">Status</th>
-											<th className="px-4 py-3 text-right font-bold text-[#404d85]">Actions</th>
-										</tr>
-									</thead>
-									<tbody className="divide-y divide-[#d9e2ef]">
-										{deals.map((deal) => {
-											const dealStages = getStagesForPipeline(deal.pipelineId);
-											const contactObj = deal.contact;
-											const contactFullName = [contactObj?.firstName, contactObj?.lastName].filter(Boolean).join(" ").trim();
-											const dealContactDisplay = contactFullName || contactObj?.companyName || contactObj?.email || `Deal ${deal.id.slice(0, 8)}`;
+							{dealViewMode === "kanban" ? (
+								/* KANBAN BOARD VIEW */
+								<div className="overflow-x-auto pb-2">
+									<div className="flex gap-4 min-w-[1100px]">
+										{kanbanStages.map((stage, stageIdx) => {
+											const stageDeals = deals.filter(
+												(d) =>
+													d.stageId === stage.id ||
+													(!d.stageId && stageIdx === 0) ||
+													(stage.name.toLowerCase().includes("won") && d.status === "WON") ||
+													(stage.name.toLowerCase().includes("lost") && d.status === "LOST")
+											);
+											const stageUnweighted = stageDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+											const stageWeighted = stageDeals.reduce((sum, d) => sum + ((d.value || 0) * (d.probability || 0) / 100), 0);
+
 											return (
-												<tr key={deal.id} className="hover:bg-[#f8faff] transition">
-													<td className="px-4 py-3 font-semibold text-[#1f2430]">
-														{dealContactDisplay}
-													</td>
-													<td className="px-4 py-3 font-bold text-[#404d85]">
-														{formatMoney(deal.value)}
-													</td>
-													<td className="px-4 py-3 text-[#5b6472]">
-														{deal.probability}%
-													</td>
-													<td className="px-4 py-3">
-														<select
-															value={stageUpdate[deal.id] || deal.stageId}
-															onChange={(e) => {
-																const nextStage = e.target.value;
-																setStageUpdate((prev) => ({ ...prev, [deal.id]: nextStage }));
-																setTimeout(() => {
-																	const authHeaders = getAuthHeaders();
-																	authHeaders.set("Content-Type", "application/json");
-																	fetch(`/api/crm/deals/${deal.id}/stage`, {
-																		method: "PUT",
-																		headers: authHeaders,
-																		body: JSON.stringify({ stageId: nextStage }),
-																	}).then(() => loadAll());
-																}, 50);
-															}}
-															className="rounded-lg border border-[#d9e2ef] p-1 text-xs text-[#1f2430]"
-														>
-															{dealStages.map((s) => (
-																<option key={s.id} value={s.id}>
-																	{s.name}
-																</option>
-															))}
-														</select>
-													</td>
-													<td className="px-4 py-3">
-														<span
-															className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-																deal.status === "WON"
-																	? "bg-emerald-50 text-emerald-800"
-																	: deal.status === "LOST"
-																	? "bg-rose-50 text-rose-800"
-																	: "bg-blue-50 text-blue-800"
-															}`}
-														>
-															{deal.status}
-														</span>
-													</td>
-													<td className="px-4 py-3 text-right">
-														<div className="flex items-center justify-end gap-1">
-															<button
-																onClick={() => setEditingDeal(deal)}
-																className="p-1 text-slate-400 hover:text-[#404d85]"
-																title="Edit Deal"
-															>
-																<Edit3 className="h-3.5 w-3.5" />
-															</button>
-															<button
-																onClick={() => handleDeleteDeal(deal.id)}
-																className="p-1 text-slate-400 hover:text-rose-600"
-																title="Delete Deal"
-															>
-																<Trash2 className="h-3.5 w-3.5" />
-															</button>
+												<div
+													key={stage.id}
+													className="flex-1 min-w-[210px] rounded-2xl border border-[#d9e2ef] bg-[#f8faff] p-3 flex flex-col space-y-3"
+												>
+													{/* Column Header */}
+													<div className="border-b border-[#d9e2ef] pb-2">
+														<div className="flex items-center justify-between">
+															<span className="font-extrabold text-xs text-[#404d85] truncate">{stage.name}</span>
+															<span className="rounded-full bg-[#6678c1]/10 text-[#6678c1] font-bold text-[10px] px-2 py-0.5">
+																{stageDeals.length}
+															</span>
 														</div>
-													</td>
-												</tr>
+														<div className="mt-1 flex items-baseline justify-between text-[11px]">
+															<span className="font-bold text-[#1f2430]">{formatMoney(stageUnweighted)}</span>
+															<span className="text-[10px] text-emerald-700 font-semibold">
+																Wtd: {formatMoney(stageWeighted)}
+															</span>
+														</div>
+													</div>
+
+													{/* Column Cards */}
+													<div className="space-y-2.5 flex-1 min-h-[140px]">
+														{stageDeals.map((deal) => {
+															const contactObj = deal.contact;
+															const contactFullName = [contactObj?.firstName, contactObj?.lastName].filter(Boolean).join(" ").trim();
+															const dealContactDisplay = contactFullName || contactObj?.companyName || contactObj?.email || `Deal ${deal.id.slice(0, 8)}`;
+
+															return (
+																<div
+																	key={deal.id}
+																	className="rounded-xl border border-[#d9e2ef] bg-white p-3 shadow-xs hover:border-[#6678c1] transition space-y-2"
+																>
+																	<div className="flex items-start justify-between gap-1">
+																		<p className="font-bold text-xs text-[#1f2430] truncate">{dealContactDisplay}</p>
+																		<span
+																			className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${
+																				deal.status === "WON"
+																					? "bg-emerald-100 text-emerald-800"
+																					: deal.status === "LOST"
+																					? "bg-rose-100 text-rose-800"
+																					: "bg-blue-100 text-blue-800"
+																			}`}
+																		>
+																			{deal.status}
+																		</span>
+																	</div>
+
+																	<div className="flex items-baseline justify-between">
+																		<span className="text-sm font-extrabold text-[#404d85]">
+																			{formatMoney(deal.value)}
+																		</span>
+																		<span className="text-[10px] font-semibold text-[#6678c1] bg-[#6678c1]/10 px-1.5 py-0.5 rounded">
+																			{deal.probability}% win
+																		</span>
+																	</div>
+
+																	<div className="flex items-center justify-between text-[10px] text-[#5b6472] border-t border-[#f0f4f9] pt-2">
+																		<span className="flex items-center gap-1">
+																			<Clock className="h-3 w-3 text-slate-400" />
+																			Active Stage
+																		</span>
+																		<div className="flex items-center gap-1">
+																			{stageIdx > 0 && (
+																				<button
+																					type="button"
+																					onClick={() => handleMoveDealStage(deal.id, kanbanStages[stageIdx - 1].id)}
+																					className="p-1 text-slate-400 hover:text-[#404d85] hover:bg-[#eef2fa] rounded"
+																					title="Move back"
+																				>
+																					←
+																				</button>
+																			)}
+																			{stageIdx < kanbanStages.length - 1 && (
+																				<button
+																					type="button"
+																					onClick={() => handleMoveDealStage(deal.id, kanbanStages[stageIdx + 1].id)}
+																					className="p-1 text-[#6678c1] hover:text-[#404d85] hover:bg-[#eef2fa] rounded font-bold"
+																					title="Advance to next stage"
+																				>
+																					→
+																				</button>
+																			)}
+																			<button
+																				type="button"
+																				onClick={() => setEditingDeal(deal)}
+																				className="p-1 text-slate-400 hover:text-[#404d85]"
+																				title="Edit"
+																			>
+																				<Edit3 className="h-3 w-3" />
+																			</button>
+																			<button
+																				type="button"
+																				onClick={() => handleDeleteDeal(deal.id)}
+																				className="p-1 text-slate-400 hover:text-rose-600"
+																				title="Delete"
+																			>
+																				<Trash2 className="h-3 w-3" />
+																			</button>
+																		</div>
+																	</div>
+																</div>
+															);
+														})}
+
+														{stageDeals.length === 0 && (
+															<div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-[#d9e2ef] p-2 text-center text-[11px] text-[#5b6472]">
+																No active deals
+															</div>
+														)}
+													</div>
+												</div>
 											);
 										})}
-										{deals.length === 0 && (
+									</div>
+								</div>
+							) : (
+								/* DATA GRID TABLE VIEW */
+								<div className="overflow-x-auto">
+									<table className="w-full text-left text-xs">
+										<thead className="bg-[#f8faff] border-b border-[#d9e2ef]">
 											<tr>
-												<td colSpan={6} className="py-8 text-center text-xs text-[#5b6472]">
-													No active deal opportunities recorded yet.
-												</td>
+												<th className="px-4 py-3 font-bold text-[#404d85]">Account / Contact</th>
+												<th className="px-4 py-3 font-bold text-[#404d85]">Contract Value ({selectedCurrency})</th>
+												<th className="px-4 py-3 font-bold text-[#404d85]">Probability</th>
+												<th className="px-4 py-3 font-bold text-[#404d85]">Pipeline & Stage</th>
+												<th className="px-4 py-3 font-bold text-[#404d85]">Status</th>
+												<th className="px-4 py-3 text-right font-bold text-[#404d85]">Actions</th>
 											</tr>
-										)}
-									</tbody>
-								</table>
+										</thead>
+										<tbody className="divide-y divide-[#d9e2ef]">
+											{deals.map((deal) => {
+												const dealStages = getStagesForPipeline(deal.pipelineId);
+												const contactObj = deal.contact;
+												const contactFullName = [contactObj?.firstName, contactObj?.lastName].filter(Boolean).join(" ").trim();
+												const dealContactDisplay = contactFullName || contactObj?.companyName || contactObj?.email || `Deal ${deal.id.slice(0, 8)}`;
+												return (
+													<tr key={deal.id} className="hover:bg-[#f8faff] transition">
+														<td className="px-4 py-3 font-semibold text-[#1f2430]">
+															{dealContactDisplay}
+														</td>
+														<td className="px-4 py-3 font-bold text-[#404d85]">
+															{formatMoney(deal.value)}
+														</td>
+														<td className="px-4 py-3 text-[#5b6472]">
+															{deal.probability}%
+														</td>
+														<td className="px-4 py-3">
+															<select
+																value={stageUpdate[deal.id] || deal.stageId}
+																onChange={(e) => {
+																	const nextStage = e.target.value;
+																	handleMoveDealStage(deal.id, nextStage);
+																}}
+																className="rounded-lg border border-[#d9e2ef] p-1 text-xs text-[#1f2430]"
+															>
+																{dealStages.map((s) => (
+																	<option key={s.id} value={s.id}>
+																		{s.name}
+																	</option>
+																))}
+															</select>
+														</td>
+														<td className="px-4 py-3">
+															<span
+																className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+																	deal.status === "WON"
+																		? "bg-emerald-50 text-emerald-800"
+																		: deal.status === "LOST"
+																		? "bg-rose-50 text-rose-800"
+																		: "bg-blue-50 text-blue-800"
+																}`}
+															>
+																{deal.status}
+															</span>
+														</td>
+														<td className="px-4 py-3 text-right">
+															<div className="flex items-center justify-end gap-1">
+																<button
+																	onClick={() => setEditingDeal(deal)}
+																	className="p-1 text-slate-400 hover:text-[#404d85]"
+																	title="Edit Deal"
+																>
+																	<Edit3 className="h-3.5 w-3.5" />
+																</button>
+																<button
+																	onClick={() => handleDeleteDeal(deal.id)}
+																	className="p-1 text-slate-400 hover:text-rose-600"
+																	title="Delete Deal"
+																>
+																	<Trash2 className="h-3.5 w-3.5" />
+																</button>
+															</div>
+														</td>
+													</tr>
+												);
+											})}
+											{deals.length === 0 && (
+												<tr>
+													<td colSpan={6} className="py-8 text-center text-xs text-[#5b6472]">
+														No active deal opportunities recorded yet.
+													</td>
+												</tr>
+											)}
+										</tbody>
+									</table>
+								</div>
+							)}
+						</div>
+					</div>
+				)}
+
+				{/* TAB: CONTRACT & LEGAL OPS STUDIO */}
+				{activeTab === "contracts" && (
+					<div className="space-y-6">
+						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#d9e2ef] pb-4 gap-4">
+								<div>
+									<div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6678c1] uppercase tracking-wider">
+										<FileCheck className="h-4 w-4" />
+										Enterprise Legal Ops & Contract Redlining Studio
+									</div>
+									<h3 className="text-xl font-bold text-[#404d85] mt-1">Master Agreement & Compliance Configurator</h3>
+								</div>
+
+								{/* Status Badge */}
+								<div className="flex items-center gap-2">
+									<span
+										className={`px-3 py-1.5 rounded-xl border text-xs font-bold ${
+											contractStatus === "EXECUTED"
+												? "border-emerald-300 bg-emerald-50 text-emerald-800"
+												: contractStatus === "SENT_FOR_SIGNATURE"
+												? "border-blue-300 bg-blue-50 text-blue-800"
+												: "border-amber-300 bg-amber-50 text-amber-800"
+										}`}
+									>
+										{contractStatus === "EXECUTED"
+											? "Executed & Sealed (Cryptographic Hash Verified)"
+											: contractStatus === "SENT_FOR_SIGNATURE"
+											? "Awaiting Client Legal Signature"
+											: "Legal Draft · Configurable Clauses"}
+									</span>
+								</div>
 							</div>
+
+							<div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+								{/* Left 5 Cols: Legal Clause Customizer */}
+								<div className="lg:col-span-5 space-y-4">
+									<div className="rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-4 space-y-3.5">
+										<h4 className="text-xs font-bold uppercase tracking-wider text-[#404d85]">
+											Contract Specifications
+										</h4>
+
+										<div>
+											<label className="text-xs font-bold text-[#404d85]">Document Type</label>
+											<select
+												value={contractDocType}
+												onChange={(e) => setContractDocType(e.target.value as any)}
+												className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-xs font-semibold text-[#1f2430]"
+											>
+												<option value="MSA">Master Services Agreement (MSA)</option>
+												<option value="NDA">Mutual Non-Disclosure Agreement (M-NDA)</option>
+												<option value="SLA_SCHEDULE">Enterprise Mission-Critical SLA Schedule</option>
+												<option value="DPA">Data Processing Addendum (GDPR Article 28 DPA)</option>
+											</select>
+										</div>
+
+										<div className="grid grid-cols-2 gap-2">
+											<div>
+												<label className="text-xs font-bold text-[#404d85]">Counterparty Entity</label>
+												<input
+													value={contractAccountName}
+													onChange={(e) => setContractAccountName(e.target.value)}
+													className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2 text-xs font-semibold text-[#1f2430]"
+												/>
+											</div>
+											<div>
+												<label className="text-xs font-bold text-[#404d85]">Authorized Signer</label>
+												<input
+													value={signerName}
+													onChange={(e) => setSignerName(e.target.value)}
+													className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2 text-xs font-semibold text-[#1f2430]"
+												/>
+											</div>
+										</div>
+
+										<div>
+											<label className="text-xs font-bold text-[#404d85]">Limitation of Liability Cap</label>
+											<select
+												value={liabilityCap}
+												onChange={(e) => setLiabilityCap(e.target.value as any)}
+												className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-xs font-semibold text-[#1f2430]"
+											>
+												<option value="1X_ACV">1x Annual Contract Value (Standard Enterprise)</option>
+												<option value="2X_ACV">2x Annual Contract Value (High Exposure Cloud)</option>
+												<option value="UNCAPPED">Uncapped Liability (Mutual Consequential Exclusions)</option>
+											</select>
+										</div>
+
+										<div>
+											<label className="text-xs font-bold text-[#404d85]">Governing Law & Jurisdiction</label>
+											<select
+												value={governingLaw}
+												onChange={(e) => setGoverningLaw(e.target.value as any)}
+												className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-xs font-semibold text-[#1f2430]"
+											>
+												<option value="DELAWARE">Delaware Court of Chancery, United States</option>
+												<option value="UK">High Court of Justice, England & Wales (UK)</option>
+												<option value="INDIA">High Court of Karnataka, Bangalore (India)</option>
+												<option value="DIFC_DUBAI">DIFC Courts, Dubai (United Arab Emirates)</option>
+												<option value="SINGAPORE">Singapore International Arbitration Centre (SIAC)</option>
+											</select>
+										</div>
+
+										<div>
+											<label className="text-xs font-bold text-[#404d85]">Data Privacy & Security Addendum</label>
+											<select
+												value={dataPrivacyStandard}
+												onChange={(e) => setDataPrivacyStandard(e.target.value as any)}
+												className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-xs font-semibold text-[#1f2430]"
+											>
+												<option value="GDPR_SOC2">GDPR Article 28 Standard Contractual Clauses (SCC) + SOC2 Type II</option>
+												<option value="HIPAA_BAA">HIPAA Business Associate Agreement (BAA) + PHI Safeguards</option>
+												<option value="ISO_27001">ISO/IEC 27001:2022 Certified ISMS Controls</option>
+											</select>
+										</div>
+
+										<div>
+											<label className="text-xs font-bold text-[#404d85]">Commitment Term & Termination</label>
+											<select
+												value={contractTerm}
+												onChange={(e) => setContractTerm(e.target.value as any)}
+												className="mt-1 w-full rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-xs font-semibold text-[#1f2430]"
+											>
+												<option value="36_MONTHS">36-Month Strategic Enterprise Commitment (Non-cancellable)</option>
+												<option value="24_MONTHS">24-Month Term (60-day notice for convenience)</option>
+												<option value="12_MONTHS">12-Month Annual Commitment (30-day notice)</option>
+											</select>
+										</div>
+									</div>
+
+									{/* Action Buttons */}
+									<div className="space-y-2">
+										{contractStatus !== "EXECUTED" ? (
+											<button
+												type="button"
+												onClick={handleExecuteContract}
+												className="w-full rounded-xl bg-[#6678c1] py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#5567b0] transition flex items-center justify-center gap-2"
+											>
+												<FileCheck className="h-4 w-4" />
+												Simulate Counterparty E-Signature & Seal Agreement
+											</button>
+										) : (
+											<button
+												type="button"
+												onClick={() => {
+													setContractStatus("DRAFT");
+													setSignedTimestamp(null);
+													setNotice("Agreement reset to Draft for clause redlining.");
+												}}
+												className="w-full rounded-xl border border-[#d9e2ef] bg-white py-2 text-xs font-bold text-[#5b6472] hover:bg-[#f8faff] transition"
+											>
+												Reopen for Redlining & Negotiation
+											</button>
+										)}
+									</div>
+								</div>
+
+								{/* Right 7 Cols: Live Formatted Legal Agreement Preview */}
+								<div className="lg:col-span-7 rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm space-y-4 font-sans text-xs text-[#1f2430] leading-relaxed">
+									<div className="flex items-center justify-between border-b border-[#d9e2ef] pb-4">
+										<div>
+											<div className="inline-flex items-center gap-1.5 rounded-full bg-[#6678c1]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#6678c1]">
+												<Award className="h-3 w-3" />
+												Official Master Agreement • Ref: AGR-2026-8841
+											</div>
+											<h4 className="text-base font-extrabold text-[#404d85] mt-1">
+												{contractDocType === "MSA"
+													? "Master Cloud Services & Tenancy Agreement"
+													: contractDocType === "NDA"
+													? "Mutual Corporate Non-Disclosure Agreement"
+													: contractDocType === "SLA_SCHEDULE"
+													? "Mission-Critical 99.999% Service Level Schedule"
+													: "Standard Data Processing Addendum (GDPR / SCC)"}
+											</h4>
+										</div>
+										<div className="text-right">
+											<p className="text-[10px] text-[#5b6472]">Jurisdiction:</p>
+											<p className="font-bold text-[#404d85]">{governingLaw}</p>
+										</div>
+									</div>
+
+									<div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 text-[11px] text-[#424d5d]">
+										<p>
+											<strong>PARTIES:</strong> This Agreement is entered into between <strong>Cambliss Studio Inc.</strong>, a Delaware Corporation with its principal infrastructure nodes ("Provider"), and <strong>{contractAccountName}</strong> ("Customer" or "Counterparty").
+										</p>
+
+										<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef] space-y-1">
+											<p className="font-bold text-[#404d85]">Section 1: Scope of Enterprise Cloud Tenancy</p>
+											<p>
+												Provider grants Customer a non-exclusive, multi-region enterprise subscription to the Cambliss Unified Platform, encompassing core ERP connectors, real-time CPQ modules, and multi-tenant high-availability workspaces.
+											</p>
+										</div>
+
+										<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef] space-y-1">
+											<p className="font-bold text-[#404d85]">Section 2: Multi-Currency Settlement & Terms</p>
+											<p>
+												All fees shall be invoiced in the designated corporate currency ({selectedCurrency}) pursuant to the commitment term selected ({contractTerm.replace("_", " ")}). Payments shall be settled within agreed Net Terms with interest of 1.5% per month on overdue balances.
+											</p>
+										</div>
+
+										<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef] space-y-1">
+											<p className="font-bold text-[#404d85]">Section 3: Limitation of Liability</p>
+											<p>
+												Except for gross negligence or willful misconduct, either party’s aggregate liability arising under this Agreement shall be strictly capped at <strong>{liabilityCap === "1X_ACV" ? "one times (1x) the total fees paid in the preceding twelve (12) months" : liabilityCap === "2X_ACV" ? "two times (2x) the total annual contract value" : "an uncapped mutual direct damages standard"}</strong>.
+											</p>
+										</div>
+
+										<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef] space-y-1">
+											<p className="font-bold text-[#404d85]">Section 4: Data Protection, Security & Audit Rights</p>
+											<p>
+												Provider represents compliance with <strong>{dataPrivacyStandard.replace("_", " ")}</strong>. Customer data remains Customer’s exclusive property and shall be encrypted at rest (AES-256) and in transit (TLS 1.3) with dedicated KMS isolation.
+											</p>
+										</div>
+
+										<div className="p-3 bg-[#f8faff] rounded-xl border border-[#d9e2ef] space-y-1">
+											<p className="font-bold text-[#404d85]">Section 5: Governing Law & Exclusive Venue</p>
+											<p>
+												This Agreement shall be governed by and construed under the laws of <strong>{governingLaw}</strong> without regard to conflicts of law principles.
+											</p>
+										</div>
+
+										{/* Signatures Block */}
+										<div className="mt-4 pt-3 border-t border-[#d9e2ef] grid grid-cols-2 gap-4">
+											<div className="p-3 bg-white rounded-xl border border-[#d9e2ef] space-y-1">
+												<p className="font-bold text-[10px] text-[#5b6472] uppercase">Signed for Provider:</p>
+												<p className="font-bold text-[#404d85]">Cambliss Studio Inc.</p>
+												<p className="text-[10px] text-emerald-700 font-bold">✓ Digitally Stamped & Authorized</p>
+											</div>
+
+											<div className="p-3 bg-white rounded-xl border border-[#d9e2ef] space-y-1">
+												<p className="font-bold text-[10px] text-[#5b6472] uppercase">Signed for Customer:</p>
+												<p className="font-bold text-[#404d85]">{signerName}</p>
+												{contractStatus === "EXECUTED" ? (
+													<div className="text-[10px] text-emerald-700 font-bold space-y-0.5">
+														<p>✓ Legally Executed via E-Sign</p>
+														<p className="text-[9px] text-[#5b6472] font-mono">Hash: 0x9f81a7b...c4e1</p>
+														<p className="text-[9px] text-[#5b6472]">{signedTimestamp || new Date().toISOString()}</p>
+													</div>
+												) : (
+													<p className="text-[10px] text-amber-700 font-bold">⏳ Awaiting Execution</p>
+												)}
+											</div>
+										</div>
+									</div>
+
+									<div className="flex items-center justify-between border-t border-[#d9e2ef] pt-3">
+										<button
+											type="button"
+											onClick={() => {
+												navigator.clipboard.writeText(`CAMBLISS ENTERPRISE LEGAL AGREEMENT\nDoc: ${contractDocType}\nParties: Cambliss Studio Inc. and ${contractAccountName}\nGoverning Law: ${governingLaw}\nLiability Cap: ${liabilityCap}\nStatus: ${contractStatus}`);
+												setCopiedContractText(true);
+												setTimeout(() => setCopiedContractText(false), 2000);
+											}}
+											className="rounded-xl border border-[#d9e2ef] bg-[#f8faff] px-3 py-1.5 text-xs font-bold text-[#404d85] hover:bg-[#eef2fa] transition flex items-center gap-1.5"
+										>
+											{copiedContractText ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+											{copiedContractText ? "Copied Agreement" : "Copy Agreement Text"}
+										</button>
+										<button
+											type="button"
+											onClick={() => window.print()}
+											className="rounded-xl bg-[#404d85] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#323d6a] transition flex items-center gap-1.5 shadow-xs"
+										>
+											<Printer className="h-3.5 w-3.5" />
+											Print Official Agreement (PDF)
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* TAB: ENTERPRISE SALES CADENCES & PLAYBOOKS */}
+				{activeTab === "cadences" && (
+					<div className="space-y-6">
+						<div className="rounded-2xl border border-[#d9e2ef] bg-white p-6 shadow-sm">
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#d9e2ef] pb-4 gap-4">
+								<div>
+									<div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6678c1] uppercase tracking-wider">
+										<Workflow className="h-4 w-4" />
+										Automated Multi-Channel Outreach Engine
+									</div>
+									<h3 className="text-xl font-bold text-[#404d85] mt-1">Enterprise Sales Cadences & Playbooks</h3>
+								</div>
+
+								<button
+									type="button"
+									onClick={() => setEnrollModalOpen(true)}
+									className="rounded-xl bg-[#6678c1] px-4 py-2 text-xs font-bold text-white hover:bg-[#5567b0] transition shadow-xs flex items-center gap-1.5"
+								>
+									<Plus className="h-3.5 w-3.5" />
+									Enroll Prospect into Cadence
+								</button>
+							</div>
+
+							{/* Playbook Switcher */}
+							<div className="mt-6 flex flex-wrap gap-2">
+								{CADENCE_PLAYBOOKS.map((playbook) => (
+									<button
+										key={playbook.id}
+										type="button"
+										onClick={() => setSelectedCadenceId(playbook.id)}
+										className={`px-4 py-2 text-xs font-bold rounded-xl transition text-left ${
+											selectedCadenceId === playbook.id
+												? "bg-[#404d85] text-white shadow-xs"
+												: "border border-[#d9e2ef] bg-[#f8faff] text-[#5b6472] hover:border-[#6678c1]"
+										}`}
+									>
+										<p>{playbook.name}</p>
+										<p className="text-[10px] opacity-80 font-normal">{playbook.durationDays} Days · {playbook.steps.length} Touchpoints</p>
+									</button>
+								))}
+							</div>
+
+							{/* Visual Step-by-Step Sequence */}
+							{(() => {
+								const currentPlaybook = CADENCE_PLAYBOOKS.find((c) => c.id === selectedCadenceId) || CADENCE_PLAYBOOKS[0];
+								return (
+									<div className="mt-6 space-y-4">
+										<div className="p-4 bg-[#f8faff] rounded-2xl border border-[#d9e2ef]">
+											<div className="flex justify-between items-center mb-3">
+												<h4 className="text-xs font-bold uppercase tracking-wider text-[#404d85]">
+													Outreach Sequence Blueprint: {currentPlaybook.name}
+												</h4>
+												<span className="text-[11px] font-semibold text-[#5b6472]">
+													Target: {currentPlaybook.targetAudience}
+												</span>
+											</div>
+
+											<div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+												{currentPlaybook.steps.map((step) => (
+													<div
+														key={step.stepNumber}
+														className="rounded-xl border border-[#d9e2ef] bg-white p-3.5 space-y-2 relative"
+													>
+														<div className="flex items-center justify-between">
+															<span className="rounded-full bg-[#6678c1]/10 px-2 py-0.5 text-[10px] font-extrabold text-[#6678c1]">
+																Day {step.day}
+															</span>
+															<span className="rounded bg-[#eef2fa] px-1.5 py-0.5 text-[9px] font-bold text-[#404d85]">
+																{step.channel}
+															</span>
+														</div>
+														<h5 className="font-bold text-xs text-[#1f2430]">{step.title}</h5>
+														<p className="text-[10px] text-[#5b6472] line-clamp-3">{step.description}</p>
+													</div>
+												))}
+											</div>
+										</div>
+
+										{/* Enrolled Prospects in this Cadence */}
+										<div className="space-y-3 pt-2">
+											<div className="flex justify-between items-center">
+												<h4 className="font-bold text-sm text-[#404d85]">
+													Active Enrolled Prospects ({enrolledProspects.filter((p) => p.cadenceId === selectedCadenceId).length})
+												</h4>
+											</div>
+
+											<div className="overflow-x-auto rounded-2xl border border-[#d9e2ef]">
+												<table className="w-full text-left text-xs">
+													<thead className="bg-[#f8faff] border-b border-[#d9e2ef]">
+														<tr>
+															<th className="px-4 py-3 font-bold text-[#404d85]">Prospect & Role</th>
+															<th className="px-4 py-3 font-bold text-[#404d85]">Company</th>
+															<th className="px-4 py-3 font-bold text-[#404d85]">Current Step Progress</th>
+															<th className="px-4 py-3 font-bold text-[#404d85]">Next Action Schedule</th>
+															<th className="px-4 py-3 font-bold text-[#404d85]">Status</th>
+															<th className="px-4 py-3 text-right font-bold text-[#404d85]">Execution</th>
+														</tr>
+													</thead>
+													<tbody className="divide-y divide-[#d9e2ef] bg-white">
+														{enrolledProspects
+															.filter((p) => p.cadenceId === selectedCadenceId)
+															.map((prospect) => {
+																const currentStepObj = currentPlaybook.steps[prospect.currentStep - 1] || currentPlaybook.steps[currentPlaybook.steps.length - 1];
+																const progressPct = Math.round((prospect.currentStep / currentPlaybook.steps.length) * 100);
+
+																return (
+																	<tr key={prospect.id} className="hover:bg-[#f8faff] transition">
+																		<td className="px-4 py-3">
+																			<p className="font-bold text-[#1f2430]">{prospect.prospectName}</p>
+																			<p className="text-[10px] text-[#6678c1] font-semibold">{prospect.targetPersona}</p>
+																		</td>
+																		<td className="px-4 py-3 font-semibold text-[#404d85]">
+																			{prospect.companyName}
+																		</td>
+																		<td className="px-4 py-3">
+																			<div className="flex items-center gap-2">
+																				<div className="w-24 bg-[#eef2fa] rounded-full h-2 overflow-hidden">
+																					<div className="bg-[#6678c1] h-2 rounded-full" style={{ width: `${progressPct}%` }} />
+																				</div>
+																				<span className="text-[10px] font-bold text-[#404d85]">
+																					Step {prospect.currentStep}/{currentPlaybook.steps.length}
+																				</span>
+																			</div>
+																			<p className="text-[10px] text-[#5b6472] mt-0.5 truncate max-w-xs">{currentStepObj?.title}</p>
+																		</td>
+																		<td className="px-4 py-3 text-[#5b6472]">
+																			<span className="inline-flex items-center gap-1 font-semibold text-[#1f2430]">
+																				<Calendar className="h-3 w-3 text-[#6678c1]" />
+																				{prospect.nextActionDate}
+																			</span>
+																		</td>
+																		<td className="px-4 py-3">
+																			<span
+																				className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+																					prospect.status === "COMPLETED"
+																						? "bg-emerald-100 text-emerald-800"
+																						: "bg-blue-100 text-blue-800"
+																				}`}
+																			>
+																				{prospect.status}
+																			</span>
+																		</td>
+																		<td className="px-4 py-3 text-right">
+																			{prospect.status !== "COMPLETED" ? (
+																				<button
+																					type="button"
+																					onClick={() => handleAdvanceProspectStep(prospect.id)}
+																					className="rounded-lg bg-[#404d85] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#323d6a] transition shadow-xs"
+																				>
+																					Advance Touchpoint →
+																				</button>
+																			) : (
+																				<span className="text-[11px] font-bold text-emerald-700">✓ Converted</span>
+																			)}
+																		</td>
+																	</tr>
+																);
+															})}
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								);
+							})()}
 						</div>
 					</div>
 				)}
@@ -2827,6 +4035,208 @@ export default function CrmPage() {
 									</button>
 								</div>
 							</div>
+						</div>
+					</div>
+				)}
+
+				{/* SHAREABLE CLIENT PROPOSAL PREVIEW MODAL */}
+				{activeProposalPreviewQuote && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1e2540]/60 backdrop-blur-sm p-4 overflow-y-auto">
+						<div className="w-full max-w-3xl rounded-3xl bg-white p-6 md:p-8 shadow-2xl relative my-8 border border-[#d9e2ef]">
+							<button
+								onClick={() => {
+									setActiveProposalPreviewQuote(null);
+									setClientSignAcceptName("");
+								}}
+								className="absolute right-6 top-6 text-slate-400 hover:text-slate-600"
+							>
+								✕
+							</button>
+
+							{/* Simulated Shareable Link Bar */}
+							<div className="rounded-xl border border-[#d9e2ef] bg-[#f8faff] p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+								<div className="flex items-center gap-2 text-xs truncate max-w-lg">
+									<Globe className="h-4 w-4 text-[#6678c1] shrink-0" />
+									<span className="font-bold text-[#404d85]">Client Link:</span>
+									<span className="font-mono text-[#5b6472] truncate">
+										https://theofficeconnect.com/proposals/{activeProposalPreviewQuote.id}?auth={activeProposalPreviewQuote.shareToken}
+									</span>
+								</div>
+								<button
+									type="button"
+									onClick={() => {
+										navigator.clipboard.writeText(`https://theofficeconnect.com/proposals/${activeProposalPreviewQuote.id}?auth=${activeProposalPreviewQuote.shareToken}`);
+										setCopiedProposalLink(true);
+										setTimeout(() => setCopiedProposalLink(false), 2000);
+									}}
+									className="rounded-lg bg-[#404d85] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#323d6a] transition flex items-center gap-1.5 shrink-0"
+								>
+									{copiedProposalLink ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+									{copiedProposalLink ? "Link Copied" : "Copy Shareable Link"}
+								</button>
+							</div>
+
+							{/* Proposal Document Body */}
+							<div className="mt-5 space-y-5">
+								<div className="flex items-center justify-between border-b border-[#d9e2ef] pb-4">
+									<div>
+										<div className="inline-flex items-center gap-1.5 rounded-full bg-[#6678c1]/10 px-3 py-0.5 text-xs font-bold text-[#6678c1]">
+											<Award className="h-3.5 w-3.5" />
+											Official Cambliss Master Proposal
+										</div>
+										<h3 className="text-xl font-extrabold text-[#404d85] mt-1">Executive Software & Cloud Services Proposal</h3>
+										<p className="text-xs text-[#5b6472]">Proposal Ref: {activeProposalPreviewQuote.id} ({activeProposalPreviewQuote.version})</p>
+									</div>
+									<div className="text-right">
+										<p className="font-bold text-[#1f2430]">{activeProposalPreviewQuote.accountName}</p>
+										<p className="text-xs text-[#5b6472]">Attention: {activeProposalPreviewQuote.contactName}</p>
+										<span
+											className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+												activeProposalPreviewQuote.status === "ACCEPTED"
+													? "bg-emerald-100 text-emerald-800"
+													: "bg-blue-100 text-blue-800"
+											}`}
+										>
+											Status: {activeProposalPreviewQuote.status}
+										</span>
+									</div>
+								</div>
+
+								{/* Financial Summary */}
+								<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+									<div className="p-3.5 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
+										<p className="text-[10px] font-bold uppercase text-[#5b6472]">Net Investment</p>
+										<p className="text-lg font-extrabold text-[#404d85] mt-1">{formatMoney(activeProposalPreviewQuote.totalValue)}</p>
+									</div>
+									<div className="p-3.5 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
+										<p className="text-[10px] font-bold uppercase text-[#5b6472]">Discount Approved</p>
+										<p className="text-lg font-extrabold text-emerald-700 mt-1">{activeProposalPreviewQuote.discountPct}% Off</p>
+									</div>
+									<div className="p-3.5 bg-[#f8faff] rounded-xl border border-[#d9e2ef]">
+										<p className="text-[10px] font-bold uppercase text-[#5b6472]">Payment Terms</p>
+										<p className="text-xs font-bold text-[#1f2430] mt-1.5">{activeProposalPreviewQuote.paymentTerms.split(" (")[0]}</p>
+									</div>
+								</div>
+
+								{/* Client Digital Acceptance */}
+								<div className="rounded-2xl border border-[#d9e2ef] bg-[#f8faff] p-5 space-y-3">
+									<h4 className="text-xs font-bold uppercase tracking-wider text-[#404d85]">
+										Client Executive Acceptance & Digital Sign-Off
+									</h4>
+
+									{activeProposalPreviewQuote.status === "ACCEPTED" ? (
+										<div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 text-xs text-emerald-900">
+											<CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
+											<div>
+												<p className="font-bold">Proposal Accepted & Legally Executed</p>
+												<p className="text-[11px] text-emerald-700">Digital countersignature sealed and archived in Enterprise Ledger.</p>
+											</div>
+										</div>
+									) : (
+										<div className="space-y-3">
+											<p className="text-xs text-[#5b6472]">
+												By clicking accept, the designated officer authorizes the commercial terms and binds {activeProposalPreviewQuote.accountName} to the commitment schedule.
+											</p>
+											<div className="flex flex-col sm:flex-row items-center gap-3">
+												<input
+													value={clientSignAcceptName}
+													onChange={(e) => setClientSignAcceptName(e.target.value)}
+													placeholder={`Type Full Legal Name (e.g. ${activeProposalPreviewQuote.contactName})`}
+													className="w-full sm:flex-1 rounded-xl border border-[#d9e2ef] bg-white p-2.5 text-xs font-semibold text-[#1f2430]"
+												/>
+												<button
+													type="button"
+													disabled={!clientSignAcceptName.trim()}
+													onClick={() => {
+														const updated = savedQuotes.map((q) =>
+															q.id === activeProposalPreviewQuote.id ? { ...q, status: "ACCEPTED" as const } : q
+														);
+														setSavedQuotes(updated);
+														setActiveProposalPreviewQuote({ ...activeProposalPreviewQuote, status: "ACCEPTED" });
+														try {
+															localStorage.setItem("cambliss_enterprise_quotes", JSON.stringify(updated));
+														} catch {}
+														setNotice(`Proposal ${activeProposalPreviewQuote.id} successfully accepted and executed.`);
+													}}
+													className="w-full sm:w-auto rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+												>
+													<Check className="h-4 w-4" />
+													Accept & Execute Proposal
+												</button>
+											</div>
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* ENROLL PROSPECT INTO CADENCE MODAL */}
+				{enrollModalOpen && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1e2540]/60 backdrop-blur-sm p-4">
+						<div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-4 border border-[#d9e2ef]">
+							<div className="flex items-center justify-between border-b border-[#d9e2ef] pb-3">
+								<h3 className="text-base font-bold text-[#404d85]">Enroll Prospect in Outreach Cadence</h3>
+								<button type="button" onClick={() => setEnrollModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+							</div>
+
+							<form onSubmit={handleEnrollProspect} className="space-y-3">
+								<div>
+									<label className="text-xs font-bold text-[#404d85]">Select Sales Cadence Playbook</label>
+									<select
+										value={selectedCadenceId}
+										onChange={(e) => setSelectedCadenceId(e.target.value)}
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+									>
+										{CADENCE_PLAYBOOKS.map((p) => (
+											<option key={p.id} value={p.id}>
+												{p.name} ({p.durationDays} Days · {p.steps.length} Touches)
+											</option>
+										))}
+									</select>
+								</div>
+
+								<div>
+									<label className="text-xs font-bold text-[#404d85]">Prospect Full Name</label>
+									<input
+										value={newProspectName}
+										onChange={(e) => setNewProspectName(e.target.value)}
+										placeholder="e.g. Jonathan Vance"
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+										required
+									/>
+								</div>
+
+								<div>
+									<label className="text-xs font-bold text-[#404d85]">Enterprise Entity / Company</label>
+									<input
+										value={newProspectCompany}
+										onChange={(e) => setNewProspectCompany(e.target.value)}
+										placeholder="e.g. Acme Global Technologies Inc."
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+									/>
+								</div>
+
+								<div>
+									<label className="text-xs font-bold text-[#404d85]">Buying Center Target Persona</label>
+									<select
+										value={newProspectPersona}
+										onChange={(e) => setNewProspectPersona(e.target.value)}
+										className="mt-1 w-full rounded-xl border border-[#d9e2ef] p-2 text-xs text-[#1f2430]"
+									>
+										<option value="Economic Buyer">Economic Buyer (CFO / VP Finance)</option>
+										<option value="Technical Champion">Technical Champion (CTO / Head of Arch)</option>
+										<option value="Technical Evaluator">Technical Evaluator (SecOps / Lead Eng)</option>
+										<option value="Procurement Lead">Procurement / Legal Officer</option>
+									</select>
+								</div>
+
+								<div className="flex justify-end gap-2 pt-2 border-t border-[#d9e2ef]">
+									<button type="button" onClick={() => setEnrollModalOpen(false)} className="rounded-xl border border-[#d9e2ef] px-3 py-1.5 text-xs font-bold text-[#5b6472]">Cancel</button>
+									<button type="submit" className="rounded-xl bg-[#6678c1] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#5567b0] transition">Enroll in Sequence</button>
+								</div>
+							</form>
 						</div>
 					</div>
 				)}
